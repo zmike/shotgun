@@ -186,6 +186,7 @@ char *
 xml_sasl_write(const char *sasl, size_t *len)
 {
 /*
+http://code.google.com/apis/talk/jep_extensions/jid_domain_change.html
 <auth xmlns="urn:ietf:params:xml:ns:xmpp-sasl" 
       mechanism="PLAIN" 
       xmlns:ga='http://www.google.com/talk/protocol/auth' 
