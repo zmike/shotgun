@@ -115,6 +115,7 @@ error(void *d __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Server_Error *ev)
 int
 main(int argc, char *argv[])
 {
+   char *pass;
 
    if (argc != 3)
      {
@@ -133,12 +134,14 @@ main(int argc, char *argv[])
    memset(&auth, 0, sizeof(Shotgun_Auth));
    auth.user = eina_stringshare_add(argv[1]);
    auth.from = eina_stringshare_add(argv[2]);
-   auth.pass = getpass_x("Password: ");
-   if (!auth.pass)
+   pass = getpass_x("Password: ");
+   if (!pass)
      {
         ERR("No password entered!");
         return 1;
      }
+   auth.pass = strdup(pass);
+   pass = NULL;
 
    ecore_event_handler_add(ECORE_CON_EVENT_SERVER_ADD, (Ecore_Event_Handler_Cb)con, argv);
    ecore_event_handler_add(ECORE_CON_EVENT_SERVER_DEL, (Ecore_Event_Handler_Cb)disc, NULL);
