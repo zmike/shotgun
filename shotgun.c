@@ -3,8 +3,9 @@
 #include <Ecore_Con.h>
 
 #include "xml.h"
+#include "sasl.h"
 
-static Shotgun_Auth *auth;
+static Shotgun_Auth auth;
 
 int shotgun_log_dom = -1;
 
@@ -25,7 +26,7 @@ Eina_Bool xml_starttls_read(char *xml, size_t size);
 static Eina_Bool
 con(char *argv[], int type, Ecore_Con_Event_Server_Add *ev)
 {
-   int64_t len;
+   size_t len;
    char *xml;
 
    if (type == ECORE_CON_EVENT_SERVER_ADD)
@@ -33,7 +34,7 @@ con(char *argv[], int type, Ecore_Con_Event_Server_Add *ev)
    else
      {
         INF("STARTTLS succeeded!");
-        auth->state++;
+        auth.state++;
      }
 
    xml = xml_stream_init_create(argv[1], strchr(argv[1], '@') + 1, "en", &len);
@@ -53,22 +54,20 @@ disc(void *data __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Server_Add *ev 
 static Eina_Bool
 data(char *argv[] __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Server_Data *ev)
 {
-   char *recv;
+   char *recv, *sasl;
 
    recv = alloca(ev->size + 1);
    snprintf(recv, ev->size + 1, "%s", (char*)ev->data);
    DBG("Receiving:\n%*s", ev->size, recv);
-   if (!auth) auth = calloc(1, sizeof(Shotgun_Auth));
 
-   switch (auth->state)
+   switch (auth.state)
      {
       case SHOTGUN_STATE_NONE:
-        xml_stream_init_read(auth, ev->data, ev->size);
-        if (!auth->state) break;
+        if (!xml_stream_init_read(&auth, ev->data, ev->size)) break;
 
-        if (auth->features.starttls)
+        if (auth.features.starttls)
           {
-             auth->state = SHOTGUN_STATE_TLS;
+             auth.state = SHOTGUN_STATE_TLS;
              shotgun_write(ev->server, XML_STARTTLS, sizeof(XML_STARTTLS) - 1);
           }
         else /* who cares */
@@ -81,9 +80,22 @@ data(char *argv[] __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Server_Data *
           ecore_main_loop_quit();
         return ECORE_CALLBACK_RENEW;
 
-      case SHOTGUN_STATE_INIT:
-        xml_stream_init_read(auth, ev->data, ev->size);
-        if (auth->state == SHOTGUN_STATE_INIT) break;
+      case SHOTGUN_STATE_FEATURES:
+        if (!xml_stream_init_read(&auth, ev->data, ev->size)) break;
+        sasl = sasl_init(&auth);
+        if (!sasl) ecore_main_loop_quit();
+        else
+          {
+             char *send;
+             size_t len;
+             
+             send = xml_sasl_write(sasl, &len);
+             free(sasl);
+             shotgun_write(ev->server, send, len);
+             free(send);
+             auth.state++;
+          }
+        break;
       default:
         ecore_main_loop_quit();
      }
@@ -104,12 +116,12 @@ main(int argc, char *argv[])
 
    if (argc != 3)
      {
-        fprintf(stderr, "Usage: %s [username@domain] [password]\n", argv[0]);
+        fprintf(stderr, "Usage: %s [username@domain] [domain]\n", argv[0]);
         return 1;
      }
    if (!strchr(argv[1], '@'))
      {
-        fprintf(stderr, "Usage: %s [username@domain] [password]\n", argv[0]);
+        fprintf(stderr, "Usage: %s [username@domain] [domain]\n", argv[0]);
         return 1;
      }
    eina_init();
@@ -117,6 +129,7 @@ main(int argc, char *argv[])
    ecore_con_init();
 
    memset(&auth, 0, sizeof(Shotgun_Auth));
+   auth.user = eina_stringshare_add(argv[1]);
 
    /* real men don't accept failure as a possibility */
    shotgun_log_dom = eina_log_domain_register("shotgun", EINA_COLOR_RED);

@@ -44,7 +44,7 @@ struct xml_memory_writer : xml_writer
 
 static char *
 xmlnode_to_buf(xml_node node,
-               int64_t *len,
+               size_t *len,
                Eina_Bool leave_open)
 {
    xml_memory_writer counter;
@@ -56,13 +56,13 @@ xmlnode_to_buf(xml_node node,
    node.print(writer);
    buffer[writer.written_size() - 1] = 0;
    if (leave_open) buffer[writer.written_size() - 3] = ' ';
-   *len = static_cast<int64_t> (writer.written_size());
+   *len = writer.written_size();
 
    return buffer;
 }
 
 char *
-xml_stream_init_create(const char *from, const char *to, const char *lang, int64_t *len)
+xml_stream_init_create(const char *from, const char *to, const char *lang, size_t *len)
 {
 /*
 C: <stream:stream
@@ -130,7 +130,7 @@ S: <stream:stream
                }
           }
 
-        if (stream.first_child().empty()) return EINA_TRUE;
+        if (stream.first_child().empty()) return EINA_FALSE;
         stream = stream.first_child();
      }
 /*
@@ -163,7 +163,6 @@ S: <stream:features>
            break;
         }
    /* lots more auth mechanisms here but who cares */
-   auth->state = SHOTGUN_STATE_FEATURES;
    return EINA_TRUE;
 error:
    fprintf(stderr, "could not parse login xml!\n");
@@ -183,3 +182,26 @@ S: <failure xmlns='urn:ietf:params:xml:ns:xmpp-tls'/>
    return xml[1] == 'p';
 }
 
+char *
+xml_sasl_write(const char *sasl, size_t *len)
+{
+/*
+<auth xmlns="urn:ietf:params:xml:ns:xmpp-sasl" 
+      mechanism="PLAIN" 
+      xmlns:ga='http://www.google.com/talk/protocol/auth' 
+      ga:client-uses-full-bind-result='true'>
+... encoded user name and password ... user=example@gmail.com password=supersecret
+</auth>
+*/
+   xml_document doc;
+   xml_node auth;
+
+   auth = doc.append_child("auth");
+   auth.append_attribute("xmlns").set_value("urn:ietf:params:xml:ns:xmpp-sasl");
+   auth.append_attribute("mechanism").set_value("PLAIN");
+   auth.append_attribute("xmlns:ga").set_value("http://www.google.com/talk/protocol/auth");
+   auth.append_attribute("ga:client-uses-full-bind-result").set_value("true");
+   auth.append_child(node_pcdata).set_value(sasl);
+
+   return xmlnode_to_buf(auth, len, EINA_FALSE);
+}

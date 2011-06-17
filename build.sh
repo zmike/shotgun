@@ -1,20 +1,37 @@
 #!/bin/bash
 
+CF="-O0 -pipe -Wall -Wextra -g"
+
 DEPS=($(pkg-config --print-requires-private ecore-con))
-echo "${DEPS[@]}"
+echo "DEPENDENCIES: ${DEPS[@]}"
 CFLAGS="$(pkg-config --static --cflags ${DEPS[@]} ecore-con)"
-echo "$CFLAGS"
+CFLAGS+=" -I/usr/include/sasl"
+echo "DEPENDENCY CFLAGS: $CFLAGS"
 
 LIBS="$(pkg-config --static --libs ${DEPS[@]} ecore-con)"
-echo "$LIBS"
 if (echo "$LIBS" | grep gnutls &> /dev/null) ; then
 	LIBS+=" $(pkg-config --static --libs gnutls)"
 fi
+LIBS+=" -lsasl2"
+echo "DEPENDENCY LIBS: $LIBS"
+echo
+
+echo "g++ -c pugixml.cpp -o pugixml.o || exit 1"
 g++ -c pugixml.cpp -o pugixml.o || exit 1
-ar cru pugixml.a pugixml.o
-ranlib pugixml.a
 
-g++ -c xml.cpp -o xml.o $CFLAGS -O0 -pipe -Wall -Wextra -g || exit 1
-gcc -c shotgun.c -o shotgun.o $CFLAGS -O0 -pipe -Wall -Wextra -g || exit 1
+gcc -c cdecode.c -o cdecode.o || exit 1
+gcc -c cencode.c -o cencode.o || exit 1
+gcc -c shotgun_utils.c -o shotgun_utils.o || exit 1
 
-g++ xml.o shotgun.o -o shotgun -L/usr/lib -lc $LIBS pugixml.a
+
+echo "g++ -c xml.cpp -o xml.o $CFLAGS $CF || exit 1"
+g++ -c xml.cpp -o xml.o $CFLAGS $CF || exit 1
+echo "gcc -c getpass_x.c -o getpass_x.o $CF || exit 1"
+gcc -c getpass_x.c -o getpass_x.o $CF || exit 1
+echo "gcc -c shotgun.c -o shotgun.o $CFLAGS $CF || exit 1"
+gcc -c shotgun.c -o shotgun.o $CFLAGS $CF || exit 1
+echo "gcc -c sasl.c -o sasl.o $CFLAGS $CF || exit 1"
+gcc -c sasl.c -o sasl.o $CFLAGS $CF || exit 1
+
+echo "g++ *.o -o shotgun -L/usr/lib -lc $LIBS" #pugixml.a
+g++ *.o -o shotgun -L/usr/lib -lc $LIBS #pugixml.a
