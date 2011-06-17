@@ -125,7 +125,7 @@ S: <stream:stream
           {
              if (!strcmp(attr.name(), "from"))
                {
-                  auth->from = eina_stringshare_add(attr.value());
+                  eina_stringshare_replace(&auth->from, attr.value());
                   break;
                }
           }
@@ -150,7 +150,7 @@ S: <stream:features>
       auth->features.starttls = EINA_TRUE;
 
    node = stream.child("mechanisms");
-   EINA_SAFETY_ON_TRUE_GOTO(node.empty(), error);
+   if (node.empty()) return EINA_FALSE;
 
    for (attr = node.first_attribute(); attr; attr = attr.next_attribute())
       if (!strcmp(attr.name(), "xmlns"))

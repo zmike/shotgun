@@ -82,6 +82,8 @@ data(char *argv[] __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Server_Data *
         return ECORE_CALLBACK_RENEW;
 
       case SHOTGUN_STATE_INIT:
+        xml_stream_init_read(auth, ev->data, ev->size);
+        if (auth->state == SHOTGUN_STATE_INIT) break;
       default:
         ecore_main_loop_quit();
      }
