@@ -20,11 +20,12 @@ typedef struct
 {
    const char *from;
    const char *user;
-   
+   const char *pass;
+
    sasl_conn_t *sasl;
-   sasl_callback_t callbacks[4];
+   sasl_callback_t callbacks[5];
    sasl_secret_t *secret;
-   
+
    struct
    {
       Eina_Bool starttls : 1;

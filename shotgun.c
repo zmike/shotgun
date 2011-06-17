@@ -9,6 +9,8 @@ static Shotgun_Auth auth;
 
 int shotgun_log_dom = -1;
 
+char *getpass_x(const char *prompt);
+
 static void
 shotgun_write(Ecore_Con_Server *svr, const void *data, size_t size)
 {
@@ -37,7 +39,7 @@ con(char *argv[], int type, Ecore_Con_Event_Server_Add *ev)
         auth.state++;
      }
 
-   xml = xml_stream_init_create(argv[1], strchr(argv[1], '@') + 1, "en", &len);
+   xml = xml_stream_init_create(argv[1], argv[2], "en", &len);
    shotgun_write(ev->server, xml, len - 1);
    free(xml);
    return ECORE_CALLBACK_RENEW;
@@ -52,7 +54,7 @@ disc(void *data __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Server_Add *ev 
 }
 
 static Eina_Bool
-data(char *argv[] __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Server_Data *ev)
+data(void *data __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Server_Data *ev)
 {
    char *recv, *sasl;
 
@@ -88,7 +90,7 @@ data(char *argv[] __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Server_Data *
           {
              char *send;
              size_t len;
-             
+
              send = xml_sasl_write(sasl, &len);
              free(sasl);
              shotgun_write(ev->server, send, len);
@@ -116,25 +118,27 @@ main(int argc, char *argv[])
 
    if (argc != 3)
      {
-        fprintf(stderr, "Usage: %s [username@domain] [domain]\n", argv[0]);
-        return 1;
-     }
-   if (!strchr(argv[1], '@'))
-     {
-        fprintf(stderr, "Usage: %s [username@domain] [domain]\n", argv[0]);
+        fprintf(stderr, "Usage: %s [username] [domain]\n", argv[0]);
         return 1;
      }
    eina_init();
    ecore_init();
    ecore_con_init();
 
-   memset(&auth, 0, sizeof(Shotgun_Auth));
-   auth.user = eina_stringshare_add(argv[1]);
-
    /* real men don't accept failure as a possibility */
    shotgun_log_dom = eina_log_domain_register("shotgun", EINA_COLOR_RED);
    eina_log_domain_level_set("shotgun", EINA_LOG_LEVEL_DBG);
    eina_log_domain_level_set("ecore_con", EINA_LOG_LEVEL_DBG);
+
+   memset(&auth, 0, sizeof(Shotgun_Auth));
+   auth.user = eina_stringshare_add(argv[1]);
+   auth.from = eina_stringshare_add(argv[2]);
+   auth.pass = getpass_x("Password: ");
+   if (!auth.pass)
+     {
+        ERR("No password entered!");
+        return 1;
+     }
 
    ecore_event_handler_add(ECORE_CON_EVENT_SERVER_ADD, (Ecore_Event_Handler_Cb)con, argv);
    ecore_event_handler_add(ECORE_CON_EVENT_SERVER_DEL, (Ecore_Event_Handler_Cb)disc, NULL);

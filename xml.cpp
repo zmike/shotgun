@@ -62,7 +62,7 @@ xmlnode_to_buf(xml_node node,
 }
 
 char *
-xml_stream_init_create(const char *from, const char *to, const char *lang, size_t *len)
+xml_stream_init_create(const char *user, const char *to, const char *lang, size_t *len)
 {
 /*
 C: <stream:stream
@@ -75,9 +75,11 @@ C: <stream:stream
 */
    xml_document doc;
    xml_node stream;
+   char buf[256];
 
    stream = doc.append_child("stream:stream");
-   stream.append_attribute("from").set_value(from);
+   snprintf(buf, sizeof(buf), "%s@%s", user, to);
+   stream.append_attribute("from").set_value(buf);
    stream.append_attribute("to").set_value(to);
    stream.append_attribute("version").set_value("1.0");
    stream.append_attribute("xml:lang").set_value(lang);
@@ -106,8 +108,6 @@ S: <stream:stream
    xml_attribute attr;
    xpath_node_set q_res;
    xml_parse_result res;
-   static xpath_query q_tls("/stream:features/starttls");
-   static xpath_query q_mech("/stream:features/mechanisms");
 
    res = doc.load_buffer_inplace(xml, size, parse_default, encoding_auto);
    if (res.status != status_ok)
@@ -117,10 +117,8 @@ S: <stream:stream
      }
 
    stream = doc.first_child();
-   if (!auth->from)
+   if (!strcmp(stream.name(), "stream:stream"))
      {
-        EINA_SAFETY_ON_TRUE_GOTO(strcmp(stream.name(), "stream:stream"), error);
-
         for (attr = stream.first_attribute(); attr; attr = attr.next_attribute())
           {
              if (!strcmp(attr.name(), "from"))
@@ -164,9 +162,6 @@ S: <stream:features>
         }
    /* lots more auth mechanisms here but who cares */
    return EINA_TRUE;
-error:
-   fprintf(stderr, "could not parse login xml!\n");
-   return EINA_FALSE;
 }
 
 Eina_Bool
@@ -187,9 +182,9 @@ xml_sasl_write(const char *sasl, size_t *len)
 {
 /*
 http://code.google.com/apis/talk/jep_extensions/jid_domain_change.html
-<auth xmlns="urn:ietf:params:xml:ns:xmpp-sasl" 
-      mechanism="PLAIN" 
-      xmlns:ga='http://www.google.com/talk/protocol/auth' 
+<auth xmlns="urn:ietf:params:xml:ns:xmpp-sasl"
+      mechanism="PLAIN"
+      xmlns:ga='http://www.google.com/talk/protocol/auth'
       ga:client-uses-full-bind-result='true'>
 ... encoded user name and password ... user=example@gmail.com password=supersecret
 </auth>
