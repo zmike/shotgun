@@ -5,11 +5,7 @@
 #include "xml.h"
 #include "sasl.h"
 
-static Shotgun_Auth auth;
-
 int shotgun_log_dom = -1;
-
-char *getpass_x(const char *prompt);
 
 static void
 shotgun_write(Ecore_Con_Server *svr, const void *data, size_t size)
@@ -26,7 +22,7 @@ Eina_Bool xml_starttls_read(char *xml, size_t size);
 */
 
 static Eina_Bool
-con(char *argv[], int type, Ecore_Con_Event_Server_Add *ev)
+con(Shotgun_Auth *auth, int type, Ecore_Con_Event_Server_Add *ev)
 {
    size_t len;
    char *xml;
@@ -36,10 +32,10 @@ con(char *argv[], int type, Ecore_Con_Event_Server_Add *ev)
    else
      {
         INF("STARTTLS succeeded!");
-        auth.state++;
+        auth->state++;
      }
 
-   xml = xml_stream_init_create(argv[1], argv[2], "en", &len);
+   xml = xml_stream_init_create(auth->user, auth->from, "en", &len);
    shotgun_write(ev->server, xml, len - 1);
    free(xml);
    return ECORE_CALLBACK_RENEW;
@@ -54,22 +50,22 @@ disc(void *data __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Server_Add *ev 
 }
 
 static Eina_Bool
-data(void *data __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Server_Data *ev)
+data(Shotgun_Auth *auth, int type __UNUSED__, Ecore_Con_Event_Server_Data *ev)
 {
    char *recv, *sasl;
 
    recv = alloca(ev->size + 1);
-   snprintf(recv, ev->size + 1, "%s", (char*)ev->data);
+   snprintf(recv, ev->size, "%s", (char*)ev->data);
    DBG("Receiving:\n%*s", ev->size, recv);
 
-   switch (auth.state)
+   switch (auth->state)
      {
       case SHOTGUN_STATE_NONE:
-        if (!xml_stream_init_read(&auth, ev->data, ev->size)) break;
+        if (!xml_stream_init_read(auth, ev->data, ev->size)) break;
 
-        if (auth.features.starttls)
+        if (auth->features.starttls)
           {
-             auth.state = SHOTGUN_STATE_TLS;
+             auth->state = SHOTGUN_STATE_TLS;
              shotgun_write(ev->server, XML_STARTTLS, sizeof(XML_STARTTLS) - 1);
           }
         else /* who cares */
@@ -83,8 +79,8 @@ data(void *data __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Server_Data *ev
         return ECORE_CALLBACK_RENEW;
 
       case SHOTGUN_STATE_FEATURES:
-        if (!xml_stream_init_read(&auth, ev->data, ev->size)) break;
-        sasl = sasl_init(&auth);
+        if (!xml_stream_init_read(auth, ev->data, ev->size)) break;
+        sasl = sasl_init(auth);
         if (!sasl) ecore_main_loop_quit();
         else
           {
@@ -95,7 +91,7 @@ data(void *data __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Server_Data *ev
              free(sasl);
              shotgun_write(ev->server, send, len);
              free(send);
-             auth.state++;
+             auth->state++;
           }
         break;
       default:
@@ -116,6 +112,8 @@ int
 main(int argc, char *argv[])
 {
    char *pass;
+   Shotgun_Auth auth;
+   char *getpass_x(const char *prompt);
 
    if (argc != 3)
      {
@@ -141,13 +139,14 @@ main(int argc, char *argv[])
         return 1;
      }
    auth.pass = strdup(pass);
+   memset(&pass, 0, 80);
    pass = NULL;
 
-   ecore_event_handler_add(ECORE_CON_EVENT_SERVER_ADD, (Ecore_Event_Handler_Cb)con, argv);
+   ecore_event_handler_add(ECORE_CON_EVENT_SERVER_ADD, (Ecore_Event_Handler_Cb)con, &auth);
    ecore_event_handler_add(ECORE_CON_EVENT_SERVER_DEL, (Ecore_Event_Handler_Cb)disc, NULL);
-   ecore_event_handler_add(ECORE_CON_EVENT_SERVER_DATA, (Ecore_Event_Handler_Cb)data, argv);
+   ecore_event_handler_add(ECORE_CON_EVENT_SERVER_DATA, (Ecore_Event_Handler_Cb)data, &auth);
    ecore_event_handler_add(ECORE_CON_EVENT_SERVER_ERROR, (Ecore_Event_Handler_Cb)error, NULL);
-   ecore_event_handler_add(ECORE_CON_EVENT_SERVER_UPGRADE, (Ecore_Event_Handler_Cb)con, argv);
+   ecore_event_handler_add(ECORE_CON_EVENT_SERVER_UPGRADE, (Ecore_Event_Handler_Cb)con, &auth);
    ecore_con_server_connect(ECORE_CON_REMOTE_NODELAY, "talk.google.com", 5222, NULL);
    ecore_main_loop_begin();
 
