@@ -19,8 +19,11 @@ echo
 echo "g++ -c pugixml.cpp -o pugixml.o || exit 1"
 g++ -c pugixml.cpp -o pugixml.o || exit 1
 
+echo "gcc -c cdecode.c -o cdecode.o || exit 1"
 gcc -c cdecode.c -o cdecode.o || exit 1
+echo "gcc -c cencode.c -o cencode.o || exit 1"
 gcc -c cencode.c -o cencode.o || exit 1
+echo "gcc -c shotgun_utils.c -o shotgun_utils.o || exit 1"
 gcc -c shotgun_utils.c -o shotgun_utils.o || exit 1
 
 
