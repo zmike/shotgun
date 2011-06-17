@@ -4,8 +4,6 @@
 #include "pugixml.hpp"
 #include <iterator>
 
-#define STARTTLS "<starttls xmlns='urn:ietf:params:xml:ns:xmpp-tls'/>"
-
 using namespace pugi;
 
 struct xml_memory_writer : xml_writer
@@ -46,16 +44,18 @@ struct xml_memory_writer : xml_writer
 
 static char *
 xmlnode_to_buf(xml_node node,
-               int64_t *len)
+               int64_t *len,
+               Eina_Bool leave_open)
 {
    xml_memory_writer counter;
    char *buffer;
 
    node.print(counter);
-   buffer = static_cast<char*>(calloc(1, counter.result + 1));
+   buffer = static_cast<char*>(calloc(1, counter.result ));
    xml_memory_writer writer(buffer, counter.result);
    node.print(writer);
-   buffer[writer.written_size()] = 0;
+   buffer[writer.written_size() - 1] = 0;
+   if (leave_open) buffer[writer.written_size() - 3] = ' ';
    *len = static_cast<int64_t> (writer.written_size());
 
    return buffer;
@@ -84,7 +84,7 @@ C: <stream:stream
    stream.append_attribute("xmlns").set_value("jabber:client");
    stream.append_attribute("xmlns:stream").set_value("http://etherx.jabber.org/streams");
 
-   return xmlnode_to_buf(stream, len);   
+   return xmlnode_to_buf(stream, len, EINA_TRUE);
 }
 
 
@@ -144,7 +144,7 @@ S: <stream:features>
      </mechanisms>
     </stream:features>
 */
-   
+
    node = stream.child("starttls");
    if (!node.empty())
       auth->features.starttls = EINA_TRUE;
@@ -168,15 +168,6 @@ S: <stream:features>
 error:
    fprintf(stderr, "could not parse login xml!\n");
    return EINA_FALSE;
-}
-
-const char *
-xml_starttls_write(int64_t *size)
-{
-   /* cheating super hard right here */
-   *size = (int64_t)sizeof(STARTTLS) - 1;
-
-   return STARTTLS;
 }
 
 Eina_Bool
