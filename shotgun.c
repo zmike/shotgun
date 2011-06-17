@@ -8,6 +8,13 @@ static Shotgun_Auth *auth;
 
 int shotgun_log_dom = -1;
 
+static void
+shotgun_write(Ecore_Con_Server *svr, const void *data, size_t size)
+{
+   DBG("Sending:\n%s", (char*)data);
+   ecore_con_server_send(svr, data, size);
+}
+
 /*
 char *xml_stream_init_create(const char *from, const char *to, const char *lang, int64_t *len);
 Shotgun_Auth *xml_stream_init_read(char *xml, size_t size);
@@ -28,10 +35,9 @@ con(char *argv[], int type, Ecore_Con_Event_Server_Add *ev)
         INF("STARTTLS succeeded!");
         auth->state++;
      }
-   
+
    xml = xml_stream_init_create(argv[1], strchr(argv[1], '@') + 1, "en", &len);
-   ecore_con_server_send(ev->server, xml, len - 1);
-   DBG("Sending:\n%s", xml);
+   shotgun_write(ev->server, xml, len - 1);
    free(xml);
    return ECORE_CALLBACK_RENEW;
 }
@@ -47,9 +53,7 @@ disc(void *data __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Server_Add *ev 
 static Eina_Bool
 data(char *argv[] __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Server_Data *ev)
 {
-   const char *xml;
    char *recv;
-   int64_t len;
 
    recv = alloca(ev->size + 1);
    snprintf(recv, ev->size + 1, "%s", (char*)ev->data);
@@ -64,10 +68,8 @@ data(char *argv[] __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Server_Data *
 
         if (auth->features.starttls)
           {
-             xml = xml_starttls_write(&len);
              auth->state = SHOTGUN_STATE_TLS;
-             DBG("Sending:\n%s", xml);
-             ecore_con_server_send(ev->server, xml, len);
+             shotgun_write(ev->server, XML_STARTTLS, sizeof(XML_STARTTLS) - 1);
           }
         else /* who cares */
           ecore_main_loop_quit();
