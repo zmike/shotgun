@@ -20,7 +20,7 @@ typedef struct
 {
    const char *from;
    const char *user;
-   const char *pass;
+   char *pass;
 
    sasl_conn_t *sasl;
    sasl_callback_t callbacks[5];
