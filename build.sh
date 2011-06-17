@@ -5,14 +5,14 @@ CF="-O0 -pipe -Wall -Wextra -g"
 DEPS=($(pkg-config --print-requires-private ecore-con))
 echo "DEPENDENCIES: ${DEPS[@]}"
 CFLAGS="$(pkg-config --static --cflags ${DEPS[@]} ecore-con)"
-CFLAGS+=" -I/usr/include/sasl"
+#CFLAGS+=" -I/usr/include/sasl"
 echo "DEPENDENCY CFLAGS: $CFLAGS"
 
 LIBS="$(pkg-config --static --libs ${DEPS[@]} ecore-con)"
 if (echo "$LIBS" | grep gnutls &> /dev/null) ; then
 	LIBS+=" $(pkg-config --static --libs gnutls)"
 fi
-LIBS+=" -lsasl2"
+#LIBS+=" -lsasl2"
 echo "DEPENDENCY LIBS: $LIBS"
 echo
 

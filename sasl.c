@@ -1,5 +1,3 @@
-#include <sasl.h>
-
 #include "shotgun_private.h"
 
 char *

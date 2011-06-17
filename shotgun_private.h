@@ -5,15 +5,16 @@
 # define __UNUSED__ __attribute__((unused))
 #endif
 
-#include <Eina.h>
-#include <sasl.h>
+#include <Ecore_Con.h>
 
 typedef enum
 {
    SHOTGUN_STATE_NONE,
    SHOTGUN_STATE_TLS,
    SHOTGUN_STATE_FEATURES,
-   SHOTGUN_STATE_SASL
+   SHOTGUN_STATE_SASL,
+   SHOTGUN_STATE_BIND,
+   SHOTGUN_STATE_CONNECTED
 } Shotgun_State;
 
 typedef struct
@@ -22,9 +23,7 @@ typedef struct
    const char *user;
    char *pass;
 
-   sasl_conn_t *sasl;
-   sasl_callback_t callbacks[5];
-   sasl_secret_t *secret;
+   Ecore_Con_Server *svr;
 
    struct
    {
@@ -35,9 +34,11 @@ typedef struct
 } Shotgun_Auth;
 
 extern int shotgun_log_dom;
+
 char *shotgun_base64_encode(const char *string, double len);
 char *shotgun_base64_decode(const char *string, int len);
 
+char *sasl_init(Shotgun_Auth *auth);
 
 #define DBG(...)            EINA_LOG_DOM_DBG(shotgun_log_dom, __VA_ARGS__)
 #define INF(...)           EINA_LOG_DOM_INFO(shotgun_log_dom, __VA_ARGS__)
