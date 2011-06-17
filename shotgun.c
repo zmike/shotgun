@@ -76,7 +76,7 @@ data(char *argv[] __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Server_Data *
         break;
       case SHOTGUN_STATE_TLS:
         if (xml_starttls_read(ev->data, ev->size))
-          ecore_con_ssl_server_upgrade(ev->server, ECORE_CON_USE_TLS);
+          ecore_con_ssl_server_upgrade(ev->server, ECORE_CON_USE_MIXED);
         else
           ecore_main_loop_quit();
         return ECORE_CALLBACK_RENEW;
