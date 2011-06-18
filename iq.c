@@ -45,7 +45,7 @@ shotgun_iq_roster_get(Shotgun_Auth *auth)
 {
    size_t len;
    char *xml;
-   
+
    xml = xml_iq_write(auth, SHOTGUN_IQ_PRESET_ROSTER, &len);
    shotgun_write(auth->svr, xml, len);
    free(xml);

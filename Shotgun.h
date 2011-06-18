@@ -1,16 +1,16 @@
 #ifndef SHOTGUN_H
 #define SHOTGUN_H
 
-extern int SHOTGUN_EVENT_IQ;
-extern int SHOTGUN_EVENT_MESSAGE;
-extern int SHOTGUN_EVENT_PRESENCE;
+extern int SHOTGUN_EVENT_IQ; /* Shotgun_Event_Iq */
+extern int SHOTGUN_EVENT_MESSAGE; /* Shotgun_Message */
+extern int SHOTGUN_EVENT_PRESENCE; /* NYI */
 
 typedef struct Shotgun_Auth Shotgun_Auth;
 
 typedef enum
 {
    SHOTGUN_IQ_EVENT_TYPE_UNKNOWN,
-   SHOTGUN_IQ_EVENT_TYPE_ROSTER
+   SHOTGUN_IQ_EVENT_TYPE_ROSTER /* Eina_List *Shotgun_User */
 } Shotgun_Iq_Event_Type;
 
 typedef enum
@@ -24,7 +24,7 @@ typedef enum
 typedef struct
 {
    const char *jid;
-   const char *name;
+   const char *name; /* nickname (alias) */
    Shotgun_User_Subscription subscription;
    Shotgun_Auth *account;
 } Shotgun_User;

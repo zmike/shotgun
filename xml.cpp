@@ -332,7 +332,7 @@ xml_iq_roster_read(Shotgun_Auth *auth, xml_node node)
    ret = static_cast<Shotgun_Event_Iq*>(calloc(1, sizeof(Shotgun_Event_Iq)));
    ret->type = SHOTGUN_IQ_EVENT_TYPE_ROSTER;
    ret->account = auth;
-   
+
    for (xml_node it = node.first_child(); it; it = it.next_sibling())
      {
         Shotgun_User *user;
@@ -409,7 +409,7 @@ C: <message from='juliet@im.example.com/balcony'
 
    node = node.append_child("body");
    node.append_child(node_pcdata).set_value(msg->msg);
-   
+
    return xmlnode_to_buf(doc, len, EINA_FALSE);
 }
 

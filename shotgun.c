@@ -29,7 +29,7 @@ static Shotgun_Data_Type
 shotgun_data_tokenize(Ecore_Con_Event_Server_Data *ev)
 {
    if (((char*)(ev->data))[0] != '<') return SHOTGUN_DATA_TYPE_UNKNOWN;
-   
+
    switch (((char*)(ev->data))[1])
      {
       case 'm':
@@ -113,7 +113,7 @@ shotgun_gchat_connect(Shotgun_Auth *auth)
    ecore_event_handler_add(ECORE_CON_EVENT_SERVER_ERROR, (Ecore_Event_Handler_Cb)error, NULL);
    ecore_event_handler_add(ECORE_CON_EVENT_SERVER_UPGRADE, (Ecore_Event_Handler_Cb)shotgun_login_con, auth);
    auth->svr = ecore_con_server_connect(ECORE_CON_REMOTE_NODELAY, "talk.google.com", 5222, auth);
-   
+
    return EINA_TRUE;
 }
 

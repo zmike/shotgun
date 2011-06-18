@@ -9,8 +9,8 @@
 #include "Shotgun.h"
 
 #define DBG(...)            EINA_LOG_DOM_DBG(shotgun_log_dom, __VA_ARGS__)
-#define INF(...)           EINA_LOG_DOM_INFO(shotgun_log_dom, __VA_ARGS__)
-#define WRN(...)           EINA_LOG_DOM_WARN(shotgun_log_dom, __VA_ARGS__)
+#define INF(...)            EINA_LOG_DOM_INFO(shotgun_log_dom, __VA_ARGS__)
+#define WRN(...)            EINA_LOG_DOM_WARN(shotgun_log_dom, __VA_ARGS__)
 #define ERR(...)            EINA_LOG_DOM_ERR(shotgun_log_dom, __VA_ARGS__)
 #define CRI(...)            EINA_LOG_DOM_CRIT(shotgun_log_dom, __VA_ARGS__)
 
@@ -41,6 +41,8 @@ typedef enum
    SHOTGUN_IQ_TYPE_ERROR
 } Shotgun_Iq_Type;
 
+
+/* pre-formatted xml */
 typedef enum
 {
    SHOTGUN_IQ_PRESET_BIND,
@@ -49,27 +51,20 @@ typedef enum
 
 struct Shotgun_Auth
 {
-   const char *from;
-   const char *user;
-   const char *resource;
+   const char *from; /* domain name of account */
+   const char *user; /* username */
+   const char *resource; /* identifier for "location" of user */
    char *pass;
 
    Ecore_Con_Server *svr;
 
    struct
-   {
+   {  /* this serves no real purpose */
       Eina_Bool starttls : 1;
       Eina_Bool sasl : 1;
    } features;
    Shotgun_State state;
 };
-
-typedef struct
-{
-   Shotgun_Auth *account;
-   const char *id;
-   Shotgun_Iq_Type type;
-} Shotgun_Iq;
 
 extern int shotgun_log_dom;
 

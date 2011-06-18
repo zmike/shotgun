@@ -25,7 +25,7 @@ void
 shotgun_message_feed(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
 {
    Shotgun_Message *msg;
-   
+
    msg = xml_message_read(auth, ev->data, ev->size);
    EINA_SAFETY_ON_NULL_GOTO(msg, error);
 
