@@ -53,7 +53,7 @@ data(Shotgun_Auth *auth, int type __UNUSED__, Ecore_Con_Event_Server_Data *ev)
      return ECORE_CALLBACK_PASS_ON;
 
    recv = alloca(ev->size + 1);
-   memcpy(&recv, ev->data, ev->size);
+   memcpy(recv, ev->data, ev->size);
    recv[ev->size] = 0;
    DBG("Receiving:\n%s", recv);
 

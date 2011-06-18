@@ -112,10 +112,14 @@ shotgun_login(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
         shotgun_write(ev->server, out, strlen(out));
         free(out);
         auth->state++;
+        break;
+      case SHOTGUN_STATE_CONNECTING:
         INF("Login complete!");
+        auth->state++;
       default:
         break;
      }
+   return;
 error:
    ERR("wtf");
    ecore_main_loop_quit();
