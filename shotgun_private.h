@@ -83,10 +83,8 @@ shotgun_write(Ecore_Con_Server *svr, const void *data, size_t size)
    ecore_con_server_send(svr, data, size);
 };
 
-Shotgun_Message *shotgun_message_new(Shotgun_Auth *auth);
 void shotgun_message_feed(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev);
 
-Eina_Bool shotgun_iq_roster_get(Shotgun_Auth *auth);
 void shotgun_iq_feed(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev);
 
 char *shotgun_base64_encode(const char *string, double len);

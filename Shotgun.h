@@ -43,4 +43,15 @@ typedef struct
    Shotgun_Auth *account;
 } Shotgun_Event_Iq;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+Eina_Bool shotgun_iq_roster_get(Shotgun_Auth *auth);
+Shotgun_Message *shotgun_message_new(Shotgun_Auth *auth);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

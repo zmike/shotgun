@@ -133,10 +133,10 @@ main(int argc, char *argv[])
    shotgun_init();
 
    eina_log_domain_level_set("shotgun", EINA_LOG_LEVEL_DBG);
-   eina_log_domain_level_set("ecore_con", EINA_LOG_LEVEL_DBG);
+   //eina_log_domain_level_set("ecore_con", EINA_LOG_LEVEL_DBG);
 
    memset(&auth, 0, sizeof(Shotgun_Auth));
-   pass = getpass_x("Password:");
+   pass = getpass_x("Password: ");
    if (!pass)
      {
         ERR("No password entered!");

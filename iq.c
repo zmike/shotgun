@@ -27,7 +27,7 @@ shotgun_user_free(Shotgun_User *user)
 }
 
 static void
-shotgun_iq_event_free(Shotgun_Event_Iq *iq, void *data __UNUSED__)
+shotgun_iq_event_free(void *data __UNUSED__, Shotgun_Event_Iq *iq)
 {
    Shotgun_User *user;
    switch (iq->type)
@@ -66,7 +66,12 @@ shotgun_iq_feed(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
      {
       case SHOTGUN_IQ_EVENT_TYPE_ROSTER:
         EINA_LIST_FOREACH(iq->ev, l, user)
-          INF("User online: %s", user->jid);
+          {
+             if (user->name && user->name[0])
+               INF("User found: %s (%s)", user->name, user->jid);
+             else
+               INF("User found: %s", user->jid);
+          }
       default:
         break;
      }

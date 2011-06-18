@@ -116,6 +116,7 @@ shotgun_login(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
       case SHOTGUN_STATE_CONNECTING:
         INF("Login complete!");
         auth->state++;
+        shotgun_iq_roster_get(auth);
       default:
         break;
      }

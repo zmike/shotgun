@@ -3,7 +3,7 @@
 #include "xml.h"
 
 static void
-shotgun_message_free(Shotgun_Message *msg, void *data __UNUSED__)
+shotgun_message_free(void *data __UNUSED__, Shotgun_Message *msg)
 {
    free(msg->msg);
    eina_stringshare_del(msg->user);
