@@ -336,10 +336,13 @@ xml_iq_roster_read(Shotgun_Auth *auth, xml_node node)
    for (xml_node it = node.first_child(); it; it = it.next_sibling())
      {
         Shotgun_User *user;
+        const char *name;
 
         user = static_cast<Shotgun_User*>(calloc(1, sizeof(Shotgun_User)));
         user->account = auth;
-        user->name = eina_stringshare_add(it.attribute("name").value());
+        name = it.attribute("name").value();
+        if (name && name[0])
+          user->name = eina_stringshare_add(name);
         user->jid = eina_stringshare_add(it.attribute("jid").value());
         user->subscription = xml_iq_user_subscription_get(it);
         ret->ev = eina_list_append((Eina_List*)ret->ev, (void*)user);

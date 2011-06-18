@@ -67,7 +67,7 @@ shotgun_iq_feed(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
       case SHOTGUN_IQ_EVENT_TYPE_ROSTER:
         EINA_LIST_FOREACH(iq->ev, l, user)
           {
-             if (user->name && user->name[0])
+             if (user->name)
                INF("User found: %s (%s)", user->name, user->jid);
              else
                INF("User found: %s", user->jid);
