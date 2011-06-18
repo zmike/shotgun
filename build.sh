@@ -33,8 +33,12 @@ echo "gcc -c getpass_x.c -o getpass_x.o $CF || exit 1"
 gcc -c getpass_x.c -o getpass_x.o $CF || exit 1
 echo "gcc -c shotgun.c -o shotgun.o $CFLAGS $CF || exit 1"
 gcc -c shotgun.c -o shotgun.o $CFLAGS $CF || exit 1
-echo "gcc -c sasl.c -o sasl.o $CFLAGS $CF || exit 1"
-gcc -c sasl.c -o sasl.o $CFLAGS $CF || exit 1
+echo "gcc -c login.c -o login.o $CFLAGS $CF || exit 1"
+gcc -c login.c -o login.o $CFLAGS $CF || exit 1
+echo "gcc -c messaging.c -o messaging.o $CFLAGS $CF || exit 1"
+gcc -c messaging.c -o messaging.o $CFLAGS $CF || exit 1
+echo "gcc -c iq.c -o iq.o $CFLAGS $CF || exit 1"
+gcc -c iq.c -o iq.o $CFLAGS $CF || exit 1
 
 echo "g++ *.o -o shotgun -L/usr/lib -lc $LIBS" #pugixml.a
 g++ *.o -o shotgun -L/usr/lib -lc $LIBS #pugixml.a

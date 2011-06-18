@@ -6,12 +6,9 @@
 
 int shotgun_log_dom = -1;
 
-static void
-shotgun_write(Ecore_Con_Server *svr, const void *data, size_t size)
-{
-   DBG("Sending:\n%s", (char*)data);
-   ecore_con_server_send(svr, data, size);
-}
+int SHOTGUN_EVENT_MESSAGE = 0;
+int SHOTGUN_EVENT_PRESENCE = 0;
+int SHOTGUN_EVENT_IQ = 0;
 
 /*
 char *xml_stream_init_create(const char *from, const char *to, const char *lang, int64_t *len);
@@ -19,32 +16,6 @@ Shotgun_Auth *xml_stream_init_read(char *xml, size_t size);
 char *xml_starttls_write(int64_t *size);
 Eina_Bool xml_starttls_read(char *xml, size_t size);
 */
-
-static void
-init_stream(Shotgun_Auth *auth)
-{
-   size_t len;
-   char *xml;
-
-   xml = xml_stream_init_create(auth->user, auth->from, "en", &len);
-   shotgun_write(auth->svr, xml, len - 1);
-   free(xml);
-}
-
-static Eina_Bool
-con(Shotgun_Auth *auth, int type, Ecore_Con_Event_Server_Add *ev __UNUSED__)
-{
-   if (type == ECORE_CON_EVENT_SERVER_ADD)
-     INF("Connected!");
-   else
-     {
-        INF("STARTTLS succeeded!");
-        auth->state++;
-     }
-
-   init_stream(auth);
-   return ECORE_CALLBACK_RENEW;
-}
 
 static Eina_Bool
 disc(void *data __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Server_Add *ev __UNUSED__)
@@ -54,82 +25,57 @@ disc(void *data __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Server_Add *ev 
    return ECORE_CALLBACK_RENEW;
 }
 
+static Shotgun_Data_Type
+shotgun_data_tokenize(Ecore_Con_Event_Server_Data *ev)
+{
+   if (((char*)(ev->data))[0] != '<') return SHOTGUN_DATA_TYPE_UNKNOWN;
+   
+   switch (((char*)(ev->data))[1])
+     {
+      case 'm':
+        return SHOTGUN_DATA_TYPE_MSG;
+      case 'i':
+        return SHOTGUN_DATA_TYPE_IQ;
+      case 'p':
+        return SHOTGUN_DATA_TYPE_PRES;
+      default:
+        break;
+     }
+   return SHOTGUN_DATA_TYPE_UNKNOWN;
+}
+
 static Eina_Bool
 data(Shotgun_Auth *auth, int type __UNUSED__, Ecore_Con_Event_Server_Data *ev)
 {
-   char *recv, *out;
-   size_t len;
+   char *recv;
+
+   if (auth != ecore_con_server_data_get(ev->server))
+     return ECORE_CALLBACK_PASS_ON;
 
    recv = alloca(ev->size + 1);
-   snprintf(recv, ev->size + 1, "%s", (char*)ev->data);
-   DBG("Receiving:\n%*s", ev->size, recv);
+   memcpy(&recv, ev->data, ev->size);
+   recv[ev->size] = 0;
+   DBG("Receiving:\n%s", recv);
 
-   switch (auth->state)
+   if (auth->state < SHOTGUN_STATE_CONNECTED)
      {
-      case SHOTGUN_STATE_NONE:
-        if (!xml_stream_init_read(auth, ev->data, ev->size)) break;
-
-        if (auth->features.starttls)
-          {
-             auth->state = SHOTGUN_STATE_TLS;
-             shotgun_write(ev->server, XML_STARTTLS, sizeof(XML_STARTTLS) - 1);
-          }
-        else /* who cares */
-          ecore_main_loop_quit();
-        break;
-      case SHOTGUN_STATE_TLS:
-        if (xml_starttls_read(ev->data, ev->size))
-          ecore_con_ssl_server_upgrade(ev->server, ECORE_CON_USE_MIXED);
-        else
-          ecore_main_loop_quit();
+        shotgun_login(auth, ev);
         return ECORE_CALLBACK_RENEW;
-
-      case SHOTGUN_STATE_FEATURES:
-        if (!xml_stream_init_read(auth, ev->data, ev->size)) break;
-        out = sasl_init(auth);
-        if (!out) ecore_main_loop_quit();
-        else
-          {
-             char *send;
-
-             send = xml_sasl_write(out, &len);
-             shotgun_write(ev->server, send, len);
-             free(out);
-             free(send);
-             auth->state++;
-          }
-        break;
-      case SHOTGUN_STATE_SASL:
-        if (!xml_sasl_read(ev->data, ev->size))
-          {
-             ERR("Login failed!");
-             ecore_main_loop_quit();
-             break;
-          }
-        /* yes, another stream. */
-        init_stream(auth);
-        auth->state++;
-        break;
-      case SHOTGUN_STATE_BIND:
-        if (!xml_stream_init_read(auth, ev->data, ev->size))
-          break;
-
-        out = xml_bind_write(&len);
-        EINA_SAFETY_ON_NULL_GOTO(out, error);
-
-        shotgun_write(ev->server, out, strlen(out));
-        free(out);
-        auth->state++;
-        break;
-      case SHOTGUN_STATE_CONNECTED:
-        INF("Login complete!");
-      default:
-        ecore_main_loop_quit();
      }
-   return ECORE_CALLBACK_RENEW;
-error:
-   ERR("wtf");
-   ecore_main_loop_quit();
+
+   switch (shotgun_data_tokenize(ev))
+     {
+      case SHOTGUN_DATA_TYPE_MSG:
+        shotgun_message_feed(auth, ev);
+        break;
+      case SHOTGUN_DATA_TYPE_IQ:
+        shotgun_iq_feed(auth, ev);
+        break;
+      case SHOTGUN_DATA_TYPE_PRES:
+      default:
+        break;
+     }
+
    return ECORE_CALLBACK_RENEW;
 }
 
@@ -139,6 +85,36 @@ error(void *d __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Server_Error *ev)
    ERR("%s", ev->error);
    ecore_main_loop_quit();
    return ECORE_CALLBACK_RENEW;
+}
+
+int
+shotgun_init(void)
+{
+   eina_init();
+   ecore_init();
+   ecore_con_init();
+
+   /* real men don't accept failure as a possibility */
+   shotgun_log_dom = eina_log_domain_register("shotgun", EINA_COLOR_RED);
+
+   SHOTGUN_EVENT_MESSAGE = ecore_event_type_new();
+   SHOTGUN_EVENT_PRESENCE = ecore_event_type_new();
+   SHOTGUN_EVENT_IQ = ecore_event_type_new();
+
+   return 1;
+}
+
+Eina_Bool
+shotgun_gchat_connect(Shotgun_Auth *auth)
+{
+   ecore_event_handler_add(ECORE_CON_EVENT_SERVER_ADD, (Ecore_Event_Handler_Cb)shotgun_login_con, auth);
+   ecore_event_handler_add(ECORE_CON_EVENT_SERVER_DEL, (Ecore_Event_Handler_Cb)disc, NULL);
+   ecore_event_handler_add(ECORE_CON_EVENT_SERVER_DATA, (Ecore_Event_Handler_Cb)data, auth);
+   ecore_event_handler_add(ECORE_CON_EVENT_SERVER_ERROR, (Ecore_Event_Handler_Cb)error, NULL);
+   ecore_event_handler_add(ECORE_CON_EVENT_SERVER_UPGRADE, (Ecore_Event_Handler_Cb)shotgun_login_con, auth);
+   auth->svr = ecore_con_server_connect(ECORE_CON_REMOTE_NODELAY, "talk.google.com", 5222, auth);
+   
+   return EINA_TRUE;
 }
 
 int
@@ -153,12 +129,9 @@ main(int argc, char *argv[])
         fprintf(stderr, "Usage: %s [username] [domain]\n", argv[0]);
         return 1;
      }
-   eina_init();
-   ecore_init();
-   ecore_con_init();
 
-   /* real men don't accept failure as a possibility */
-   shotgun_log_dom = eina_log_domain_register("shotgun", EINA_COLOR_RED);
+   shotgun_init();
+
    eina_log_domain_level_set("shotgun", EINA_LOG_LEVEL_DBG);
    eina_log_domain_level_set("ecore_con", EINA_LOG_LEVEL_DBG);
 
@@ -173,13 +146,9 @@ main(int argc, char *argv[])
 
    auth.user = eina_stringshare_add(argv[1]);
    auth.from = eina_stringshare_add(argv[2]);
+   auth.resource = eina_stringshare_add("SHOTGUN!");
 
-   ecore_event_handler_add(ECORE_CON_EVENT_SERVER_ADD, (Ecore_Event_Handler_Cb)con, &auth);
-   ecore_event_handler_add(ECORE_CON_EVENT_SERVER_DEL, (Ecore_Event_Handler_Cb)disc, NULL);
-   ecore_event_handler_add(ECORE_CON_EVENT_SERVER_DATA, (Ecore_Event_Handler_Cb)data, &auth);
-   ecore_event_handler_add(ECORE_CON_EVENT_SERVER_ERROR, (Ecore_Event_Handler_Cb)error, NULL);
-   ecore_event_handler_add(ECORE_CON_EVENT_SERVER_UPGRADE, (Ecore_Event_Handler_Cb)con, &auth);
-   auth.svr = ecore_con_server_connect(ECORE_CON_REMOTE_NODELAY, "talk.google.com", 5222, &auth);
+   shotgun_gchat_connect(&auth);
    ecore_main_loop_begin();
 
    return 0;

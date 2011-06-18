@@ -4,6 +4,8 @@
 #include "pugixml.hpp"
 #include <iterator>
 
+#define XML_NS_ROSTER "jabber:iq:roster"
+
 using namespace pugi;
 
 struct xml_memory_writer : xml_writer
@@ -77,8 +79,8 @@ C: <stream:stream
    xml_node stream;
    char buf[256];
 
-   stream = doc.append_child("stream:stream");
    snprintf(buf, sizeof(buf), "%s@%s", user, to);
+   stream = doc.append_child("stream:stream");
    stream.append_attribute("from").set_value(buf);
    stream.append_attribute("to").set_value(to);
    stream.append_attribute("version").set_value("1.0");
@@ -222,10 +224,16 @@ S: <failure xmlns="urn:ietf:params:xml:ns:xmpp-sasl"><not-authorized/></failure
    return xml[1] == 's';
 }
 
-
 char *
-xml_bind_write(size_t *len)
+xml_iq_write(Shotgun_Auth *auth, Shotgun_Iq_Preset p, size_t *len)
 {
+   xml_document doc;
+   xml_node iq, node;
+
+   iq = doc.append_child("iq");
+   switch (p)
+     {
+      case SHOTGUN_IQ_PRESET_BIND:
 /*
 <iq type="set" id="0">
   <bind xmlns="urn:ietf:params:xml:ns:xmpp-bind">
@@ -235,19 +243,213 @@ xml_bind_write(size_t *len)
   </bind>
 </iq>
 */
-   /* stub for "resource" setting later */
-   xml_document doc;
-   xml_node iq, node;
+        iq.append_attribute("type").set_value("set");
+        iq.append_attribute("id").set_value("0");
 
-   iq = doc.append_child("iq");
-   iq.append_attribute("type").set_value("set");
-   iq.append_attribute("id").set_value("0");
+        node = iq.append_child("bind");
+        node.append_attribute("xmlns").set_value("urn:ietf:params:xml:ns:xmpp-bind");
 
-   node = iq.append_child("bind");
-   node.append_attribute("xmlns").set_value("urn:ietf:params:xml:ns:xmpp-bind");
+        node = node.append_child("resource");
+        node.append_child(node_pcdata).set_value(auth->resource);
+        break;
+      case SHOTGUN_IQ_PRESET_ROSTER:
+/*
+<iq from='juliet@example.com/balcony' type='get' id='roster_1'>
+  <query xmlns='jabber:iq:roster'/>
+</iq>
+*/
+        iq.append_attribute("type").set_value("get");
+        iq.append_attribute("id").set_value("roster");
 
-   node = node.append_child("resource");
-   node.append_child(node_pcdata).set_value("SHOTGUN!");
-
+        node = iq.append_child("query");
+        node.append_attribute("xmlns").set_value(XML_NS_ROSTER);
+      default:
+        break;
+     }
    return xmlnode_to_buf(doc, len, EINA_FALSE);
+}
+
+static Shotgun_Iq_Type
+xml_iq_type_get(xml_node node)
+{
+   const char *type;
+
+   type = node.attribute("type").value();
+   if (!strcmp(type, "get"))
+     return SHOTGUN_IQ_TYPE_GET;
+   if (!strcmp(type, "set"))
+     return SHOTGUN_IQ_TYPE_SET;
+   if (!strcmp(type, "result"))
+     return SHOTGUN_IQ_TYPE_RESULT;
+   return SHOTGUN_IQ_TYPE_ERROR;
+}
+
+static Shotgun_User_Subscription
+xml_iq_user_subscription_get(xml_node node)
+{
+   const char *s;
+   s = node.attribute("subscription").value();
+   switch (s[0])
+     {
+      case 't':
+        return SHOTGUN_USER_SUBSCRIPTION_TO;
+      case 'f':
+        return SHOTGUN_USER_SUBSCRIPTION_FROM;
+      case 'b':
+        return SHOTGUN_USER_SUBSCRIPTION_BOTH;
+      default:
+        break;
+     }
+   return SHOTGUN_USER_SUBSCRIPTION_NONE;
+}
+
+static Shotgun_Event_Iq *
+xml_iq_roster_read(Shotgun_Auth *auth, xml_node node)
+{
+/*
+<iq to='juliet@example.com/balcony' type='result' id='roster_1'>
+  <query xmlns='jabber:iq:roster'>
+    <item jid='romeo@example.net'
+          name='Romeo'
+          subscription='both'>
+      <group>Friends</group>
+    </item>
+    <item jid='mercutio@example.org'
+          name='Mercutio'
+          subscription='from'>
+      <group>Friends</group>
+    </item>
+    <item jid='benvolio@example.org'
+          name='Benvolio'
+          subscription='both'>
+      <group>Friends</group>
+    </item>
+  </query>
+</iq>
+*/
+   Shotgun_Event_Iq *ret;
+
+   ret = static_cast<Shotgun_Event_Iq*>(calloc(1, sizeof(Shotgun_Event_Iq)));
+   ret->type = SHOTGUN_IQ_EVENT_TYPE_ROSTER;
+   ret->account = auth;
+   
+   for (xml_node it = node.first_child(); it; it = it.next_sibling())
+     {
+        Shotgun_User *user;
+
+        user = static_cast<Shotgun_User*>(calloc(1, sizeof(Shotgun_User)));
+        user->account = auth;
+        user->name = eina_stringshare_add(it.attribute("name").value());
+        user->jid = eina_stringshare_add(it.attribute("jid").value());
+        user->subscription = xml_iq_user_subscription_get(it);
+        ret->ev = eina_list_append((Eina_List*)ret->ev, (void*)user);
+     }
+   return ret;
+}
+
+Shotgun_Event_Iq *
+xml_iq_read(Shotgun_Auth *auth, char *xml, size_t size)
+{
+   xml_document doc;
+   xml_node node;
+   xml_parse_result res;
+   Shotgun_Iq_Type type;
+
+   res = doc.load_buffer_inplace(xml, size, parse_default, encoding_auto);
+   if (res.status != status_ok)
+     {
+        ERR("%s", res.description());
+        return NULL;
+     }
+   type = xml_iq_type_get(doc.first_child());
+   node = doc.first_child().first_child();
+   if (strcmp(node.name(), "query"))
+     {
+        ERR("unhandled node: '%s'", node.name());
+        return NULL;
+     }
+   switch (type)
+     {
+      case SHOTGUN_IQ_TYPE_RESULT:
+        if (!strcmp(node.attribute("xmlns").value(), XML_NS_ROSTER))
+          return xml_iq_roster_read(auth, node);
+      case SHOTGUN_IQ_TYPE_GET:
+      case SHOTGUN_IQ_TYPE_SET:
+      default:
+        return NULL;
+     }
+}
+
+char *
+xml_message_write(Shotgun_Message *msg, size_t *len)
+{
+/*
+C: <message from='juliet@im.example.com/balcony'
+            id='ju2ba41c'
+            to='romeo@example.net'
+            type='chat'
+            xml:lang='en'>
+     <body>Art thou not Romeo, and a Montague?</body>
+   </message>
+*/
+
+   xml_document doc;
+   xml_node node;
+   char buf[256];
+
+   snprintf(buf, sizeof(buf), "%s@%s", msg->account->user, msg->account->from);
+   node = doc.append_child("message");
+   node.append_attribute("from").set_value(buf);
+   node.append_attribute("to").set_value(msg->user);
+   node.append_attribute("type").set_value("chat");
+   node.append_attribute("xml:lang").set_value("en");
+
+   node = node.append_child("body");
+   node.append_child(node_pcdata).set_value(msg->msg);
+   
+   return xmlnode_to_buf(doc, len, EINA_FALSE);
+}
+
+Shotgun_Message *
+xml_message_read(Shotgun_Auth *auth, char *xml, size_t size)
+{
+/*
+E: <message from='romeo@example.net/orchard'
+            id='ju2ba41c'
+            to='juliet@im.example.com/balcony'
+            type='chat'
+            xml:lang='en'>
+     <body>Neither, fair saint, if either thee dislike.</body>
+   </message>
+*/
+   xml_document doc;
+   xml_node node;
+   xml_attribute attr;
+   xml_parse_result res;
+   Shotgun_Message *ret;
+
+   res = doc.load_buffer_inplace(xml, size, parse_default, encoding_auto);
+   if (res.status != status_ok)
+     {
+        ERR("%s", res.description());
+        return NULL;
+     }
+
+   node = doc.first_child();
+   if (strcmp(node.name(), "message"))
+     {
+        ERR("Not a message tag: %s", node.name());
+        return NULL;
+     }
+   ret = shotgun_message_new(auth);
+   for (attr = node.first_attribute(); attr; attr = attr.next_attribute())
+     {
+        if (!strcmp(attr.name(), "from"))
+          {
+             eina_stringshare_replace(&ret->user, attr.value());
+             break;
+          }
+     }
+   ret->msg = strdup(node.first_child().child_value());
+   return ret;
 }
