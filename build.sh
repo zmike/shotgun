@@ -39,6 +39,8 @@ echo "gcc -c messaging.c -o messaging.o $CFLAGS $CF || exit 1"
 gcc -c messaging.c -o messaging.o $CFLAGS $CF || exit 1
 echo "gcc -c iq.c -o iq.o $CFLAGS $CF || exit 1"
 gcc -c iq.c -o iq.o $CFLAGS $CF || exit 1
+echo "gcc -c presence.c -o presence.o $CFLAGS $CF || exit 1"
+gcc -c presence.c -o presence.o $CFLAGS $CF || exit 1
 
 echo "g++ *.o -o shotgun -L/usr/lib -lc $LIBS" #pugixml.a
 g++ *.o -o shotgun -L/usr/lib -lc $LIBS #pugixml.a

@@ -55,7 +55,7 @@ data(Shotgun_Auth *auth, int type __UNUSED__, Ecore_Con_Event_Server_Data *ev)
    recv = alloca(ev->size + 1);
    memcpy(recv, ev->data, ev->size);
    recv[ev->size] = 0;
-   DBG("Receiving:\n%s", recv);
+   DBG("Receiving %i bytes:\n%s", ev->size, recv);
 
    if (auth->state < SHOTGUN_STATE_CONNECTED)
      {
@@ -72,6 +72,7 @@ data(Shotgun_Auth *auth, int type __UNUSED__, Ecore_Con_Event_Server_Data *ev)
         shotgun_iq_feed(auth, ev);
         break;
       case SHOTGUN_DATA_TYPE_PRES:
+        shotgun_presence_feed(auth, ev);
       default:
         break;
      }

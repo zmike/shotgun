@@ -117,6 +117,7 @@ shotgun_login(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
         INF("Login complete!");
         auth->state++;
         shotgun_iq_roster_get(auth);
+        shotgun_presence_set(auth, SHOTGUN_USER_STATUS_CHAT, "testing SHOTGUN!");
       default:
         break;
      }

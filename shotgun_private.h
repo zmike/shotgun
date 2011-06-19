@@ -79,8 +79,12 @@ shotgun_write(Ecore_Con_Server *svr, const void *data, size_t size)
 };
 
 void shotgun_message_feed(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev);
+Shotgun_Event_Message *shotgun_message_new(Shotgun_Auth *auth);
 
 void shotgun_iq_feed(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev);
+
+Shotgun_Event_Presence *shotgun_presence_new(Shotgun_Auth *auth);
+void shotgun_presence_feed(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev);
 
 char *shotgun_base64_encode(const char *string, double len);
 char *shotgun_base64_decode(const char *string, int len);

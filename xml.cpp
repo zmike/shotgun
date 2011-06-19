@@ -384,7 +384,7 @@ xml_iq_read(Shotgun_Auth *auth, char *xml, size_t size)
 }
 
 char *
-xml_message_write(Shotgun_Message *msg, size_t *len)
+xml_message_write(Shotgun_Auth *auth, const char *to, const char *msg, size_t *len)
 {
 /*
 C: <message from='juliet@im.example.com/balcony'
@@ -400,20 +400,20 @@ C: <message from='juliet@im.example.com/balcony'
    xml_node node;
    char buf[256];
 
-   snprintf(buf, sizeof(buf), "%s@%s", msg->account->user, msg->account->from);
+   snprintf(buf, sizeof(buf), "%s@%s", auth->user, auth->from);
    node = doc.append_child("message");
    node.append_attribute("from").set_value(buf);
-   node.append_attribute("to").set_value(msg->user);
+   node.append_attribute("to").set_value(to);
    node.append_attribute("type").set_value("chat");
    node.append_attribute("xml:lang").set_value("en");
 
    node = node.append_child("body");
-   node.append_child(node_pcdata).set_value(msg->msg);
+   node.append_child(node_pcdata).set_value(msg);
 
    return xmlnode_to_buf(doc, len, EINA_FALSE);
 }
 
-Shotgun_Message *
+Shotgun_Event_Message *
 xml_message_read(Shotgun_Auth *auth, char *xml, size_t size)
 {
 /*
@@ -429,7 +429,7 @@ E: <message from='romeo@example.net/orchard'
    xml_node node;
    xml_attribute attr;
    xml_parse_result res;
-   Shotgun_Message *ret;
+   Shotgun_Event_Message *ret;
 
    res = doc.load_buffer_inplace(xml, size, parse_default, encoding_auto);
    if (res.status != status_ok)
@@ -449,10 +449,115 @@ E: <message from='romeo@example.net/orchard'
      {
         if (!strcmp(attr.name(), "from"))
           {
-             eina_stringshare_replace(&ret->user, attr.value());
+             eina_stringshare_replace(&ret->jid, attr.value());
              break;
           }
      }
    ret->msg = strdup(node.first_child().child_value());
+   return ret;
+}
+
+char *
+xml_presence_write(Shotgun_Auth *auth __UNUSED__, Shotgun_User_Status st, const char *msg, size_t *len)
+{
+/*
+<presence xml:lang='en'>
+  <show>dnd</show>
+  <status>Wooing Juliet</status>
+  <status xml:lang='cz'>Ja dvo&#x0159;&#x00ED;m Juliet</status>
+  <priority>1</priority>
+</presence>
+*/
+   xml_document doc;
+   xml_node node, show;
+
+   node = doc.append_child("presence");
+   node.append_attribute("xml:lang").set_value("en");
+   if (st)
+     show = node.append_child("show").append_child(node_pcdata);
+   else
+     node.append_attribute("type").set_value("unavailable");
+   switch (st)
+     {
+      case SHOTGUN_USER_STATUS_AWAY:
+        show.set_value("away");
+        break;
+      case SHOTGUN_USER_STATUS_CHAT:
+        show.set_value("chat");
+        break;
+      case SHOTGUN_USER_STATUS_DND:
+        show.set_value("dnd");
+        break;
+      case SHOTGUN_USER_STATUS_XA:
+        show.set_value("xa");
+        break;
+      default:
+        break;
+     }
+   if (msg) node.append_child("status").append_child(node_pcdata).set_value(msg);
+
+   return xmlnode_to_buf(doc, len, EINA_FALSE);
+}
+
+Shotgun_Event_Presence *
+xml_presence_read(Shotgun_Auth *auth, char *xml, size_t size)
+{
+/*
+<presence from='romeo@example.net/orchard'
+          type='unavailable'
+          xml:lang='en'>
+  <status>gone home</status>
+</presence>
+*/
+   xml_document doc;
+   xml_node node;
+   xml_attribute attr;
+   xml_parse_result res;
+   Shotgun_Event_Presence *ret;
+   const char *desc;
+
+   res = doc.load_buffer_inplace(xml, size, parse_default, encoding_auto);
+   if (res.status != status_ok)
+     {
+        ERR("%s", res.description());
+        return NULL;
+     }
+
+   node = doc.first_child();
+   if (strcmp(node.name(), "presence"))
+     {
+        ERR("Not a presence tag: %s", node.name());
+        return NULL;
+     }
+   ret = shotgun_presence_new(auth);
+   for (attr = node.first_attribute(); attr; attr = attr.next_attribute())
+     {
+        if (!strcmp(attr.name(), "from"))
+          eina_stringshare_replace(&ret->jid, attr.value());
+        else if (!strcmp(attr.name(), "type"))
+          {
+             DBG("presence type: %s", attr.value());
+             ret->status = SHOTGUN_USER_STATUS_NONE;
+          }
+     }
+   for (xml_node it = node.first_child(); it; it = it.next_sibling())
+     {
+        if (!strcmp(it.name(), "status"))
+          {
+             desc = it.child_value();
+             if (desc && desc[0]) ret->description = strdup(desc);
+          }
+        else if (!strcmp(it.name(), "show"))
+          {
+             if (!strcmp(it.child_value(), "away"))
+               ret->status = SHOTGUN_USER_STATUS_AWAY;
+             else if (!strcmp(it.child_value(), "chat"))
+               ret->status = SHOTGUN_USER_STATUS_CHAT;
+             else if (!strcmp(it.child_value(), "dnd"))
+               ret->status = SHOTGUN_USER_STATUS_DND;
+             else if (!strcmp(it.child_value(), "xa"))
+               ret->status = SHOTGUN_USER_STATUS_XA;
+          }
+     }
    return ret;
 }
