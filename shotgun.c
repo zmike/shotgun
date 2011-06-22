@@ -59,18 +59,18 @@ shotgun_data_detect(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
      {
         size_t len;
         const char *data, *tag;
-        char buf[24];
+        char buf[24] = {0};
 
         DBG("Appending %i to buffer", ev->size);
         eina_strbuf_append_length(auth->buf, ev->data, ev->size);
         len = eina_strbuf_length_get(auth->buf);
         data = eina_strbuf_string_get(auth->buf);
-        tag = data + len - 2;
+        tag = data + (len - 2);
         while (tag[0] != '<') tag--;
         tag += 2;
         if (!strncmp(data, tag, len - (tag - data))) /* open/end tags maybe match? */
           return EINA_TRUE;
-        strncat(buf, data, sizeof(buf) - 1);
+        memcpy(buf, data, sizeof(buf));
         DBG("%s and %s do not match!", data, tag);
         return EINA_FALSE;
      }
