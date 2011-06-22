@@ -26,11 +26,13 @@ disc(void *data __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Server_Add *ev 
 }
 
 static Shotgun_Data_Type
-shotgun_data_tokenize(Ecore_Con_Event_Server_Data *ev)
+shotgun_data_tokenize(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
 {
-   if (((char*)(ev->data))[0] != '<') return SHOTGUN_DATA_TYPE_UNKNOWN;
+   const char *data;
+   data = auth->buf ? eina_strbuf_string_get(auth->buf) : ev->data;
+   if (data[0] != '<') return SHOTGUN_DATA_TYPE_UNKNOWN;
 
-   switch (((char*)(ev->data))[1])
+   switch (data[1])
      {
       case 'm':
         return SHOTGUN_DATA_TYPE_MSG;
@@ -45,9 +47,34 @@ shotgun_data_tokenize(Ecore_Con_Event_Server_Data *ev)
 }
 
 static Eina_Bool
+shotgun_data_detect(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
+{
+   if (((char*)ev->data)[ev->size - 1] != '>')
+     {
+        if (!auth->buf) auth->buf = eina_strbuf_new();
+        eina_strbuf_append_length(auth->buf, ev->data, ev->size);
+        return EINA_FALSE;
+     }
+   if (auth->buf)
+     {
+        size_t len;
+        const char *data;
+        eina_strbuf_append_length(auth->buf, ev->data, ev->size);
+        len = eina_strbuf_length_get(auth->buf);
+        data = eina_strbuf_string_get(auth->buf);
+        if (!strncmp(data, data + len - 3, 3)) /* open/end tags maybe match? */
+          return EINA_TRUE;
+        return EINA_FALSE;
+     }
+   return EINA_TRUE;
+}
+
+static Eina_Bool
 data(Shotgun_Auth *auth, int type __UNUSED__, Ecore_Con_Event_Server_Data *ev)
 {
    char *recv;
+   char *data;
+   size_t size;
 
    if (auth != ecore_con_server_data_get(ev->server))
      return ECORE_CALLBACK_PASS_ON;
@@ -68,19 +95,27 @@ data(Shotgun_Auth *auth, int type __UNUSED__, Ecore_Con_Event_Server_Data *ev)
         return ECORE_CALLBACK_RENEW;
      }
 
-   switch (shotgun_data_tokenize(ev))
+   if (!shotgun_data_detect(auth, ev))
+     return ECORE_CALLBACK_RENEW;
+
+   data = auth->buf ? (char*)eina_strbuf_string_get(auth->buf) : (char*)ev->data;
+   size = auth->buf ? eina_strbuf_length_get(auth->buf) : (size_t)ev->size;
+
+   switch (shotgun_data_tokenize(auth, ev))
      {
       case SHOTGUN_DATA_TYPE_MSG:
-        shotgun_message_feed(auth, ev);
+        shotgun_message_feed(auth, data, size);
         break;
       case SHOTGUN_DATA_TYPE_IQ:
-        shotgun_iq_feed(auth, ev);
+        shotgun_iq_feed(auth, data, size);
         break;
       case SHOTGUN_DATA_TYPE_PRES:
-        shotgun_presence_feed(auth, ev);
+        shotgun_presence_feed(auth, data, size);
       default:
         break;
      }
+   if (auth->buf) eina_strbuf_free(auth->buf);
+   auth->buf = NULL;
 
    return ECORE_CALLBACK_RENEW;
 }

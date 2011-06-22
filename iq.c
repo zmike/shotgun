@@ -53,13 +53,13 @@ shotgun_iq_roster_get(Shotgun_Auth *auth)
 }
 
 void
-shotgun_iq_feed(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
+shotgun_iq_feed(Shotgun_Auth *auth, char *data, size_t size)
 {
    Shotgun_Event_Iq *iq;
    Eina_List *l;
    Shotgun_User *user;
 
-   iq = xml_iq_read(auth, ev->data, ev->size);
+   iq = xml_iq_read(auth, data, size);
    if (!iq) return; /* no event needed */
 
    switch (iq->type)

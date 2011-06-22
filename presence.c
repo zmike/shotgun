@@ -21,11 +21,11 @@ shotgun_presence_new(Shotgun_Auth *auth)
 }
 
 void
-shotgun_presence_feed(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
+shotgun_presence_feed(Shotgun_Auth *auth, char *data, size_t size)
 {
    Shotgun_Event_Presence *pres;
 
-   pres = xml_presence_read(auth, ev->data, ev->size);
+   pres = xml_presence_read(auth, data, size);
    EINA_SAFETY_ON_NULL_GOTO(pres, error);
 
    switch (pres->status)

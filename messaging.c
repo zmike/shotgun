@@ -34,11 +34,11 @@ shotgun_message_send(Shotgun_Auth *auth, const char *to, const char *msg)
 }
 
 void
-shotgun_message_feed(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
+shotgun_message_feed(Shotgun_Auth *auth, char *data, size_t size)
 {
    Shotgun_Event_Message *msg;
 
-   msg = xml_message_read(auth, ev->data, ev->size);
+   msg = xml_message_read(auth, data, size);
    EINA_SAFETY_ON_NULL_GOTO(msg, error);
 
    INF("Message from %s: %s", msg->jid, msg->msg);

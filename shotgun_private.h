@@ -56,6 +56,8 @@ struct Shotgun_Auth
    const char *resource; /* identifier for "location" of user */
    char *pass;
 
+   Eina_Strbuf *buf;
+
    Ecore_Con_Server *svr;
 
    struct
@@ -78,13 +80,13 @@ shotgun_write(Ecore_Con_Server *svr, const void *data, size_t size)
    ecore_con_server_send(svr, data, size);
 };
 
-void shotgun_message_feed(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev);
+void shotgun_message_feed(Shotgun_Auth *auth, char *data, size_t size);
 Shotgun_Event_Message *shotgun_message_new(Shotgun_Auth *auth);
 
-void shotgun_iq_feed(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev);
+void shotgun_iq_feed(Shotgun_Auth *auth, char *data, size_t size);
 
 Shotgun_Event_Presence *shotgun_presence_new(Shotgun_Auth *auth);
-void shotgun_presence_feed(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev);
+void shotgun_presence_feed(Shotgun_Auth *auth, char *data, size_t size);
 
 char *shotgun_base64_encode(const char *string, double len);
 char *shotgun_base64_decode(const char *string, int len);
