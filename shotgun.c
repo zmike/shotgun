@@ -67,6 +67,7 @@ shotgun_data_detect(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
         data = eina_strbuf_string_get(auth->buf);
         tag = data + len - 2;
         while (tag[0] != '<') tag--;
+        tag += 2;
         if (!strncmp(data, tag, len - (tag - data))) /* open/end tags maybe match? */
           return EINA_TRUE;
         strncat(buf, data, sizeof(buf) - 1);
