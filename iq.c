@@ -60,7 +60,7 @@ shotgun_iq_feed(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
    Shotgun_User *user;
 
    iq = xml_iq_read(auth, ev->data, ev->size);
-   EINA_SAFETY_ON_NULL_RETURN(iq);
+   if (!iq) return; /* no event needed */
 
    switch (iq->type)
      {
@@ -72,8 +72,8 @@ shotgun_iq_feed(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
              else
                INF("User found: %s", user->jid);
           }
+        ecore_event_add(SHOTGUN_EVENT_IQ, iq, (Ecore_End_Cb)shotgun_iq_event_free, NULL);
       default:
         break;
      }
-   ecore_event_add(SHOTGUN_EVENT_IQ, iq, (Ecore_End_Cb)shotgun_iq_event_free, NULL);
 }

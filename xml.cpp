@@ -5,6 +5,7 @@
 #include <iterator>
 
 #define XML_NS_ROSTER "jabber:iq:roster"
+#define XML_NS_DISCO_INFO "http://jabber.org/protocol/disco#info"
 
 using namespace pugi;
 
@@ -350,6 +351,64 @@ xml_iq_roster_read(Shotgun_Auth *auth, xml_node node)
    return ret;
 }
 
+static void
+xml_iq_disco_info_read(Shotgun_Auth *auth, xml_document &query)
+{
+/*
+<iq type='get'
+    from='romeo@montague.net/orchard'
+    to='plays.shakespeare.lit'
+    id='info1'>
+  <query xmlns='http://jabber.org/protocol/disco#info'/>
+</iq>
+*/
+/*
+<iq type='result'
+    from='plays.shakespeare.lit'
+    to='romeo@montague.net/orchard'
+    id='info1'>
+  <query xmlns='http://jabber.org/protocol/disco#info'>
+    <identity
+        category='conference'
+        type='text'
+        name='Play-Specific Chatrooms'/>
+    <identity
+        category='directory'
+        type='chatroom'
+        name='Play-Specific Chatrooms'/>
+    <feature var='http://jabber.org/protocol/disco#info'/>
+    <feature var='http://jabber.org/protocol/disco#items'/>
+    <feature var='http://jabber.org/protocol/muc'/>
+    <feature var='jabber:iq:register'/>
+    <feature var='jabber:iq:search'/>
+    <feature var='jabber:iq:time'/>
+    <feature var='jabber:iq:version'/>
+  </query>
+</iq>
+*/
+   xml_document doc;
+   xml_node iq, node, identity;
+   char *xml;
+   size_t len;
+
+   /* TODO: this setup should probably be a macro or something if it gets reused */
+   iq = doc.append_child("iq");
+   iq.append_attribute("type").set_value("result");
+   iq.append_attribute("from").set_value(query.attribute("to").value());
+   iq.append_attribute("to").set_value(query.attribute("from").value());
+   iq.append_attribute("id").set_value(query.attribute("id").value());
+   node = iq.append_child("query");
+   node.append_attribute("xmlns").set_value(XML_NS_DISCO_INFO);
+   identity = node.append_child("identity");
+   identity.append_attribute("category").set_value("what_the_hell_are_categories?");
+   identity.append_attribute("type").set_value("man_I_suck_at_XMPP");
+   node.append_child("feature").append_attribute("var").set_value(XML_NS_DISCO_INFO); /* yay recursion */
+
+   xml = xmlnode_to_buf(doc, &len, EINA_FALSE);
+   shotgun_write(auth->svr, xml, len);
+   free(xml);
+}
+
 Shotgun_Event_Iq *
 xml_iq_read(Shotgun_Auth *auth, char *xml, size_t size)
 {
@@ -377,6 +436,9 @@ xml_iq_read(Shotgun_Auth *auth, char *xml, size_t size)
         if (!strcmp(node.attribute("xmlns").value(), XML_NS_ROSTER))
           return xml_iq_roster_read(auth, node);
       case SHOTGUN_IQ_TYPE_GET:
+        if (!strcmp(node.attribute("xmlns").value(), XML_NS_DISCO_INFO))
+          xml_iq_disco_info_read(auth, doc);
+          return NULL;
       case SHOTGUN_IQ_TYPE_SET:
       default:
         return NULL;
