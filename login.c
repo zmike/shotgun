@@ -85,7 +85,11 @@ shotgun_login(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
              char *send;
 
              send = xml_sasl_write(out, &len);
+#ifdef SHOTGUN_AUTH_VISIBLE
              shotgun_write(ev->server, send, len);
+#else
+             ecore_con_server_send(ev->server, send, len);
+#endif
              free(out);
              free(send);
              auth->state++;
