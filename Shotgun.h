@@ -65,6 +65,16 @@ typedef struct
 extern "C" {
 #endif
 
+int shotgun_init(void);
+Eina_Bool shotgun_gchat_connect(Shotgun_Auth *auth);
+
+Shotgun_Auth *shotgun_new(const char *username, const char *domain);
+/**
+ * DOES NOT ALLOCATE FOR PASSWORD.
+ */
+void shotgun_password_set(Shotgun_Auth *auth, const char *password);
+void shotgun_password_del(Shotgun_Auth *auth);
+
 Eina_Bool shotgun_iq_roster_get(Shotgun_Auth *auth);
 Eina_Bool shotgun_message_send(Shotgun_Auth *auth, const char *to, const char *msg);
 Eina_Bool shotgun_presence_set(Shotgun_Auth *auth, Shotgun_User_Status st, const char *desc);

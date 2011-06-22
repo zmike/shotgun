@@ -54,7 +54,8 @@ struct Shotgun_Auth
    const char *from; /* domain name of account */
    const char *user; /* username */
    const char *resource; /* identifier for "location" of user */
-   char *pass;
+
+   const char *pass; /* NOT ALLOCATED! */
 
    Eina_Strbuf *buf;
 

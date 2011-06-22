@@ -166,6 +166,36 @@ shotgun_gchat_connect(Shotgun_Auth *auth)
    return EINA_TRUE;
 }
 
+Shotgun_Auth *
+shotgun_new(const char *username, const char *domain)
+{
+   Shotgun_Auth *auth;
+   EINA_SAFETY_ON_NULL_RETURN_VAL(username, NULL);
+   EINA_SAFETY_ON_NULL_RETURN_VAL(domain, NULL);
+
+   auth = calloc(1, sizeof(Shotgun_Auth));
+   auth->user = eina_stringshare_add(username);
+   auth->from = eina_stringshare_add(domain);
+   auth->resource = eina_stringshare_add("SHOTGUN!");
+   return auth;
+}
+
+void
+shotgun_password_set(Shotgun_Auth *auth, const char *password)
+{
+   EINA_SAFETY_ON_NULL_RETURN(auth);
+   EINA_SAFETY_ON_NULL_RETURN(password);
+
+   auth->pass = password;
+}
+
+void
+shotgun_password_del(Shotgun_Auth *auth)
+{
+   EINA_SAFETY_ON_NULL_RETURN(auth);
+   auth->pass = NULL;
+}
+
 int
 main(int argc, char *argv[])
 {
