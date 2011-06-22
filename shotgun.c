@@ -71,7 +71,7 @@ shotgun_data_detect(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
         if (!strncmp(data, tag, len - (tag - data) - 1)) /* open/end tags maybe match? */
           return EINA_TRUE;
         memcpy(buf, data, sizeof(buf));
-        DBG("%s and %s do not match!", data, tag);
+        DBG("%s and %s do not match!", buf, tag);
         return EINA_FALSE;
      }
    return EINA_TRUE;
