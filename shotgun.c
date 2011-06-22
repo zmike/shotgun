@@ -59,6 +59,8 @@ shotgun_data_detect(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
      {
         size_t len;
         const char *data;
+
+        DBG("Appending %i to buffer", ev->size);
         eina_strbuf_append_length(auth->buf, ev->data, ev->size);
         len = eina_strbuf_length_get(auth->buf);
         data = eina_strbuf_string_get(auth->buf);
