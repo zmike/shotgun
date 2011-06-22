@@ -52,6 +52,11 @@ data(Shotgun_Auth *auth, int type __UNUSED__, Ecore_Con_Event_Server_Data *ev)
    if (auth != ecore_con_server_data_get(ev->server))
      return ECORE_CALLBACK_PASS_ON;
 
+   if (ev->size == 1)
+     {
+        DBG("Received carriage return");
+        return ECORE_CALLBACK_RENEW;
+     }
    recv = alloca(ev->size + 1);
    memcpy(recv, ev->data, ev->size);
    recv[ev->size] = 0;
