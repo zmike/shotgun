@@ -446,7 +446,7 @@ xml_iq_read(Shotgun_Auth *auth, char *xml, size_t size)
 }
 
 char *
-xml_message_write(Shotgun_Auth *auth, const char *to, const char *msg, size_t *len)
+xml_message_write(Shotgun_Auth *auth __UNUSED__, const char *to, const char *msg, size_t *len)
 {
 /*
 C: <message from='juliet@im.example.com/balcony'
@@ -460,11 +460,7 @@ C: <message from='juliet@im.example.com/balcony'
 
    xml_document doc;
    xml_node node;
-   char buf[256];
-
-   snprintf(buf, sizeof(buf), "%s@%s", auth->user, auth->from);
    node = doc.append_child("message");
-   node.append_attribute("from").set_value(buf);
    node.append_attribute("to").set_value(to);
    node.append_attribute("type").set_value("chat");
    node.append_attribute("xml:lang").set_value("en");
