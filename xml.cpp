@@ -535,9 +535,9 @@ xml_presence_write(Shotgun_Auth *auth __UNUSED__, Shotgun_User_Status st, const 
 
    node = doc.append_child("presence");
    node.append_attribute("xml:lang").set_value("en");
-   if (st)
+   if (st != SHOTGUN_USER_STATUS_NORMAL)
      show = node.append_child("show").append_child(node_pcdata);
-   else
+   else if (!st)
      node.append_attribute("type").set_value("unavailable");
    switch (st)
      {
@@ -592,6 +592,7 @@ xml_presence_read(Shotgun_Auth *auth, char *xml, size_t size)
         return NULL;
      }
    ret = shotgun_presence_new(auth);
+   ret->status = SHOTGUN_USER_STATUS_NORMAL;
    for (attr = node.first_attribute(); attr; attr = attr.next_attribute())
      {
         if (!strcmp(attr.name(), "from"))

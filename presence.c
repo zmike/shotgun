@@ -31,6 +31,9 @@ shotgun_presence_feed(Shotgun_Auth *auth, char *data, size_t size)
    switch (pres->status)
      {
       case SHOTGUN_USER_STATUS_AWAY:
+        INF("Presence 'normal' from %s: %s", pres->jid, pres->description ? pres->description : "");
+        break;
+      case SHOTGUN_USER_STATUS_AWAY:
         INF("Presence 'away' from %s: %s", pres->jid, pres->description ? pres->description : "");
         break;
       case SHOTGUN_USER_STATUS_CHAT:
