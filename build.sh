@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CF="-O0 -pipe -Wall -Wextra -g"
+CF="-D_GNU_SOURCE=1 -O0 -pipe -Wall -Wextra -g"
 
 DEPS=($(pkg-config --print-requires-private ecore-con))
 echo "DEPENDENCIES: ${DEPS[@]}"
