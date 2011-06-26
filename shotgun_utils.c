@@ -3,7 +3,7 @@
 #include "cdecode.h"
 
 char *
-shotgun_base64_encode(const char *string, double len)
+shotgun_base64_encode(const unsigned char *string, double len)
 {
    base64_encodestate s;
    char *ret = NULL;
@@ -24,7 +24,7 @@ shotgun_base64_encode(const char *string, double len)
 }
 
 char *
-shotgun_base64_decode(const char *string, int len)
+shotgun_base64_decode(const unsigned char *string, int len)
 {
    base64_decodestate s;
    char *ret = NULL;
