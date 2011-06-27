@@ -2,6 +2,8 @@
 #include <Ecore.h>
 #include <Ecore_Con.h>
 
+#include <ctype.h>
+
 #include "xml.h"
 
 int shotgun_log_dom = -1;
@@ -80,8 +82,7 @@ shotgun_data_detect(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
 static Eina_Bool
 data(Shotgun_Auth *auth, int type __UNUSED__, Ecore_Con_Event_Server_Data *ev)
 {
-   char *recv;
-   char *data;
+   char *recv, *data, *p;
    size_t size;
 
    if (auth != ecore_con_server_data_get(ev->server))
@@ -94,6 +95,8 @@ data(Shotgun_Auth *auth, int type __UNUSED__, Ecore_Con_Event_Server_Data *ev)
      }
    recv = alloca(ev->size + 1);
    memcpy(recv, ev->data, ev->size);
+   for (p = recv + ev->size - 1; isspace(*p); p--)
+     *p = 0;
    recv[ev->size] = 0;
    DBG("Receiving %i bytes:\n%s", ev->size, recv);
 
