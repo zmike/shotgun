@@ -6,6 +6,7 @@
 
 #define XML_NS_ROSTER "jabber:iq:roster"
 #define XML_NS_DISCO_INFO "http://jabber.org/protocol/disco#info"
+#define XML_NS_CHATSTATES "http://jabber.org/protocol/chatstates"
 
 using namespace pugi;
 
@@ -403,6 +404,7 @@ xml_iq_disco_info_read(Shotgun_Auth *auth, xml_document &query)
    identity.append_attribute("category").set_value("what_the_hell_are_categories?");
    identity.append_attribute("type").set_value("man_I_suck_at_XMPP");
    node.append_child("feature").append_attribute("var").set_value(XML_NS_DISCO_INFO); /* yay recursion */
+   node.append_child("feature").append_attribute("var").set_value(XML_NS_CHATSTATES);
 
    xml = xmlnode_to_buf(doc, &len, EINA_FALSE);
    shotgun_write(auth->svr, xml, len);
@@ -446,7 +448,7 @@ xml_iq_read(Shotgun_Auth *auth, char *xml, size_t size)
 }
 
 char *
-xml_message_write(Shotgun_Auth *auth __UNUSED__, const char *to, const char *msg, size_t *len)
+xml_message_write(Shotgun_Auth *auth __UNUSED__, const char *to, const char *msg, Shotgun_Message_Status status, size_t *len)
 {
 /*
 C: <message from='juliet@im.example.com/balcony'
@@ -455,18 +457,43 @@ C: <message from='juliet@im.example.com/balcony'
             type='chat'
             xml:lang='en'>
      <body>Art thou not Romeo, and a Montague?</body>
+     <active xmlns='http://jabber.org/protocol/chatstates'/>
    </message>
 */
 
    xml_document doc;
-   xml_node node;
+   xml_node node, body;
    node = doc.append_child("message");
    node.append_attribute("to").set_value(to);
    node.append_attribute("type").set_value("chat");
    node.append_attribute("xml:lang").set_value("en");
 
-   node = node.append_child("body");
-   node.append_child(node_pcdata).set_value(msg);
+   if (msg)
+     {
+        body = node.append_child("body");
+        body.append_child(node_pcdata).set_value(msg);
+     }
+   switch (status)
+     {
+      case SHOTGUN_MESSAGE_STATUS_ACTIVE:
+        node = node.append_child("active");
+        break;
+      case SHOTGUN_MESSAGE_STATUS_COMPOSING:
+        node = node.append_child("composing");
+        break;
+      case SHOTGUN_MESSAGE_STATUS_PAUSED:
+        node = node.append_child("paused");
+        break;
+      case SHOTGUN_MESSAGE_STATUS_INACTIVE:
+        node = node.append_child("inactive");
+        break;
+      case SHOTGUN_MESSAGE_STATUS_GONE:
+        node = node.append_child("gone");
+        break;
+      default:
+        return xmlnode_to_buf(doc, len, EINA_FALSE);
+     }
+   node.append_attribute("xmlns").set_value(XML_NS_CHATSTATES);
 
    return xmlnode_to_buf(doc, len, EINA_FALSE);
 }
@@ -488,6 +515,7 @@ E: <message from='romeo@example.net/orchard'
    xml_attribute attr;
    xml_parse_result res;
    Shotgun_Event_Message *ret;
+   const char *msg;
 
    res = doc.load_buffer_inplace(xml, size, parse_default, encoding_auto);
    if (res.status != status_ok)
@@ -511,7 +539,24 @@ E: <message from='romeo@example.net/orchard'
              break;
           }
      }
-   ret->msg = strdup(node.first_child().child_value());
+   for (xml_node it = node.first_child(); it; it = it.next_sibling())
+     {
+        if (!strcmp(it.name(), "body"))
+          {
+             msg = it.child_value();
+             if (msg && msg[0]) ret->msg = strdup(msg);
+          }
+        else if (!strcmp(it.name(), "active"))
+          ret->status = SHOTGUN_MESSAGE_STATUS_ACTIVE;
+        else if (!strcmp(it.name(), "composing"))
+          ret->status = SHOTGUN_MESSAGE_STATUS_COMPOSING;
+        else if (!strcmp(it.name(), "paused"))
+          ret->status = SHOTGUN_MESSAGE_STATUS_PAUSED;
+        else if (!strcmp(it.name(), "inactive"))
+          ret->status = SHOTGUN_MESSAGE_STATUS_INACTIVE;
+        else if (!strcmp(it.name(), "gone"))
+          ret->status = SHOTGUN_MESSAGE_STATUS_GONE;
+     }
    return ret;
 }
 

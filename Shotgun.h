@@ -31,6 +31,16 @@ typedef enum
    SHOTGUN_USER_STATUS_XA /* eXtended Away */
 } Shotgun_User_Status;
 
+typedef enum
+{
+   SHOTGUN_MESSAGE_STATUS_NONE,
+   SHOTGUN_MESSAGE_STATUS_ACTIVE,
+   SHOTGUN_MESSAGE_STATUS_COMPOSING,
+   SHOTGUN_MESSAGE_STATUS_PAUSED,
+   SHOTGUN_MESSAGE_STATUS_INACTIVE,
+   SHOTGUN_MESSAGE_STATUS_GONE
+} Shotgun_Message_Status;
+
 typedef struct
 {
    const char *jid;
@@ -43,6 +53,7 @@ typedef struct
 {
    const char *jid;
    char *msg;
+   Shotgun_Message_Status status;
    Shotgun_Auth *account;
 } Shotgun_Event_Message;
 
@@ -77,7 +88,7 @@ void shotgun_password_set(Shotgun_Auth *auth, const char *password);
 void shotgun_password_del(Shotgun_Auth *auth);
 
 Eina_Bool shotgun_iq_roster_get(Shotgun_Auth *auth);
-Eina_Bool shotgun_message_send(Shotgun_Auth *auth, const char *to, const char *msg);
+Eina_Bool shotgun_message_send(Shotgun_Auth *auth, const char *to, const char *msg, Shotgun_Message_Status status);
 Eina_Bool shotgun_presence_set(Shotgun_Auth *auth, Shotgun_User_Status st, const char *desc);
 
 #ifdef __cplusplus

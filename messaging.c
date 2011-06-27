@@ -22,12 +22,12 @@ shotgun_message_new(Shotgun_Auth *auth)
 }
 
 Eina_Bool
-shotgun_message_send(Shotgun_Auth *auth, const char *to, const char *msg)
+shotgun_message_send(Shotgun_Auth *auth, const char *to, const char *msg, Shotgun_Message_Status status)
 {
    size_t len;
    char *xml;
 
-   xml = xml_message_write(auth, to, msg, &len);
+   xml = xml_message_write(auth, to, msg, status, &len);
    shotgun_write(auth->svr, xml, len);
    free(xml);
    return EINA_TRUE;
