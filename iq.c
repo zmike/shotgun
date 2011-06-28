@@ -38,6 +38,7 @@ shotgun_iq_event_free(void *data __UNUSED__, Shotgun_Event_Iq *iq)
       default:
         break;
      }
+   free(iq);
 }
 
 Eina_Bool
