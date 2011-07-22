@@ -6,9 +6,9 @@ int ui_log_dom = -1;
 static Eina_Bool
 con(void *d __UNUSED__, int type __UNUSED__, Shotgun_Auth *auth)
 {
+   contact_list_new();
    shotgun_iq_roster_get(auth);
    shotgun_presence_set(auth, SHOTGUN_USER_STATUS_CHAT, "testing SHOTGUN!");
-   contact_list_new();
    return ECORE_CALLBACK_RENEW;
 }
 
