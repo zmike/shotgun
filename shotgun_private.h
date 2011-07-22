@@ -95,8 +95,8 @@ void shotgun_iq_feed(Shotgun_Auth *auth, char *data, size_t size);
 Shotgun_Event_Presence *shotgun_presence_new(Shotgun_Auth *auth);
 void shotgun_presence_feed(Shotgun_Auth *auth, char *data, size_t size);
 
-char *shotgun_base64_encode(const unsigned char *string, double len);
-char *shotgun_base64_decode(const unsigned char *string, int len);
+char *shotgun_base64_encode(const unsigned char *string, double len, size_t *size);
+unsigned char *shotgun_base64_decode(const char *string, int len, size_t *size);
 
 Eina_Bool shotgun_login_con(Shotgun_Auth *auth, int type, Ecore_Con_Event_Server_Add *ev);
 void shotgun_login(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev);

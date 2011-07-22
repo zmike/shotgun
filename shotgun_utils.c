@@ -3,7 +3,7 @@
 #include "cdecode.h"
 
 char *
-shotgun_base64_encode(const unsigned char *string, double len)
+shotgun_base64_encode(const unsigned char *string, double len, size_t *size)
 {
    base64_encodestate s;
    char *ret = NULL;
@@ -18,25 +18,30 @@ shotgun_base64_encode(const unsigned char *string, double len)
    retlen[1] = base64_encode_blockend(ret + retlen[0], &s);
    ret[retlen[0] + retlen[1]] = '\0';
    if (ret[retlen[0] + retlen[1] - 1] == '\n')
-     ret[retlen[0] + retlen[1] - 1] = '\0';
+     {
+        ret[retlen[0] + retlen[1] - 1] = '\0';
+        *size = retlen[0] + retlen[1] - 2;
+     }
+   else
+     *size = retlen[0] + retlen[1] - 1;
 
    return ret;
 }
 
-char *
-shotgun_base64_decode(const unsigned char *string, int len)
+unsigned char *
+shotgun_base64_decode(const char *string, int len, size_t *size)
 {
    base64_decodestate s;
-   char *ret = NULL;
+   unsigned char *ret = NULL;
    int retlen;
 
    if ((len < 1) || (!string)) return NULL;
 
-   if (!(ret = malloc(sizeof(char) * (int)((double)len / (double)(4 / 3)) + 1)))
+   if (!(ret = malloc(sizeof(char) * (int)((double)len / (double)(4 / 3)))))
      return NULL;
    base64_init_decodestate(&s);
    retlen = base64_decode_block((char*)string, len, ret, &s);
-   ret[retlen] = '\0';
+   *size = retlen;
 
    return ret;
 }
