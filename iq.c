@@ -21,6 +21,7 @@ o  wait -- retry after waiting (the error is temporary)
 void
 shotgun_user_free(Shotgun_User *user)
 {
+   if (!user) return;
    eina_stringshare_del(user->jid);
    eina_stringshare_del(user->name);
    free(user);

@@ -39,6 +39,7 @@ error:
 void
 shotgun_event_message_free(Shotgun_Event_Message *msg)
 {
+   if (!msg) return;
    shotgun_message_free(NULL, msg);
 }
 

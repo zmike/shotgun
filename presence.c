@@ -57,6 +57,7 @@ error:
 void
 shotgun_event_presence_free(Shotgun_Event_Presence *pres)
 {
+   if (!pres) return;
    shotgun_presence_free(NULL, pres);
 }
 
