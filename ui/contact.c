@@ -427,6 +427,7 @@ _event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev)
            c->info = info;
            ev->ev = NULL;
            if (c->list_item && info->photo.data) elm_genlist_item_update(c->list_item);
+           break;
         }
       default:
         ERR("WTF!");
