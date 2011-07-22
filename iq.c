@@ -27,6 +27,17 @@ shotgun_user_free(Shotgun_User *user)
    free(user);
 }
 
+void
+shotgun_user_info_free(Shotgun_User_Info *info)
+{
+   if (!info) return;
+   eina_stringshare_del(info->jid);
+   eina_stringshare_del(info->full_name);
+   eina_stringshare_del(info->photo.type);
+   free(info->photo.data);
+   free(info);
+}
+
 static void
 shotgun_iq_event_free(void *data __UNUSED__, Shotgun_Event_Iq *iq)
 {
@@ -36,6 +47,10 @@ shotgun_iq_event_free(void *data __UNUSED__, Shotgun_Event_Iq *iq)
       case SHOTGUN_IQ_EVENT_TYPE_ROSTER:
         EINA_LIST_FREE(iq->ev, user)
           shotgun_user_free(user);
+        break;
+      case SHOTGUN_IQ_EVENT_TYPE_INFO:
+        shotgun_user_info_free(iq->ev);
+        break;
       default:
         break;
      }
@@ -62,10 +77,20 @@ shotgun_iq_feed(Shotgun_Auth *auth, char *data, size_t size)
              else
                INF("User found: %s", user->jid);
           }
-        ecore_event_add(SHOTGUN_EVENT_IQ, iq, (Ecore_End_Cb)shotgun_iq_event_free, NULL);
+        break;
+      case SHOTGUN_IQ_EVENT_TYPE_INFO:
+        {
+           Shotgun_User_Info *info = iq->ev;
+
+           INF("User: %s", info->jid);
+           INF("Full Name: %s", info->full_name);
+           if (info->photo.size)
+             INF("Found image type %s: %zu bytes", info->photo.type, info->photo.size);
+        }
       default:
         break;
      }
+   ecore_event_add(SHOTGUN_EVENT_IQ, iq, (Ecore_End_Cb)shotgun_iq_event_free, NULL);
 }
 
 Eina_Bool

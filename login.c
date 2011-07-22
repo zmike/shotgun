@@ -5,7 +5,7 @@
 // http://www.ietf.org/rfc/rfc4616.txt
 
 static char *
-sasl_init(Shotgun_Auth *auth)
+sasl_init(Shotgun_Auth *auth, size_t *size)
 {
    Eina_Binbuf *buf;
    char *ret;
@@ -16,7 +16,7 @@ sasl_init(Shotgun_Auth *auth)
    eina_binbuf_append_length(buf, (unsigned char*)auth->user, eina_stringshare_strlen(auth->user));
    eina_binbuf_append_char(buf, 0);
    eina_binbuf_append_length(buf, (unsigned char*)auth->pass, strlen(auth->pass));
-   ret = shotgun_base64_encode(eina_binbuf_string_get(buf), eina_binbuf_length_get(buf));
+   ret = shotgun_base64_encode(eina_binbuf_string_get(buf), eina_binbuf_length_get(buf), size);
    eina_binbuf_free(buf);
    return ret;
 }
@@ -78,7 +78,7 @@ shotgun_login(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
 
       case SHOTGUN_STATE_FEATURES:
         if (!xml_stream_init_read(auth, ev->data, ev->size)) break;
-        out = sasl_init(auth);
+        out = sasl_init(auth, &len);
         if (!out) ecore_main_loop_quit();
         else
           {

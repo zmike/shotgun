@@ -21,6 +21,7 @@ typedef struct
 typedef struct
 {
    Shotgun_User *base;
+   Shotgun_User_Info *info;
    Shotgun_Event_Presence *cur;
    Eina_List *plist;
    Shotgun_User_Status status;
@@ -108,9 +109,16 @@ _it_label_get(Contact *c, Evas_Object *obj __UNUSED__, const char *part)
 }
 
 static Evas_Object *
-_it_icon_get(void *data __UNUSED__, Evas_Object *obj __UNUSED__, const char *part __UNUSED__)
+_it_icon_get(Contact *c, Evas_Object *obj, const char *part)
 {
-   return NULL;
+   Evas_Object *ic;
+
+   if ((!c->info) || (!c->info->photo.data) || strcmp(part, "elm.swallow.end")) return NULL;
+   ic = elm_icon_add(obj);
+   elm_icon_memfile_set(ic, c->info->photo.data, c->info->photo.size, NULL, NULL);
+   evas_object_size_hint_aspect_set(ic, EVAS_ASPECT_CONTROL_VERTICAL, 1, 1);
+
+   return ic;
 }
 
 static Eina_Bool
@@ -120,9 +128,8 @@ _it_state_get(void *data __UNUSED__, Evas_Object *obj __UNUSED__, const char *pa
 }
 
 static void
-_it_del(void *data, Evas_Object *obj __UNUSED__)
+_it_del(Contact *c, Evas_Object *obj __UNUSED__)
 {
-   Contact *c = data;
    c->list_item = NULL;
 }
 
@@ -392,11 +399,8 @@ _chat_window_open(Contact *c)
 }
 
 static Eina_Bool
-_event_iq_cb(void *data, int type __UNUSED__, void *event)
+_event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev)
 {
-   Contact_List *cl = data;
-   Shotgun_Event_Iq *ev = event;
-
    DBG("EVENT_IQ %d: %p", ev->type, ev->ev);
    switch(ev->type)
      {
@@ -406,6 +410,22 @@ _event_iq_cb(void *data, int type __UNUSED__, void *event)
            EINA_LIST_FREE(ev->ev, user)
              _do_something_with_user(cl, user);
            break;
+        }
+      case SHOTGUN_IQ_EVENT_TYPE_INFO:
+        {
+           Contact *c;
+           Shotgun_User_Info *info = ev->ev;
+
+           c = eina_hash_find(cl->users, info->jid);
+           if (!c)
+             {
+                ERR("WTF!");
+                break;
+             }
+           shotgun_user_info_free(c->info);
+           c->info = info;
+           ev->ev = NULL;
+           if (c->list_item && info->photo.data) elm_genlist_item_update(c->list_item);
         }
       default:
         ERR("WTF!");
@@ -424,9 +444,9 @@ _event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence
         .item_style = "double_label",
         .func = {
              .label_get = (GenlistItemLabelGetFunc)_it_label_get,
-             .icon_get = _it_icon_get,
-             .state_get = _it_state_get,
-             .del = _it_del
+             .icon_get = (GenlistItemIconGetFunc)_it_icon_get,
+             .state_get = (GenlistItemStateGetFunc)_it_state_get,
+             .del = (GenlistItemDelFunc)_it_del
         }
    };
 

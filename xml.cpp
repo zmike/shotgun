@@ -438,6 +438,44 @@ xml_iq_disco_info_write(Shotgun_Auth *auth, xml_document &query)
    free(xml);
 }
 
+static Shotgun_Event_Iq *
+xml_iq_vcard_read(Shotgun_Auth *auth, xml_node iq, xml_node node)
+{
+   Shotgun_Event_Iq *ret;
+   Shotgun_User_Info *info;
+
+   ret = static_cast<Shotgun_Event_Iq*>(calloc(1, sizeof(Shotgun_Event_Iq)));
+   ret->type = SHOTGUN_IQ_EVENT_TYPE_INFO;
+   info = static_cast<Shotgun_User_Info*>(calloc(1, sizeof(Shotgun_User_Info)));
+   ret->ev = info;
+   ret->account = auth;
+   info->jid = eina_stringshare_add(iq.attribute("from").value());
+
+   for (xml_node it = node.first_child(); it; it = it.next_sibling())
+     {
+        if (!strcmp(it.name(), "FN"))
+          info->full_name = eina_stringshare_add(it.child_value());
+        else if (!strcmp(it.name(), "PHOTO"))
+          {
+             xml_node n;
+
+             n = it.child("TYPE");
+             if (n.empty()) continue;
+             info->photo.type = eina_stringshare_add(n.child_value());
+             n = it.child("BINVAL");
+             if (n.empty())
+               {
+                  eina_stringshare_del(info->photo.type);
+                  info->photo.type = NULL;
+                  continue;
+               }
+             info->photo.data = shotgun_base64_decode(n.child_value(), strlen(n.child_value()), &info->photo.size);
+          }
+     }
+   return ret;
+   
+}
+
 Shotgun_Event_Iq *
 xml_iq_read(Shotgun_Auth *auth, char *xml, size_t size)
 {
@@ -462,7 +500,7 @@ xml_iq_read(Shotgun_Auth *auth, char *xml, size_t size)
         if (!strcmp(str, XML_NS_ROSTER))
           return xml_iq_roster_read(auth, node);
         if (!strcmp(str, "vcard-temp"))
-          return NULL;
+          return xml_iq_vcard_read(auth, doc.first_child(), node);
         if (!strcmp(str, XML_NS_BIND))
           auth->bind = eina_stringshare_add(node.child("jid").child_value());
           break;

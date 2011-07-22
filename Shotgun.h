@@ -13,7 +13,8 @@ typedef struct Shotgun_Auth Shotgun_Auth;
 typedef enum
 {
    SHOTGUN_IQ_EVENT_TYPE_UNKNOWN,
-   SHOTGUN_IQ_EVENT_TYPE_ROSTER /* Eina_List *Shotgun_User */
+   SHOTGUN_IQ_EVENT_TYPE_ROSTER, /* Eina_List *Shotgun_User */
+   SHOTGUN_IQ_EVENT_TYPE_INFO, /* Shotgun_User_Info */
 } Shotgun_Iq_Event_Type;
 
 typedef enum
@@ -51,6 +52,18 @@ typedef struct
    Shotgun_User_Subscription subscription;
    Shotgun_Auth *account;
 } Shotgun_User;
+
+typedef struct
+{
+   const char *jid;
+   const char *full_name;
+   struct
+     {
+        const char *type;
+        void *data;
+        size_t size;
+     } photo;
+} Shotgun_User_Info;
 
 typedef struct
 {
@@ -101,6 +114,7 @@ Eina_Bool shotgun_presence_set(Shotgun_Auth *auth, Shotgun_User_Status st, const
 
 void shotgun_event_message_free(Shotgun_Event_Message *msg);
 void shotgun_event_presence_free(Shotgun_Event_Presence *pres);
+void shotgun_user_info_free(Shotgun_User_Info *info);
 void shotgun_user_free(Shotgun_User *user);
 
 #ifdef __cplusplus
