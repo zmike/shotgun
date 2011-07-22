@@ -42,18 +42,6 @@ shotgun_iq_event_free(void *data __UNUSED__, Shotgun_Event_Iq *iq)
    free(iq);
 }
 
-Eina_Bool
-shotgun_iq_roster_get(Shotgun_Auth *auth)
-{
-   size_t len;
-   char *xml;
-
-   xml = xml_iq_write(auth, SHOTGUN_IQ_PRESET_ROSTER, &len);
-   shotgun_write(auth->svr, xml, len);
-   free(xml);
-   return EINA_TRUE;
-}
-
 void
 shotgun_iq_feed(Shotgun_Auth *auth, char *data, size_t size)
 {
@@ -78,4 +66,28 @@ shotgun_iq_feed(Shotgun_Auth *auth, char *data, size_t size)
       default:
         break;
      }
+}
+
+Eina_Bool
+shotgun_iq_roster_get(Shotgun_Auth *auth)
+{
+   size_t len;
+   char *xml;
+
+   xml = xml_iq_write_preset(auth, SHOTGUN_IQ_PRESET_ROSTER, &len);
+   shotgun_write(auth->svr, xml, len);
+   free(xml);
+   return EINA_TRUE;
+}
+
+Eina_Bool
+shotgun_iq_vcard_get(Shotgun_Auth *auth, const char *user)
+{
+   size_t len;
+   char *xml;
+
+   xml = xml_iq_write_get_vcard(auth, user, &len);
+   shotgun_write(auth->svr, xml, len);
+   free(xml);
+   return EINA_TRUE;
 }

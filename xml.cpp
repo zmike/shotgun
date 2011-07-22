@@ -7,6 +7,7 @@
 #define XML_NS_ROSTER "jabber:iq:roster"
 #define XML_NS_DISCO_INFO "http://jabber.org/protocol/disco#info"
 #define XML_NS_CHATSTATES "http://jabber.org/protocol/chatstates"
+#define XML_NS_BIND "urn:ietf:params:xml:ns:xmpp-bind"
 
 using namespace pugi;
 
@@ -227,7 +228,7 @@ S: <failure xmlns="urn:ietf:params:xml:ns:xmpp-sasl"><not-authorized/></failure
 }
 
 char *
-xml_iq_write(Shotgun_Auth *auth, Shotgun_Iq_Preset p, size_t *len)
+xml_iq_write_preset(Shotgun_Auth *auth, Shotgun_Iq_Preset p, size_t *len)
 {
    xml_document doc;
    xml_node iq, node;
@@ -268,6 +269,37 @@ xml_iq_write(Shotgun_Auth *auth, Shotgun_Iq_Preset p, size_t *len)
       default:
         break;
      }
+   return xmlnode_to_buf(doc, len, EINA_FALSE);
+}
+
+char *
+xml_iq_write_get_vcard(Shotgun_Auth *auth, const char *to, size_t *len)
+{
+   xml_document doc;
+   xml_node iq;
+   char buf[256];
+
+   snprintf(buf, sizeof(buf), "%s@%s/%s", auth->user, auth->from, auth->resource);
+   iq = doc.append_child("iq");
+/*
+<iq from='stpeter@jabber.org/roundabout'
+    id='v3'
+    to='jer@jabber.org'
+    type='get'>
+  <vCard xmlns='vcard-temp'/>
+</iq>
+*/
+   iq.append_attribute("from").set_value(buf);
+   if (to)
+     {
+        const char *s;
+        s = strrchr(to, '/');
+        if (s) strncat(buf, to, s - to);
+        iq.append_attribute("to").set_value(s ? buf : to);
+     }
+   iq.append_attribute("id").set_value("vcard-get");
+   iq.append_attribute("type").set_value("get");
+   iq.append_child("vCard").append_attribute("xmlns").set_value("vcard-temp");
    return xmlnode_to_buf(doc, len, EINA_FALSE);
 }
 
@@ -353,7 +385,7 @@ xml_iq_roster_read(Shotgun_Auth *auth, xml_node node)
 }
 
 static void
-xml_iq_disco_info_read(Shotgun_Auth *auth, xml_document &query)
+xml_iq_disco_info_write(Shotgun_Auth *auth, xml_document &query)
 {
 /*
 <iq type='get'
@@ -418,6 +450,7 @@ xml_iq_read(Shotgun_Auth *auth, char *xml, size_t size)
    xml_node node;
    xml_parse_result res;
    Shotgun_Iq_Type type;
+   const char *str;
 
    res = doc.load_buffer_inplace(xml, size, parse_default, encoding_auto);
    if (res.status != status_ok)
@@ -427,24 +460,27 @@ xml_iq_read(Shotgun_Auth *auth, char *xml, size_t size)
      }
    type = xml_iq_type_get(doc.first_child());
    node = doc.first_child().first_child();
-   if (strcmp(node.name(), "query"))
-     {
-        ERR("unhandled node: '%s'", node.name());
-        return NULL;
-     }
+   str = node.attribute("xmlns").value();
    switch (type)
      {
       case SHOTGUN_IQ_TYPE_RESULT:
-        if (!strcmp(node.attribute("xmlns").value(), XML_NS_ROSTER))
+        if (!strcmp(str, XML_NS_ROSTER))
           return xml_iq_roster_read(auth, node);
-      case SHOTGUN_IQ_TYPE_GET:
-        if (!strcmp(node.attribute("xmlns").value(), XML_NS_DISCO_INFO))
-          xml_iq_disco_info_read(auth, doc);
+        if (!strcmp(str, "vcard-temp"))
           return NULL;
+      case SHOTGUN_IQ_TYPE_GET:
+        if (!strcmp(str, XML_NS_DISCO_INFO))
+          xml_iq_disco_info_write(auth, doc);
+          break;
+        if (!strcmp(str, XML_NS_BIND))
+          auth->bind = eina_stringshare_add(node.child("jid").child_value());
+          break;
+        return (Shotgun_Event_Iq*)1;
       case SHOTGUN_IQ_TYPE_SET:
       default:
-        return NULL;
+        break;
      }
+   return NULL;
 }
 
 char *
@@ -663,7 +699,21 @@ xml_presence_read(Shotgun_Auth *auth, char *xml, size_t size)
                ret->status = SHOTGUN_USER_STATUS_XA;
           }
         else if (!strcmp(it.name(), "priority"))
-           ret->priority = strtol(it.child_value(), NULL, 10);
+          ret->priority = strtol(it.child_value(), NULL, 10);
+        else if (!strcmp(it.name(), "x"))
+          {
+             const char *ns;
+
+             ns = it.attribute("xmlns").value();
+             if (!ns) continue;
+             if (!strncmp(ns, "vcard-temp", sizeof("vcard-temp") - 1))
+               {
+                  ret->vcard = EINA_TRUE;
+                  node = it.child("photo");
+                  if (!node.empty())
+                    ret->photo = strdup(node.child_value());
+               }
+          }
      }
    return ret;
 }

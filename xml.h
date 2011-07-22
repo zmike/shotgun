@@ -15,7 +15,8 @@ Eina_Bool xml_starttls_read(char *xml, size_t size);
 char *xml_sasl_write(const char *sasl, size_t *len);
 Eina_Bool xml_sasl_read(const unsigned char *xml, size_t size __UNUSED__);
 
-char *xml_iq_write(Shotgun_Auth *auth, Shotgun_Iq_Preset p, size_t *len);
+char *xml_iq_write_preset(Shotgun_Auth *auth, Shotgun_Iq_Preset p, size_t *len);
+char *xml_iq_write_get_vcard(Shotgun_Auth *auth, const char *to, size_t *len);
 Shotgun_Event_Iq *xml_iq_read(Shotgun_Auth *auth, char *xml, size_t size);
 
 char *xml_message_write(Shotgun_Auth *auth, const char *to, const char *msg, Shotgun_Message_Status status, size_t *len);

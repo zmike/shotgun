@@ -54,6 +54,7 @@ struct Shotgun_Auth
    const char *from; /* domain name of account */
    const char *user; /* username */
    const char *resource; /* identifier for "location" of user */
+   const char *bind; /* full JID from xmpp:bind */
 
    const char *pass; /* NOT ALLOCATED! */
 
