@@ -1,5 +1,4 @@
 #include <Elementary.h>
-#include "../Shotgun.h"
 #include <sys/stat.h>
 
 #ifndef __UNUSED__
@@ -7,14 +6,6 @@
 #endif
 
 #include "ui.h"
-
-#define DBG(...)            EINA_LOG_DOM_DBG(ui_log_dom, __VA_ARGS__)
-#define INF(...)            EINA_LOG_DOM_INFO(ui_log_dom, __VA_ARGS__)
-#define WRN(...)            EINA_LOG_DOM_WARN(ui_log_dom, __VA_ARGS__)
-#define ERR(...)            EINA_LOG_DOM_ERR(ui_log_dom, __VA_ARGS__)
-#define CRI(...)            EINA_LOG_DOM_CRIT(ui_log_dom, __VA_ARGS__)
-
-static int ui_log_dom = -1;
 
 typedef struct
 {
@@ -617,9 +608,6 @@ contact_list_new(int argc, char **argv)
 {
    Evas_Object *win, *bg, *box, *list, *btn;
    Contact_List *cldata;
-
-   ui_log_dom = eina_log_domain_register("shotgun_ui", EINA_COLOR_LIGHTRED);
-   eina_log_domain_level_set("shotgun_ui", EINA_LOG_LEVEL_DBG);
 
    elm_init(argc, argv);
    //_setup_extension();

@@ -1,6 +1,8 @@
 #ifndef SHOTGUN_H
 #define SHOTGUN_H
 
+#include <Eina.h>
+
 extern int SHOTGUN_EVENT_IQ; /* Shotgun_Event_Iq */
 extern int SHOTGUN_EVENT_MESSAGE; /* Shotgun_Event_Message */
 extern int SHOTGUN_EVENT_PRESENCE; /* NYI */

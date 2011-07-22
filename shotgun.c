@@ -5,7 +5,6 @@
 #include <ctype.h>
 
 #include "xml.h"
-#include "ui/ui.h"
 
 int shotgun_log_dom = -1;
 
@@ -198,42 +197,4 @@ shotgun_password_del(Shotgun_Auth *auth)
 {
    EINA_SAFETY_ON_NULL_RETURN(auth);
    auth->pass = NULL;
-}
-
-int
-main(int argc, char *argv[])
-{
-   char *pass;
-   Shotgun_Auth auth;
-   char *getpass_x(const char *prompt);
-
-   if (argc != 3)
-     {
-        fprintf(stderr, "Usage: %s [username] [domain]\n", argv[0]);
-        return 1;
-     }
-
-   shotgun_init();
-
-   eina_log_domain_level_set("shotgun", EINA_LOG_LEVEL_DBG);
-   //eina_log_domain_level_set("ecore_con", EINA_LOG_LEVEL_DBG);
-
-   memset(&auth, 0, sizeof(Shotgun_Auth));
-   pass = getpass_x("Password: ");
-   if (!pass)
-     {
-        ERR("No password entered!");
-        return 1;
-     }
-   auth.pass = pass;
-
-   auth.user = eina_stringshare_add(argv[1]);
-   auth.from = eina_stringshare_add(argv[2]);
-   auth.resource = eina_stringshare_add("SHOTGUN!");
-
-   shotgun_gchat_connect(&auth);
-   contact_list_new(argc, argv);
-   ecore_main_loop_begin();
-
-   return 0;
 }

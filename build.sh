@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CF="-D_GNU_SOURCE=1 -O0 -pipe -Wall -Wextra -g"
+CF="-I$(readlink -f .) -D_GNU_SOURCE=1 -O0 -pipe -Wall -Wextra -g"
 
 DEPS=($(pkg-config --print-requires-private ecore-con elementary))
 #echo "DEPENDENCIES: ${DEPS[@]}"
