@@ -344,6 +344,7 @@ _chat_window_open(Contact *c)
    status = elm_entry_add(win);
    elm_entry_single_line_set(status, 1);
    elm_entry_scrollable_set(status, 1);
+   elm_entry_editable_set(status, 0);
    evas_object_size_hint_weight_set(status, EVAS_HINT_EXPAND, 0);
    evas_object_size_hint_align_set(status, EVAS_HINT_FILL, 0);
    elm_box_pack_end(topbox, status);
@@ -439,53 +440,70 @@ _event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence
 
    if (!ev->status)
      {
-        INF("Removing user %s", c->base->jid);
-        if (!c->plist) eina_hash_del_by_key(cl->users, jid);
+        if (!c->plist)
+          {
+             INF("Removing user %s", c->base->jid);
+             shotgun_event_presence_free(c->cur);
+             elm_genlist_item_del(c->list_item);
+             c->list_item = NULL;
+             return EINA_TRUE;
+          }
+        if (ev->jid == c->cur->jid)
+          {
+             shotgun_event_presence_free(c->cur);
+             c->cur = NULL;
+             EINA_LIST_FOREACH(c->plist, l, pres)
+               {
+                  if (!c->cur)
+                    {
+                       c->cur = pres;
+                       continue;
+                    }
+                  if (pres->priority < c->cur->priority) continue;
+                  c->cur = pres;
+               }
+             c->plist = eina_list_remove(c->plist, c->cur);
+          }
         else
           {
-             if (ev->jid == c->cur->jid)
+             EINA_LIST_FOREACH(c->plist, l, pres)
                {
-                  shotgun_event_presence_free(c->cur);
-                  c->cur = NULL;
-                  EINA_LIST_FOREACH(c->plist, l, pres)
+                  if (ev->jid == pres->jid)
                     {
-                       if (!c->cur)
-                         {
-                            c->cur = pres;
-                            continue;
-                         }
-                       if (pres->priority < c->cur->priority) continue;
-                       c->cur = pres;
-                    }
-                  c->plist = eina_list_remove(c->plist, c->cur);
-               }
-             else
-               {
-                  EINA_LIST_FOREACH(c->plist, l, pres)
-                    {
-                       if (ev->jid == pres->jid)
-                         {
-                            shotgun_event_presence_free(pres);
-                            c->plist = eina_list_remove_list(c->plist, l);
-                            break;
-                         }
+                       shotgun_event_presence_free(pres);
+                       c->plist = eina_list_remove_list(c->plist, l);
+                       break;
                     }
                }
-             c->status = c->cur->status;
-             c->description = c->cur->description;
-             elm_genlist_item_update(c->list_item);
           }
+        c->status = c->cur->status;
+        c->description = c->cur->description;
+        elm_genlist_item_update(c->list_item);
         return EINA_TRUE;
      }
    if ((!c->cur) || (ev->jid != c->cur->jid))
      {
-        pres = calloc(1, sizeof(Shotgun_Event_Presence));
-        pres->jid = ev->jid;
-        ev->jid = NULL;
-        pres->description = ev->description;
-        ev->description = NULL;
-        pres->priority = ev->priority;
-        pres->status = ev->status;
+        EINA_LIST_FOREACH(c->plist, l, pres)
+          {
+             if (ev->jid != pres->jid) continue;
+
+             free(pres->description);
+             pres->description = ev->description;
+             ev->description = NULL;
+             pres->priority = ev->priority;
+             pres->status = ev->status;
+             break;
+          }
+        if ((!pres) || (pres->jid != ev->jid))
+          {
+             pres = calloc(1, sizeof(Shotgun_Event_Presence));
+             pres->jid = ev->jid;
+             ev->jid = NULL;
+             pres->description = ev->description;
+             ev->description = NULL;
+             pres->priority = ev->priority;
+             pres->status = ev->status;
+          }
         if (c->cur)
           {
              if (ev->priority < c->cur->priority)
