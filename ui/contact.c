@@ -304,6 +304,7 @@ _chat_window_open(Contact *c)
       elm_genlist_item_genlist_get(c->list_item));
 
    win = elm_win_add(parent_win, "chat-window", ELM_WIN_BASIC);
+   elm_object_focus_allow_set(win, 0);
    elm_win_title_set(win, c->base->jid);
    evas_object_smart_callback_add(win, "delete,request", (Evas_Smart_Cb)_chat_window_close_cb, win);
    evas_object_event_callback_add(win, EVAS_CALLBACK_KEY_DOWN, (Evas_Object_Event_Cb)_chat_window_key, win);
@@ -312,25 +313,29 @@ _chat_window_open(Contact *c)
    evas_object_show(win);
 
    bg = elm_bg_add(win);
-   evas_object_size_hint_weight_set(bg, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+   elm_object_focus_allow_set(bg, 0);
+   WEIGHT(bg, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    elm_win_resize_object_add(win, bg);
    evas_object_show(bg);
 
    box = elm_box_add(win);
-   evas_object_size_hint_weight_set(box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+   elm_object_focus_allow_set(box, 0);
+   WEIGHT(box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    elm_win_resize_object_add(win, box);
    evas_object_show(box);
 
    frame = elm_frame_add(win);
+   elm_object_focus_allow_set(frame, 0);
    elm_object_text_set(frame, c->base->name ? : c->base->jid);
-   evas_object_size_hint_weight_set(frame, EVAS_HINT_EXPAND, 0);
-   evas_object_size_hint_align_set(frame, EVAS_HINT_FILL, 0);
+   WEIGHT(frame, EVAS_HINT_EXPAND, 0);
+   ALIGN(frame, EVAS_HINT_FILL, 0);
    elm_box_pack_end(box, frame);
    evas_object_show(frame);
 
    topbox = elm_box_add(win);
    elm_box_horizontal_set(topbox, 1);
-   evas_object_size_hint_weight_set(topbox, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+   elm_object_focus_allow_set(topbox, 0);
+   WEIGHT(topbox, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    elm_frame_content_set(frame, topbox);
    evas_object_show(topbox);
 
@@ -338,12 +343,14 @@ _chat_window_open(Contact *c)
    elm_entry_single_line_set(status, 1);
    elm_entry_scrollable_set(status, 1);
    elm_entry_editable_set(status, 0);
-   evas_object_size_hint_weight_set(status, EVAS_HINT_EXPAND, 0);
-   evas_object_size_hint_align_set(status, EVAS_HINT_FILL, 0);
+   elm_object_focus_allow_set(status, 0);
+   WEIGHT(status, EVAS_HINT_EXPAND, 0);
+   ALIGN(status, EVAS_HINT_FILL, 0);
    elm_box_pack_end(topbox, status);
    evas_object_show(status);
 
    close = elm_button_add(win);
+   elm_object_focus_allow_set(close, 0);
    elm_box_pack_end(topbox, close);
    evas_object_show(close);
    icon = elm_icon_add(win);
@@ -354,20 +361,22 @@ _chat_window_open(Contact *c)
    elm_entry_editable_set(convo, 0);
    elm_entry_single_line_set(convo, 0);
    elm_entry_scrollable_set(convo, 1);
+   elm_object_focus_allow_set(convo, 0);
    elm_entry_line_wrap_set(convo, ELM_WRAP_WORD);
    //elm_entry_line_wrap_set(convo, ELM_WRAP_MIXED); BROKEN as of 21 JULY
    elm_entry_text_filter_append(convo, _chat_conv_filter, NULL);
    evas_object_smart_callback_add(convo, "anchor,in", (Evas_Smart_Cb)_chat_conv_image, NULL);
-   evas_object_size_hint_weight_set(convo, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-   evas_object_size_hint_align_set(convo, EVAS_HINT_FILL, EVAS_HINT_FILL);
+   WEIGHT(convo, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+   ALIGN(convo, EVAS_HINT_FILL, EVAS_HINT_FILL);
    elm_box_pack_end(box, convo);
    evas_object_show(convo);
 
    entry = elm_entry_add(win);
    elm_entry_single_line_set(entry, 1);
    elm_entry_scrollable_set(entry, 1);
-   evas_object_size_hint_weight_set(entry, EVAS_HINT_EXPAND, 0);
-   evas_object_size_hint_align_set(entry, EVAS_HINT_FILL, 0);
+   elm_object_focus(entry);
+   WEIGHT(entry, EVAS_HINT_EXPAND, 0);
+   ALIGN(entry, EVAS_HINT_FILL, 0);
    elm_box_pack_end(box, entry);
    evas_object_show(entry);
 
@@ -621,18 +630,18 @@ contact_list_new(int argc, char **argv)
    elm_win_autodel_set(win, 1);
 
    bg = elm_bg_add(win);
-   evas_object_size_hint_weight_set(bg, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+   WEIGHT(bg, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    elm_win_resize_object_add(win, bg);
    evas_object_show(bg);
 
    box = elm_box_add(win);
-   evas_object_size_hint_weight_set(box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+   WEIGHT(box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    elm_win_resize_object_add(win, box);
    evas_object_show(box);
 
    list = elm_genlist_add(win);
-   evas_object_size_hint_weight_set(list, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-   evas_object_size_hint_align_set(list, EVAS_HINT_FILL, EVAS_HINT_FILL);
+   WEIGHT(list, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+   ALIGN(list, EVAS_HINT_FILL, EVAS_HINT_FILL);
    elm_box_pack_end(box, list);
    evas_object_show(list);
 

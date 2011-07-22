@@ -10,6 +10,9 @@
 #define ERR(...)            EINA_LOG_DOM_ERR(ui_log_dom, __VA_ARGS__)
 #define CRI(...)            EINA_LOG_DOM_CRIT(ui_log_dom, __VA_ARGS__)
 
+#define WEIGHT evas_object_size_hint_weight_set
+#define ALIGN evas_object_size_hint_align_set
+
 extern int ui_log_dom;
 
 void contact_list_new(int argc, char **argv);
