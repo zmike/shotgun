@@ -55,6 +55,7 @@ struct Shotgun_Auth
    const char *user; /* username */
    const char *resource; /* identifier for "location" of user */
    const char *bind; /* full JID from xmpp:bind */
+   const char *jid; /* bare JID */
 
    const char *pass; /* NOT ALLOCATED! */
 
@@ -81,6 +82,10 @@ shotgun_write(Ecore_Con_Server *svr, const void *data, size_t size)
    DBG("Sending:\n%s", (char*)data);
    ecore_con_server_send(svr, data, size);
 }
+
+static inline void
+shotgun_fake_free(void *d __UNUSED__, void *d2 __UNUSED__)
+{}
 
 void shotgun_message_feed(Shotgun_Auth *auth, char *data, size_t size);
 Shotgun_Event_Message *shotgun_message_new(Shotgun_Auth *auth);

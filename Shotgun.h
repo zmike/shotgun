@@ -3,9 +3,10 @@
 
 #include <Eina.h>
 
+extern int SHOTGUN_EVENT_CONNECT; /* Shotgun_Auth */
 extern int SHOTGUN_EVENT_IQ; /* Shotgun_Event_Iq */
 extern int SHOTGUN_EVENT_MESSAGE; /* Shotgun_Event_Message */
-extern int SHOTGUN_EVENT_PRESENCE; /* NYI */
+extern int SHOTGUN_EVENT_PRESENCE; /* Shotgun_Event_Presence */
 
 typedef struct Shotgun_Auth Shotgun_Auth;
 

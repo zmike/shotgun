@@ -8,16 +8,10 @@
 
 int shotgun_log_dom = -1;
 
+int SHOTGUN_EVENT_CONNECT = 0;
 int SHOTGUN_EVENT_MESSAGE = 0;
 int SHOTGUN_EVENT_PRESENCE = 0;
 int SHOTGUN_EVENT_IQ = 0;
-
-/*
-char *xml_stream_init_create(const char *from, const char *to, const char *lang, int64_t *len);
-Shotgun_Auth *xml_stream_init_read(char *xml, size_t size);
-char *xml_starttls_write(int64_t *size);
-Eina_Bool xml_starttls_read(char *xml, size_t size);
-*/
 
 static Eina_Bool
 disc(void *data __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Server_Add *ev __UNUSED__)
@@ -149,6 +143,7 @@ shotgun_init(void)
    /* real men don't accept failure as a possibility */
    shotgun_log_dom = eina_log_domain_register("shotgun", EINA_COLOR_RED);
 
+   SHOTGUN_EVENT_CONNECT = ecore_event_type_new();
    SHOTGUN_EVENT_MESSAGE = ecore_event_type_new();
    SHOTGUN_EVENT_PRESENCE = ecore_event_type_new();
    SHOTGUN_EVENT_IQ = ecore_event_type_new();
@@ -180,6 +175,7 @@ shotgun_new(const char *username, const char *domain)
    auth->user = eina_stringshare_add(username);
    auth->from = eina_stringshare_add(domain);
    auth->resource = eina_stringshare_add("SHOTGUN!");
+   auth->jid = eina_stringshare_printf("%s@%s/%s", auth->user, auth->from, auth->resource);
    return auth;
 }
 

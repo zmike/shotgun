@@ -1,10 +1,6 @@
 #include <Elementary.h>
 #include <sys/stat.h>
 
-#ifndef __UNUSED__
-# define __UNUSED__ __attribute__((unused))
-#endif
-
 #include "ui.h"
 
 typedef struct
@@ -616,12 +612,11 @@ _setup_extension(void)
 #endif
 
 void
-contact_list_new(int argc, char **argv)
+contact_list_new(void)
 {
    Evas_Object *win, *bg, *box, *list, *btn;
    Contact_List *cldata;
 
-   elm_init(argc, argv);
    //_setup_extension();
 
    elm_policy_set(ELM_POLICY_QUIT, ELM_POLICY_QUIT_LAST_WINDOW_CLOSED);

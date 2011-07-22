@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-char *xml_stream_init_create(const char *from, const char *to, const char *lang, size_t *len);
+char *xml_stream_init_create(Shotgun_Auth *auth, const char *lang, size_t *len);
 Eina_Bool xml_stream_init_read(Shotgun_Auth *auth, char *xml, size_t size);
 Eina_Bool xml_starttls_read(char *xml, size_t size);
 char *xml_sasl_write(const char *sasl, size_t *len);

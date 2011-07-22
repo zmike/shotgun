@@ -27,7 +27,7 @@ shotgun_stream_init(Shotgun_Auth *auth)
    size_t len;
    char *xml;
 
-   xml = xml_stream_init_create(auth->user, auth->from, "en", &len);
+   xml = xml_stream_init_create(auth, "en", &len);
    shotgun_write(auth->svr, xml, len - 1);
    free(xml);
 }
@@ -45,7 +45,7 @@ shotgun_login_con(Shotgun_Auth *auth, int type, Ecore_Con_Event_Server_Add *ev)
         INF("STARTTLS succeeded!");
         auth->state++;
      }
-
+   auth->svr = ev->server;
    shotgun_stream_init(auth);
    return ECORE_CALLBACK_RENEW;
 }
@@ -123,8 +123,7 @@ shotgun_login(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
         INF("Bind: %s", auth->bind);
         INF("Login complete!");
         auth->state++;
-        shotgun_iq_roster_get(auth);
-        shotgun_presence_set(auth, SHOTGUN_USER_STATUS_CHAT, "testing SHOTGUN!");
+        ecore_event_add(SHOTGUN_EVENT_CONNECT, auth, shotgun_fake_free, NULL);
       default:
         break;
      }

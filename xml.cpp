@@ -67,7 +67,7 @@ xmlnode_to_buf(xml_node node,
 }
 
 char *
-xml_stream_init_create(const char *user, const char *to, const char *lang, size_t *len)
+xml_stream_init_create(Shotgun_Auth *auth, const char *lang, size_t *len)
 {
 /*
 C: <stream:stream
@@ -80,12 +80,10 @@ C: <stream:stream
 */
    xml_document doc;
    xml_node stream;
-   char buf[256];
 
-   snprintf(buf, sizeof(buf), "%s@%s", user, to);
    stream = doc.append_child("stream:stream");
-   stream.append_attribute("from").set_value(buf);
-   stream.append_attribute("to").set_value(to);
+   stream.append_attribute("from").set_value(auth->jid);
+   stream.append_attribute("to").set_value(auth->from);
    stream.append_attribute("version").set_value("1.0");
    stream.append_attribute("xml:lang").set_value(lang);
    stream.append_attribute("xmlns").set_value("jabber:client");
@@ -277,9 +275,6 @@ xml_iq_write_get_vcard(Shotgun_Auth *auth, const char *to, size_t *len)
 {
    xml_document doc;
    xml_node iq;
-   char buf[256];
-
-   snprintf(buf, sizeof(buf), "%s@%s/%s", auth->user, auth->from, auth->resource);
    iq = doc.append_child("iq");
 /*
 <iq from='stpeter@jabber.org/roundabout'
@@ -289,10 +284,11 @@ xml_iq_write_get_vcard(Shotgun_Auth *auth, const char *to, size_t *len)
   <vCard xmlns='vcard-temp'/>
 </iq>
 */
-   iq.append_attribute("from").set_value(buf);
+   iq.append_attribute("from").set_value(auth->jid);
    if (to)
      {
         const char *s;
+        char buf[256];
         s = strrchr(to, '/');
         if (s) strncat(buf, to, s - to);
         iq.append_attribute("to").set_value(s ? buf : to);
@@ -468,12 +464,12 @@ xml_iq_read(Shotgun_Auth *auth, char *xml, size_t size)
           return xml_iq_roster_read(auth, node);
         if (!strcmp(str, "vcard-temp"))
           return NULL;
+        if (!strcmp(str, XML_NS_BIND))
+          auth->bind = eina_stringshare_add(node.child("jid").child_value());
+          break;
       case SHOTGUN_IQ_TYPE_GET:
         if (!strcmp(str, XML_NS_DISCO_INFO))
           xml_iq_disco_info_write(auth, doc);
-          break;
-        if (!strcmp(str, XML_NS_BIND))
-          auth->bind = eina_stringshare_add(node.child("jid").child_value());
           break;
         return (Shotgun_Event_Iq*)1;
       case SHOTGUN_IQ_TYPE_SET:

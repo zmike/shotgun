@@ -4,6 +4,10 @@
 #include <Shotgun.h>
 #include <Ecore.h>
 
+#ifndef __UNUSED__
+# define __UNUSED__ __attribute__((unused))
+#endif
+
 #define DBG(...)            EINA_LOG_DOM_DBG(ui_log_dom, __VA_ARGS__)
 #define INF(...)            EINA_LOG_DOM_INFO(ui_log_dom, __VA_ARGS__)
 #define WRN(...)            EINA_LOG_DOM_WARN(ui_log_dom, __VA_ARGS__)
@@ -15,6 +19,6 @@
 
 extern int ui_log_dom;
 
-void contact_list_new(int argc, char **argv);
+void contact_list_new(void);
 
 #endif /* __UI_H */
