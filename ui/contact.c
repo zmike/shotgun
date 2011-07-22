@@ -8,6 +8,14 @@
 
 #include "ui.h"
 
+#define DBG(...)            EINA_LOG_DOM_DBG(ui_log_dom, __VA_ARGS__)
+#define INF(...)            EINA_LOG_DOM_INFO(ui_log_dom, __VA_ARGS__)
+#define WRN(...)            EINA_LOG_DOM_WARN(ui_log_dom, __VA_ARGS__)
+#define ERR(...)            EINA_LOG_DOM_ERR(ui_log_dom, __VA_ARGS__)
+#define CRI(...)            EINA_LOG_DOM_CRIT(ui_log_dom, __VA_ARGS__)
+
+static int ui_log_dom = -1;
+
 typedef struct
 {
    Evas_Object *win;
@@ -222,7 +230,7 @@ _chat_window_close_cb(void *data, Evas_Object *obj __UNUSED__, const char *ev __
 static void
 _chat_conv_image(void *data __UNUSED__, Evas_Object *obj, Elm_Entry_Anchor_Info *ev)
 {
-   printf("anchor: '%s' (%i, %i)", ev->name, ev->x, ev->y);
+   DBG("anchor: '%s' (%i, %i)", ev->name, ev->x, ev->y);
 }
 
 static void
@@ -244,24 +252,40 @@ _chat_conv_filter(void *data __UNUSED__, Evas_Object *obj __UNUSED__, char **str
         char fmt[64];
 
         d = http - start;
-        if (d > 0) eina_strbuf_append_length(buf, start, d);
+        if (d > 0)
+          {
+             //if (d > 3 && (!memcmp(http - 3, "&lt"
+             eina_strbuf_append_length(buf, start, d);
+          }
         end = strchr(http, ' ');
         if (!end) /* address goes to end of message */
           {
              len = strlen(http);
-             snprintf(fmt, sizeof(fmt), "<a href=%%.%is></a><br>", len - 4);
-             eina_strbuf_append_printf(buf, fmt, http);
+             snprintf(fmt, sizeof(fmt), "<a href=%%.%is>%%.%is</a><br>", len - 4, len - 4);
+             eina_strbuf_append_printf(buf, fmt, http, http);
+             DBG("ANCHOR: ");
+             DBG(fmt, http);
              break;
           }
         len = end - http;
-        snprintf(fmt, sizeof(fmt), "<a href=%%.%is></a>", len);
-        eina_strbuf_append_printf(buf, fmt, http);
+        snprintf(fmt, sizeof(fmt), "<a href=%%.%is>%%.%is</a>", len, len);
+        eina_strbuf_append_printf(buf, fmt, http, http);
+             DBG("ANCHOR: ");
+             DBG(fmt, http);
         start = end;
         http = strstr(start, "http");
      }
    free(*str);
    *str = eina_strbuf_string_steal(buf);
    eina_strbuf_free(buf);
+}
+
+static void
+_chat_window_key(Evas_Object *win, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, Evas_Event_Key_Down *ev)
+{
+   DBG("%s", ev->keyname);
+   if (!strcmp(ev->keyname, "Escape"))
+     evas_object_smart_callback_call(win, "delete,request", NULL);
 }
 
 static void
@@ -284,6 +308,8 @@ _chat_window_open(Contact *c)
 
    win = elm_win_add(parent_win, "chat-window", ELM_WIN_BASIC);
    evas_object_smart_callback_add(win, "delete,request", (Evas_Smart_Cb)_chat_window_close_cb, win);
+   evas_object_event_callback_add(win, EVAS_CALLBACK_KEY_DOWN, (Evas_Object_Event_Cb)_chat_window_key, win);
+   1 | evas_object_key_grab(win, "Escape", 0, 0, 1); /* worst warn_unused ever. */
    evas_object_resize(win, 300, 320);
    evas_object_show(win);
 
@@ -367,7 +393,7 @@ _event_iq_cb(void *data, int type __UNUSED__, void *event)
    Contact_List *cl = data;
    Shotgun_Event_Iq *ev = event;
 
-   printf("EVENT_IQ %d: %p\n", ev->type, ev->ev);
+   DBG("EVENT_IQ %d: %p", ev->type, ev->ev);
    switch(ev->type)
      {
       case SHOTGUN_IQ_EVENT_TYPE_ROSTER:
@@ -384,7 +410,7 @@ _event_iq_cb(void *data, int type __UNUSED__, void *event)
            break;
         }
       default:
-        fprintf(stderr, "WTF!\n");
+        ERR("WTF!");
      }
    return EINA_TRUE;
 }
@@ -415,7 +441,7 @@ _event_presence_cb(void *data, int type __UNUSED__, void *event)
    c->status = ev->status;
    if (!c->status)
      {
-        _contact_free(c);
+        eina_hash_del_by_data(cl->users, c);
         return EINA_TRUE;
      }
 
@@ -520,6 +546,9 @@ contact_list_new(int argc, char **argv)
 {
    Evas_Object *win, *bg, *box, *list, *btn;
    Contact_List *cldata;
+
+   ui_log_dom = eina_log_domain_register("shotgun_ui", EINA_COLOR_LIGHTRED);
+   eina_log_domain_level_set("shotgun_ui", EINA_LOG_LEVEL_DBG);
 
    elm_init(argc, argv);
    //_setup_extension();
