@@ -525,8 +525,11 @@ _event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence
    if (c->base->subscription > SHOTGUN_USER_SUBSCRIPTION_NONE)
      {
         if (!c->list_item)
-           c->list_item = elm_genlist_item_append(cl->list, &it, c, NULL,
-                                                 ELM_GENLIST_ITEM_NONE, NULL, NULL);
+          {
+             c->list_item = elm_genlist_item_append(cl->list, &it, c, NULL,
+                                                   ELM_GENLIST_ITEM_NONE, NULL, NULL);
+             if (ev->vcard) shotgun_iq_vcard_get(ev->account, c->base->jid);
+          }
         else
           elm_genlist_item_update(c->list_item);
      }
