@@ -54,6 +54,12 @@ error:
    ERR("wtf");
 }
 
+void
+shotgun_event_presence_free(Shotgun_Event_Presence *pres)
+{
+   shotgun_presence_free(NULL, pres);
+}
+
 Eina_Bool
 shotgun_presence_set(Shotgun_Auth *auth, Shotgun_User_Status st, const char *desc)
 {

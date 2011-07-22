@@ -21,18 +21,6 @@ shotgun_message_new(Shotgun_Auth *auth)
    return msg;
 }
 
-Eina_Bool
-shotgun_message_send(Shotgun_Auth *auth, const char *to, const char *msg, Shotgun_Message_Status status)
-{
-   size_t len;
-   char *xml;
-
-   xml = xml_message_write(auth, to, msg, status, &len);
-   shotgun_write(auth->svr, xml, len);
-   free(xml);
-   return EINA_TRUE;
-}
-
 void
 shotgun_message_feed(Shotgun_Auth *auth, char *data, size_t size)
 {
@@ -46,4 +34,22 @@ shotgun_message_feed(Shotgun_Auth *auth, char *data, size_t size)
    return;
 error:
    ERR("wtf");
+}
+
+void
+shotgun_event_message_free(Shotgun_Event_Message *msg)
+{
+   shotgun_message_free(NULL, msg);
+}
+
+Eina_Bool
+shotgun_message_send(Shotgun_Auth *auth, const char *to, const char *msg, Shotgun_Message_Status status)
+{
+   size_t len;
+   char *xml;
+
+   xml = xml_message_write(auth, to, msg, status, &len);
+   shotgun_write(auth->svr, xml, len);
+   free(xml);
+   return EINA_TRUE;
 }

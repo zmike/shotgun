@@ -662,6 +662,8 @@ xml_presence_read(Shotgun_Auth *auth, char *xml, size_t size)
              else if (!strcmp(it.child_value(), "xa"))
                ret->status = SHOTGUN_USER_STATUS_XA;
           }
+        else if (!strcmp(it.name(), "priority"))
+           ret->priority = strtol(it.child_value(), NULL, 10);
      }
    return ret;
 }

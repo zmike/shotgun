@@ -68,6 +68,7 @@ typedef struct
 {
    const char *jid;
    char *description;
+   int priority;
    Shotgun_User_Status status;
 
    Shotgun_Auth *account;
@@ -89,7 +90,10 @@ void shotgun_password_del(Shotgun_Auth *auth);
 
 Eina_Bool shotgun_iq_roster_get(Shotgun_Auth *auth);
 Eina_Bool shotgun_message_send(Shotgun_Auth *auth, const char *to, const char *msg, Shotgun_Message_Status status);
+void shotgun_event_message_free(Shotgun_Event_Message *msg);
 Eina_Bool shotgun_presence_set(Shotgun_Auth *auth, Shotgun_User_Status st, const char *desc);
+void shotgun_event_presence_free(Shotgun_Event_Presence *pres);
+void shotgun_user_free(Shotgun_User *user);
 
 #ifdef __cplusplus
 }

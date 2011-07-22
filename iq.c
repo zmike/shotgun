@@ -18,7 +18,7 @@ o  modify -- retry after changing the data sent
 o  wait -- retry after waiting (the error is temporary)
 */
 
-static void
+void
 shotgun_user_free(Shotgun_User *user)
 {
    eina_stringshare_del(user->jid);
