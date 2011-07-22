@@ -45,6 +45,7 @@ _contact_free(Contact *c)
    if (c->chat_window)
      evas_object_del(c->chat_window);
    shotgun_user_free(c->base);
+   shotgun_user_info_free(c->info);
    free(c);
 }
 
