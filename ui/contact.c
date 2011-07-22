@@ -1,6 +1,10 @@
 #include <Elementary.h>
-#include "../shotgun_private.h"
+#include "../Shotgun.h"
 #include <sys/stat.h>
+
+#ifndef __UNUSED__
+# define __UNUSED__ __attribute__((unused))
+#endif
 
 #include "ui.h"
 
@@ -164,6 +168,21 @@ _chat_message_insert(Contact *c, const char *from, const char *msg)
 
    elm_entry_entry_append(e, buf);
    elm_entry_cursor_end_set(e);
+}
+
+static void
+_chat_message_status(Contact *c, Shotgun_Event_Message *msg)
+{
+   switch (msg->status)
+     {
+      case SHOTGUN_MESSAGE_STATUS_ACTIVE:
+      case SHOTGUN_MESSAGE_STATUS_COMPOSING:
+      case SHOTGUN_MESSAGE_STATUS_PAUSED:
+      case SHOTGUN_MESSAGE_STATUS_INACTIVE:
+      case SHOTGUN_MESSAGE_STATUS_GONE:
+      default:
+        break;
+     }
 }
 
 static void
@@ -348,7 +367,7 @@ _event_iq_cb(void *data, int type __UNUSED__, void *event)
    Contact_List *cl = data;
    Shotgun_Event_Iq *ev = event;
 
-   INF("EVENT_IQ %d: %p", ev->type, ev->ev);
+   printf("EVENT_IQ %d: %p\n", ev->type, ev->ev);
    switch(ev->type)
      {
       case SHOTGUN_IQ_EVENT_TYPE_ROSTER:
@@ -365,7 +384,7 @@ _event_iq_cb(void *data, int type __UNUSED__, void *event)
            break;
         }
       default:
-        INF("WTF!\n");
+        fprintf(stderr, "WTF!\n");
      }
    return EINA_TRUE;
 }
@@ -437,7 +456,10 @@ _event_message_cb(void *data, int type __UNUSED__, void *event)
      _chat_window_open(c);
 
    from = c->base.name ? : c->base.jid;
-   _chat_message_insert(c, from, msg->msg);
+   if (msg->msg)
+     _chat_message_insert(c, from, msg->msg);
+   if (msg->status)
+     _chat_message_status(c, msg);
 
    return EINA_TRUE;
 }
