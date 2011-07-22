@@ -444,9 +444,12 @@ _event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence
      {
         if (!c->plist)
           {
-             INF("Removing user %s", c->base->jid);
              shotgun_event_presence_free(c->cur);
-             elm_genlist_item_del(c->list_item);
+             if (c->list_item)
+               {
+                  INF("Removing user %s", c->base->jid);
+                  elm_genlist_item_del(c->list_item);
+               }
              c->list_item = NULL;
              c->cur = NULL;
              return EINA_TRUE;
