@@ -33,4 +33,4 @@ done
 
 #echo "g++ *.o -o shotgun -L/usr/lib -lc $LIBS" #pugixml.a
 echo "g++ *.o -o shotgun" #pugixml.a
-g++ *.o -o shotgun -L/usr/lib -lc $LIBS #pugixml.a
+g++ *.o ui/*.o -o shotgun -L/usr/lib -lc $LIBS #pugixml.a
