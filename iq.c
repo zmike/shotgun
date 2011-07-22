@@ -86,7 +86,7 @@ shotgun_iq_vcard_get(Shotgun_Auth *auth, const char *user)
    size_t len;
    char *xml;
 
-   xml = xml_iq_write_get_vcard(auth, user, &len);
+   xml = xml_iq_write_get_vcard(user, &len);
    shotgun_write(auth->svr, xml, len);
    free(xml);
    return EINA_TRUE;

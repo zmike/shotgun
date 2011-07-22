@@ -271,7 +271,7 @@ xml_iq_write_preset(Shotgun_Auth *auth, Shotgun_Iq_Preset p, size_t *len)
 }
 
 char *
-xml_iq_write_get_vcard(Shotgun_Auth *auth, const char *to, size_t *len)
+xml_iq_write_get_vcard(const char *to, size_t *len)
 {
    xml_document doc;
    xml_node iq;
@@ -284,7 +284,6 @@ xml_iq_write_get_vcard(Shotgun_Auth *auth, const char *to, size_t *len)
   <vCard xmlns='vcard-temp'/>
 </iq>
 */
-   iq.append_attribute("from").set_value(auth->jid);
    if (to)
      {
         const char *s;
