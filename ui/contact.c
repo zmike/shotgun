@@ -662,6 +662,7 @@ contact_list_new(void)
    evas_object_show(box);
 
    list = elm_genlist_add(win);
+   elm_genlist_always_select_mode_set(list, EINA_FALSE);
    WEIGHT(list, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    ALIGN(list, EVAS_HINT_FILL, EVAS_HINT_FILL);
    elm_box_pack_end(box, list);

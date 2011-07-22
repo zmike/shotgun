@@ -28,7 +28,7 @@ main(int argc, char *argv[])
    eina_init();
    shotgun_init();
    elm_init(argc, argv);
-   
+
    ui_log_dom = eina_log_domain_register("shotgun_ui", EINA_COLOR_LIGHTRED);
    eina_log_domain_level_set("shotgun_ui", EINA_LOG_LEVEL_DBG);
    eina_log_domain_level_set("shotgun", EINA_LOG_LEVEL_INFO);
