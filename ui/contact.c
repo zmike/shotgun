@@ -48,13 +48,15 @@ typedef struct
 static void
 _contact_free(Contact *c)
 {
-   eina_stringshare_del(c->base->jid);
-   eina_stringshare_del(c->base->name);
-   free(c->description);
+   Shotgun_Event_Presence *pres;
+   shotgun_event_presence_free(c->cur);
+   EINA_LIST_FREE(c->plist, pres)
+     shotgun_event_presence_free(pres);
    if (c->list_item)
      elm_genlist_item_del(c->list_item);
    if (c->chat_window)
      evas_object_del(c->chat_window);
+   shotgun_user_free(c->base);
    free(c);
 }
 
@@ -446,6 +448,7 @@ _event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence
              shotgun_event_presence_free(c->cur);
              elm_genlist_item_del(c->list_item);
              c->list_item = NULL;
+             c->cur = NULL;
              return EINA_TRUE;
           }
         if (ev->jid == c->cur->jid)
