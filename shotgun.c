@@ -47,7 +47,12 @@ shotgun_data_detect(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
 {
    if (((char*)ev->data)[ev->size - 1] != '>')
      {
-        if (!auth->buf) auth->buf = eina_strbuf_new();
+        if (!auth->buf)
+          {
+             DBG("Creating event buffer");
+             auth->buf = eina_strbuf_new();
+          }
+        DBG("Appending %i to buffer", ev->size);
         eina_strbuf_append_length(auth->buf, ev->data, ev->size);
         return EINA_FALSE;
      }
@@ -65,7 +70,10 @@ shotgun_data_detect(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
         while (tag[0] != '<') tag--;
         tag += 2;
         if (!memcmp(data + 1, tag, len - (tag - data) - 1)) /* open/end tags maybe match? */
-          return EINA_TRUE;
+          {
+             DBG("Releasing buffered event!");
+             return EINA_TRUE;
+          }
         memcpy(buf, data, sizeof(buf) - 1);
         DBG("%s and %s do not match!", buf, tag);
         return EINA_FALSE;
@@ -116,7 +124,9 @@ data(Shotgun_Auth *auth, int type __UNUSED__, Ecore_Con_Event_Server_Data *ev)
         break;
       case SHOTGUN_DATA_TYPE_PRES:
         shotgun_presence_feed(auth, data, size);
+        break;
       default:
+        ERR("UNPARSABLE TAG!");
         break;
      }
    if (auth->buf) eina_strbuf_free(auth->buf);
