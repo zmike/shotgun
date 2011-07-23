@@ -3,6 +3,7 @@
 
 #include <Shotgun.h>
 #include <Ecore.h>
+#include <Elementary.h>
 
 #ifndef __UNUSED__
 # define __UNUSED__ __attribute__((unused))
@@ -19,6 +20,51 @@
 
 extern int ui_log_dom;
 
+typedef struct
+{
+   Evas_Object *win;
+   Evas_Object *list;
+
+   Eina_Hash *users;
+   Eina_Hash *user_convs;
+   Eina_Hash *images;
+
+   struct {
+        Ecore_Event_Handler *iq;
+        Ecore_Event_Handler *presence;
+        Ecore_Event_Handler *message;
+   } event_handlers;
+} Contact_List;
+
+typedef struct
+{
+   Shotgun_User *base;
+   Shotgun_User_Info *info;
+   Shotgun_Event_Presence *cur;
+   Eina_List *plist;
+   Shotgun_User_Status status;
+   char *description;
+   Elm_Genlist_Item *list_item;
+   Evas_Object *chat_window;
+   Evas_Object *chat_buffer;
+   Evas_Object *status_line;
+   Contact_List *list;
+} Contact;
+
 void contact_list_new(void);
+void contact_list_user_add(Contact_List *cl, Contact *c);
+void contact_list_user_del(Contact_List *cl, Contact *c, Shotgun_Event_Presence *ev);
+
+void chat_window_new(Contact *c);
+void chat_window_close_cb(void *data, Evas_Object *obj __UNUSED__, const char *ev __UNUSED__);
+void chat_message_status(Contact *c, Shotgun_Event_Message *msg);
+void chat_message_insert(Contact *c, const char *from, const char *msg);
+
+void contact_free(Contact *c);
+void do_something_with_user(Contact_List *cl, Shotgun_User *user);
+
+Eina_Bool event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev);
+Eina_Bool event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence *ev);
+Eina_Bool event_message_cb(void *data, int type __UNUSED__, void *event);
 
 #endif /* __UI_H */

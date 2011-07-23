@@ -1,5 +1,4 @@
-#include <Elementary.h>
-#include "ui/ui.h"
+#include "ui.h"
 
 int ui_log_dom = -1;
 
@@ -11,6 +10,20 @@ con(void *d __UNUSED__, int type __UNUSED__, Shotgun_Auth *auth)
    shotgun_presence_set(auth, SHOTGUN_USER_STATUS_CHAT, "testing SHOTGUN!");
    return ECORE_CALLBACK_RENEW;
 }
+
+#if 0
+static void
+_setup_extension(void)
+{
+   struct stat st;
+
+   if (!stat("./shotgun.edj", &st))
+     elm_theme_extension_add(NULL, "./shotgun.edj");
+   else if (!stat("ui/shotgun.edj", &st))
+     elm_theme_extension_add(NULL, "ui/shotgun.edj");
+   else exit(1); /* FIXME: ~/.config/shotgun/etc, /usr/share/shotgun/etc */
+}
+#endif
 
 int
 main(int argc, char *argv[])
