@@ -5,15 +5,21 @@ static Evas_Object *
 _chat_conv_image_provider(Image *i, Evas_Object *obj)
 {
    Evas_Object *ret;
-   if ((!i) || (!i->buf))
-     {
-        ret = elm_label_add(obj); /* FIXME: loading image or something ? */
-        elm_object_text_set(ret, "Image could not be loaded!");
-        return ret;
-     }
+   if ((!i) || (!i->buf)) goto error;
+
    ret = elm_icon_add(obj);
-   elm_icon_memfile_set(ret, eina_binbuf_string_get(i->buf), eina_binbuf_length_get(i->buf), NULL, NULL);
+   if (!elm_icon_memfile_set(ret, eina_binbuf_string_get(i->buf), eina_binbuf_length_get(i->buf), NULL, NULL))
+     {
+        /* an unloadable image is a useless image! */
+        eina_hash_del_by_key(cl->images, ecore_con_url_url_get(i->url));
+        evas_object_del(ret);
+        goto error;
+     }
    elm_icon_scale_set(ret, 0, 0);
+   return ret;
+error:
+   ret = elm_label_add(obj); /* FIXME: loading image or something ? */
+   elm_object_text_set(ret, "Image could not be loaded!");
    return ret;
 }
 
