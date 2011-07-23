@@ -3,6 +3,7 @@
 
 #include <Shotgun.h>
 #include <Ecore.h>
+#include <Ecore_Con.h>
 #include <Elementary.h>
 
 #ifndef __UNUSED__
@@ -51,14 +52,28 @@ typedef struct
    Contact_List *list;
 } Contact;
 
+typedef struct
+{
+   Ecore_Con_Url *url;
+   Eina_Binbuf *buf;
+   Contact_List *cl;
+} Image;
+
 void contact_list_new(void);
 void contact_list_user_add(Contact_List *cl, Contact *c);
-void contact_list_user_del(Contact_List *cl, Contact *c, Shotgun_Event_Presence *ev);
+void contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev);
 
 void chat_window_new(Contact *c);
-void chat_window_close_cb(void *data, Evas_Object *obj __UNUSED__, const char *ev __UNUSED__);
 void chat_message_status(Contact *c, Shotgun_Event_Message *msg);
 void chat_message_insert(Contact *c, const char *from, const char *msg);
+
+
+void char_image_add(Contact_List *cl, const char *url);
+void chat_image_free(Image *i);
+void chat_conv_image_show(Evas_Object *convo, Evas_Object *obj, Elm_Entry_Anchor_Info *ev);
+void chat_conv_image_hide(Evas_Object *convo __UNUSED__, Evas_Object *obj, Elm_Entry_Anchor_Info *ev);
+Eina_Bool chat_image_data(void *d __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Url_Data *ev);
+Eina_Bool chat_image_complete(void *d __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Url_Complete *ev);
 
 void contact_free(Contact *c);
 void do_something_with_user(Contact_List *cl, Shotgun_User *user);

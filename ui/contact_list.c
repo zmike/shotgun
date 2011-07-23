@@ -95,6 +95,7 @@ _contact_list_free_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED_
    ecore_event_handler_del(cl->event_handlers.message);
 
    eina_hash_free(cl->users);
+   eina_hash_free(cl->images);
    eina_hash_free(cl->user_convs);
 
    free(cl);
@@ -133,7 +134,7 @@ contact_list_user_add(Contact_List *cl, Contact *c)
 }
 
 void
-contact_list_user_del(Contact_List *cl, Contact *c, Shotgun_Event_Presence *ev)
+contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev)
 {
    Eina_List *l;
    Shotgun_Event_Presence *pres;
@@ -182,6 +183,12 @@ contact_list_user_del(Contact_List *cl, Contact *c, Shotgun_Event_Presence *ev)
    elm_genlist_item_update(c->list_item);
 }
 
+static void
+_contact_list_close(void *data, Evas_Object *obj __UNUSED__, void *ev  __UNUSED__)
+{
+   evas_object_del(data);
+}
+
 void
 contact_list_new(void)
 {
@@ -222,7 +229,7 @@ contact_list_new(void)
 
    evas_object_smart_callback_add(list, "clicked,double",
                                   _contact_list_click_cb, cldata);
-   evas_object_smart_callback_add(btn, "clicked", (Evas_Smart_Cb)chat_window_close_cb, win);
+   evas_object_smart_callback_add(btn, "clicked", (Evas_Smart_Cb)_contact_list_close, win);
    evas_object_event_callback_add(win, EVAS_CALLBACK_FREE,
                                   (Evas_Object_Event_Cb)_contact_list_free_cb, cldata);
 
@@ -231,6 +238,7 @@ contact_list_new(void)
 
    cldata->users = eina_hash_string_superfast_new((Eina_Free_Cb)contact_free);
    cldata->user_convs = eina_hash_string_superfast_new(NULL);
+   cldata->images = eina_hash_string_superfast_new((Eina_Free_Cb)chat_image_free);
 
    cldata->event_handlers.iq = ecore_event_handler_add(SHOTGUN_EVENT_IQ,
                                                        (Ecore_Event_Handler_Cb)event_iq_cb, cldata);

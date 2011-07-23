@@ -52,7 +52,7 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
 
    if (!ev->status)
      {
-        contact_list_user_del(cl, c, ev);
+        contact_list_user_del(c, ev);
         return EINA_TRUE;
      }
    if ((!c->cur) || (ev->jid != c->cur->jid))

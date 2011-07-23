@@ -60,7 +60,7 @@ _chat_window_free_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__
    c->status_line = NULL;
 }
 
-void
+static void
 chat_window_close_cb(void *data, Evas_Object *obj __UNUSED__, const char *ev __UNUSED__)
 {
    Contact_List *cl;
@@ -69,12 +69,6 @@ chat_window_close_cb(void *data, Evas_Object *obj __UNUSED__, const char *ev __U
    cl = evas_object_data_get(data, "list");
    eina_hash_del_by_data(cl->user_convs, data);
    evas_object_del(data);
-}
-
-static void
-_chat_conv_image(void *data __UNUSED__, Evas_Object *obj, Elm_Entry_Anchor_Info *ev)
-{
-   DBG("anchor: '%s' (%i, %i)", ev->name, ev->x, ev->y);
 }
 
 static void
@@ -94,7 +88,6 @@ _chat_conv_filter(Contact_List *cl, Evas_Object *obj __UNUSED__, char **str)
         int d;
         size_t len;
         char fmt[64];
-        char *url;
 
         d = http - start;
         if (d > 0)
@@ -112,9 +105,9 @@ _chat_conv_filter(Contact_List *cl, Evas_Object *obj __UNUSED__, char **str)
                if (!memcmp(http + len - 4, "&gt", 3)) len -= 3;
              snprintf(fmt, sizeof(fmt), "<a href=%%.%is>%%.%is</a><br>", len - 4, len - 4);
              eina_strbuf_append_printf(buf, fmt, http, http);
-             url = strndupa(http, len - 4);
-             DBG("ANCHOR: ");
-             DBG(fmt, http);
+             char_image_add(cl, strndupa(http, len - 4));
+             //DBG("ANCHOR: ");
+             //DBG(fmt, http);
              break;
           }
         len = end - http;
@@ -122,9 +115,9 @@ _chat_conv_filter(Contact_List *cl, Evas_Object *obj __UNUSED__, char **str)
           if (!memcmp(http + len - 4, "&gt", 3)) len -= 3;
         snprintf(fmt, sizeof(fmt), "<a href=%%.%is>%%.%is</a>", len, len);
         eina_strbuf_append_printf(buf, fmt, http, http);
-        url = strndupa(http, len - 4);
-             DBG("ANCHOR: ");
-             DBG(fmt, http);
+        char_image_add(cl, strndupa(http, len - 4));
+             //DBG("ANCHOR: ");
+             //DBG(fmt, http);
         http = strstr(start, "http");
      }
    free(*str);
@@ -220,7 +213,8 @@ chat_window_new(Contact *c)
    elm_entry_line_wrap_set(convo, ELM_WRAP_WORD);
    //elm_entry_line_wrap_set(convo, ELM_WRAP_MIXED); BROKEN as of 21 JULY
    elm_entry_text_filter_append(convo, (Elm_Entry_Filter_Cb)_chat_conv_filter, c->list);
-   evas_object_smart_callback_add(convo, "anchor,in", (Evas_Smart_Cb)_chat_conv_image, NULL);
+   evas_object_smart_callback_add(convo, "anchor,in", (Evas_Smart_Cb)chat_conv_image_show, convo);
+   evas_object_smart_callback_add(convo, "anchor,out", (Evas_Smart_Cb)chat_conv_image_hide, convo);
    WEIGHT(convo, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    ALIGN(convo, EVAS_HINT_FILL, EVAS_HINT_FILL);
    elm_box_pack_end(box, convo);
@@ -241,6 +235,7 @@ chat_window_new(Contact *c)
    evas_object_smart_callback_add(close, "clicked", (Evas_Smart_Cb)chat_window_close_cb, win);
 
    eina_hash_add(c->list->user_convs, c->base->jid, win);
+   evas_object_data_set(win, "contact", c);
    evas_object_data_set(win, "conv", convo);
    evas_object_data_set(win, "status", status);
    evas_object_data_set(win, "list", c->list);
