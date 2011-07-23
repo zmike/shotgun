@@ -46,6 +46,11 @@ main(int argc, char *argv[])
    ui_log_dom = eina_log_domain_register("shotgun_ui", EINA_COLOR_LIGHTRED);
    eina_log_domain_level_set("shotgun_ui", EINA_LOG_LEVEL_DBG);
    eina_log_domain_level_set("shotgun", EINA_LOG_LEVEL_INFO);
+   if (!ecore_con_ssl_available_get())
+     {
+        CRI("SSL support is required in ecore!");
+        exit(1);
+     }
    //eina_log_domain_level_set("ecore_con", EINA_LOG_LEVEL_DBG);
    ecore_event_handler_add(ECORE_CON_EVENT_URL_DATA, (Ecore_Event_Handler_Cb)chat_image_data, NULL);
    ecore_event_handler_add(ECORE_CON_EVENT_URL_COMPLETE, (Ecore_Event_Handler_Cb)chat_image_complete, NULL);
