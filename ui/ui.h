@@ -57,6 +57,7 @@ typedef struct
    Ecore_Con_Url *url;
    Eina_Binbuf *buf;
    Contact_List *cl;
+   Eina_Hash *wins;
 } Image;
 
 void contact_list_new(void);

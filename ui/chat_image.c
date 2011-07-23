@@ -4,18 +4,26 @@
 static Evas_Object *
 _chat_conv_image_provider(Image *i, Evas_Object *obj)
 {
-   Evas_Object *ret;
+   Evas_Object *ret, *win = elm_object_top_widget_get(obj);;
    if ((!i) || (!i->buf)) goto error;
 
-   ret = elm_icon_add(obj);
+   ret = eina_hash_find(i->wins, win);
+   if (ret)
+     {
+        evas_object_ref(ret);
+        return ret;
+     }
+   ret = elm_icon_add(win);
    if (!elm_icon_memfile_set(ret, eina_binbuf_string_get(i->buf), eina_binbuf_length_get(i->buf), NULL, NULL))
      {
         /* an unloadable image is a useless image! */
-        eina_hash_del_by_key(cl->images, ecore_con_url_url_get(i->url));
+        eina_hash_del_by_key(i->cl->images, ecore_con_url_url_get(i->url));
         evas_object_del(ret);
         goto error;
      }
    elm_icon_scale_set(ret, 0, 0);
+   eina_hash_direct_add(i->wins, win, ret);
+   evas_object_ref(ret);
    return ret;
 error:
    ret = elm_label_add(obj); /* FIXME: loading image or something ? */
@@ -55,6 +63,7 @@ char_image_add(Contact_List *cl, const char *url)
    i->url = ecore_con_url_new(url);
    ecore_con_url_data_set(i->url, i);
    i->cl = cl;
+   i->wins = eina_hash_pointer_new((Eina_Free_Cb)evas_object_unref);
 
    ecore_con_url_get(i->url);
    eina_hash_add(cl->images, url, i);
@@ -66,6 +75,7 @@ chat_image_free(Image *i)
    if (!i) return;
    if (i->url) ecore_con_url_free(i->url);
    if (i->buf) eina_binbuf_free(i->buf);
+   eina_hash_free(i->wins);
    free(i);
 }
 
