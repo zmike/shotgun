@@ -43,6 +43,7 @@ typedef struct
    Shotgun_User_Info *info;
    Shotgun_Event_Presence *cur;
    Eina_List *plist;
+   Eina_List *imgs;
    Shotgun_User_Status status;
    char *description;
    Elm_Genlist_Item *list_item;

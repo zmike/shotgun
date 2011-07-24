@@ -52,23 +52,21 @@ _chat_window_send_cb(void *data, Evas_Object *obj, void *ev __UNUSED__)
 }
 
 static void
-_chat_window_free_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, void *ev __UNUSED__)
-{
-   Contact *c = data;
-   c->chat_window = NULL;
-   c->chat_buffer = NULL;
-   c->status_line = NULL;
-}
-
-static void
 chat_window_close_cb(void *data, Evas_Object *obj __UNUSED__, const char *ev __UNUSED__)
 {
    Contact_List *cl;
+   Contact *c;
+   Image *i;
 
    INF("Closing window for %s", elm_win_title_get(data));
    cl = evas_object_data_get(data, "list");
+   c = evas_object_data_get(data, "contact");
+   c->chat_window = NULL;
+   c->chat_buffer = NULL;
+   c->status_line = NULL;
+   EINA_LIST_FREE(c->imgs, i)
+     eina_hash_del_by_key(i->wins, data);
    eina_hash_del_by_data(cl->user_convs, data);
-   evas_object_del(data);
 }
 
 static void
@@ -151,7 +149,7 @@ chat_window_new(Contact *c)
    parent_win = elm_object_top_widget_get(
       elm_genlist_item_genlist_get(c->list_item));
 
-   win = elm_win_add(parent_win, "chat-window", ELM_WIN_BASIC);
+   win = elm_win_add(NULL, "chat-window", ELM_WIN_BASIC);
    elm_object_focus_allow_set(win, 0);
    elm_win_title_set(win, c->base->jid);
    evas_object_smart_callback_add(win, "delete,request", (Evas_Smart_Cb)chat_window_close_cb, win);
@@ -230,8 +228,6 @@ chat_window_new(Contact *c)
    evas_object_show(entry);
 
    evas_object_smart_callback_add(entry, "activated", _chat_window_send_cb, c);
-   evas_object_event_callback_add(win, EVAS_CALLBACK_FREE, _chat_window_free_cb,
-                                  c);
    evas_object_smart_callback_add(close, "clicked", (Evas_Smart_Cb)chat_window_close_cb, win);
 
    eina_hash_add(c->list->user_convs, c->base->jid, win);
