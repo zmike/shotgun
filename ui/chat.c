@@ -247,4 +247,5 @@ chat_window_new(Contact *c)
    c->status_line = status;
    if (c->description)
      elm_entry_entry_append(status, c->description);
+   elm_win_activate(win);
 }
