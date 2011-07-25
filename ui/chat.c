@@ -222,11 +222,11 @@ chat_window_new(Contact *c)
    entry = elm_entry_add(win);
    elm_entry_single_line_set(entry, 1);
    elm_entry_scrollable_set(entry, 1);
-   elm_object_focus(entry);
    WEIGHT(entry, EVAS_HINT_EXPAND, 0);
    ALIGN(entry, EVAS_HINT_FILL, 0);
    elm_box_pack_end(box, entry);
    evas_object_show(entry);
+   elm_object_focus(entry);
 
    evas_object_smart_callback_add(entry, "activated", _chat_window_send_cb, c);
    evas_object_smart_callback_add(close, "clicked", (Evas_Smart_Cb)chat_window_close_cb, win);
