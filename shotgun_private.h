@@ -56,6 +56,8 @@ struct Shotgun_Auth
    const char *resource; /* identifier for "location" of user */
    const char *bind; /* full JID from xmpp:bind */
    const char *jid; /* bare JID */
+   char *desc; /* current status message */
+   Shotgun_User_Status status; /* current status */
 
    const char *pass; /* NOT ALLOCATED! */
 

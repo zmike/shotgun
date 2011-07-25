@@ -111,6 +111,7 @@ Eina_Bool shotgun_iq_vcard_get(Shotgun_Auth *auth, const char *user);
 
 Eina_Bool shotgun_message_send(Shotgun_Auth *auth, const char *to, const char *msg, Shotgun_Message_Status status);
 Eina_Bool shotgun_presence_set(Shotgun_Auth *auth, Shotgun_User_Status st, const char *desc);
+const char *shotgun_presence_get(Shotgun_Auth *auth, Shotgun_User_Status *st);
 
 void shotgun_event_message_free(Shotgun_Event_Message *msg);
 void shotgun_event_presence_free(Shotgun_Event_Presence *pres);

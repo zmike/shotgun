@@ -68,8 +68,24 @@ shotgun_presence_set(Shotgun_Auth *auth, Shotgun_User_Status st, const char *des
    size_t len;
    char *xml;
 
+   if (desc) auth->desc = strdup(desc);
+   else
+     {
+        free(auth->desc);
+        auth->desc = NULL;
+     }
    xml = xml_presence_write(auth, st, desc, &len);
    shotgun_write(auth->svr, xml, len);
    free(xml);
    return EINA_TRUE;
+}
+
+const char *
+shotgun_presence_get(Shotgun_Auth *auth, Shotgun_User_Status *st)
+{
+   EINA_SAFETY_ON_NULL_RETURN_VAL(auth, NULL);
+   EINA_SAFETY_ON_NULL_RETURN_VAL(st, NULL);
+
+   *st = auth->status;
+   return auth->desc;
 }
