@@ -201,6 +201,7 @@ contact_list_new(void)
 
    win = elm_win_add(NULL, "Shotgun - Contacts", ELM_WIN_BASIC);
    elm_win_title_set(win, "Shotgun - Contacts");
+   elm_win_autodel_set(win, 1);
 
    bg = elm_bg_add(win);
    WEIGHT(bg, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);

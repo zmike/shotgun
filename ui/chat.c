@@ -63,6 +63,7 @@ chat_window_close_cb(void *data, Evas_Object *obj __UNUSED__, const char *ev __U
    c = evas_object_data_get(data, "contact");
    c->chat_window = NULL;
    c->chat_buffer = NULL;
+   c->chat_input = NULL;
    c->status_line = NULL;
    EINA_LIST_FREE(c->imgs, i)
      eina_hash_del_by_key(i->wins, data);
@@ -142,6 +143,7 @@ chat_window_new(Contact *c)
      {
         c->chat_window = win;
         c->chat_buffer = evas_object_data_get(win, "conv");
+        c->chat_input = evas_object_data_get(win, "input");
         c->status_line = evas_object_data_get(win, "status");
         return;
      }
@@ -208,8 +210,7 @@ chat_window_new(Contact *c)
    elm_entry_single_line_set(convo, 0);
    elm_entry_scrollable_set(convo, 1);
    elm_object_focus_allow_set(convo, 0);
-   elm_entry_line_wrap_set(convo, ELM_WRAP_WORD);
-   //elm_entry_line_wrap_set(convo, ELM_WRAP_MIXED); BROKEN as of 21 JULY
+   elm_entry_line_wrap_set(convo, ELM_WRAP_MIXED);
    elm_entry_text_filter_append(convo, (Elm_Entry_Filter_Cb)_chat_conv_filter, c->list);
    evas_object_smart_callback_add(convo, "anchor,in", (Evas_Smart_Cb)chat_conv_image_show, convo);
    evas_object_smart_callback_add(convo, "anchor,out", (Evas_Smart_Cb)chat_conv_image_hide, convo);
@@ -233,10 +234,12 @@ chat_window_new(Contact *c)
    eina_hash_add(c->list->user_convs, c->base->jid, win);
    evas_object_data_set(win, "contact", c);
    evas_object_data_set(win, "conv", convo);
+   evas_object_data_set(win, "input", entry);
    evas_object_data_set(win, "status", status);
    evas_object_data_set(win, "list", c->list);
 
    c->chat_window = win;
    c->chat_buffer = convo;
+   c->chat_input = entry;
    c->status_line = status;
 }

@@ -49,6 +49,7 @@ typedef struct
    Elm_Genlist_Item *list_item;
    Evas_Object *chat_window;
    Evas_Object *chat_buffer;
+   Evas_Object *chat_input;
    Evas_Object *status_line;
    Contact_List *list;
 } Contact;
