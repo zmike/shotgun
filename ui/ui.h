@@ -21,23 +21,35 @@
 
 extern int ui_log_dom;
 
-typedef struct
+typedef struct Contact_List Contact_List;
+typedef struct Contact Contact;
+
+struct Contact_List
 {
    Evas_Object *win;
+   Evas_Object *box;
    Evas_Object *list;
 
+   Eina_List *users_list;
    Eina_Hash *users;
    Eina_Hash *user_convs;
    Eina_Hash *images;
+
+   Eina_Bool mode : 1; /* 0 for list, 1 for grid */
+   void *itc;
+   Ecore_Data_Cb list_item_contact_get[2];
+   Ecore_Data_Cb list_item_parent_get[2];
+   Ecore_Cb list_item_del[2];
+   Ecore_Cb list_item_update[2];
 
    struct {
         Ecore_Event_Handler *iq;
         Ecore_Event_Handler *presence;
         Ecore_Event_Handler *message;
    } event_handlers;
-} Contact_List;
+};
 
-typedef struct
+struct Contact
 {
    Shotgun_User *base;
    Shotgun_User_Info *info;
@@ -46,13 +58,13 @@ typedef struct
    Eina_List *imgs;
    Shotgun_User_Status status;
    char *description;
-   Elm_Genlist_Item *list_item;
+   void *list_item;
    Evas_Object *chat_window;
    Evas_Object *chat_buffer;
    Evas_Object *chat_input;
    Evas_Object *status_line;
    Contact_List *list;
-} Contact;
+};
 
 typedef struct
 {

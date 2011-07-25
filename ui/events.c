@@ -27,7 +27,7 @@ event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev)
            shotgun_user_info_free(c->info);
            c->info = info;
            ev->ev = NULL;
-           if (c->list_item && info->photo.data) elm_genlist_item_update(c->list_item);
+           if (c->list_item && info->photo.data) cl->list_item_update[cl->mode](c->list_item);
            break;
         }
       default:
@@ -102,7 +102,7 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
              if (ev->vcard) shotgun_iq_vcard_get(ev->account, c->base->jid);
           }
         else
-          elm_genlist_item_update(c->list_item);
+          cl->list_item_update[cl->mode](c->list_item);
      }
    return EINA_TRUE;
 }

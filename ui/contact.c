@@ -9,11 +9,12 @@ contact_free(Contact *c)
    EINA_LIST_FREE(c->plist, pres)
      shotgun_event_presence_free(pres);
    if (c->list_item)
-     elm_genlist_item_del(c->list_item);
+     c->list->list_item_del[c->list->mode](c->list_item);
    if (c->chat_window)
      evas_object_del(c->chat_window);
    shotgun_user_free(c->base);
    shotgun_user_info_free(c->info);
+   c->list->users_list = eina_list_remove(c->list->users_list, c);
    free(c);
 }
 
@@ -38,6 +39,7 @@ do_something_with_user(Contact_List *cl, Shotgun_User *user)
    c->base = user;
    c->list = cl;
    eina_hash_add(cl->users, jid, c);
+   cl->users_list = eina_list_append(cl->users_list, c);
 }
 
 
