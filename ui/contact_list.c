@@ -30,6 +30,7 @@ _contact_list_click_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, void *ev)
    if (c->chat_window)
      {
         elm_win_raise(c->chat_window);
+        elm_object_focus(c->chat_input);
         return;
      }
 
@@ -103,7 +104,8 @@ _it_icon_get(Contact *c, Evas_Object *obj, const char *part)
    if ((!c->info) || (!c->info->photo.data) || strcmp(part, "elm.swallow.end")) return NULL;
    ic = elm_icon_add(obj);
    elm_icon_memfile_set(ic, c->info->photo.data, c->info->photo.size, NULL, NULL);
-   evas_object_size_hint_aspect_set(ic, EVAS_ASPECT_CONTROL_VERTICAL, 0, 0);
+   evas_object_size_hint_aspect_set(ic, EVAS_ASPECT_CONTROL_VERTICAL, 1, 1);
+   evas_object_show(ic);
 
    return ic;
 }

@@ -194,6 +194,9 @@ chat_window_new(Contact *c)
    elm_object_focus_allow_set(status, 0);
    WEIGHT(status, EVAS_HINT_EXPAND, 0);
    ALIGN(status, EVAS_HINT_FILL, 0);
+   elm_entry_text_filter_append(status, (Elm_Entry_Filter_Cb)_chat_conv_filter, c->list);
+   evas_object_smart_callback_add(status, "anchor,in", (Evas_Smart_Cb)chat_conv_image_show, status);
+   evas_object_smart_callback_add(status, "anchor,out", (Evas_Smart_Cb)chat_conv_image_hide, status);
    elm_box_pack_end(topbox, status);
    evas_object_show(status);
 
@@ -242,4 +245,6 @@ chat_window_new(Contact *c)
    c->chat_buffer = convo;
    c->chat_input = entry;
    c->status_line = status;
+   if (c->description)
+     elm_entry_entry_append(status, c->description);
 }
