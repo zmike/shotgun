@@ -58,6 +58,7 @@ struct Contact
    Eina_List *imgs;
    Shotgun_User_Status status;
    char *description;
+   const char *last_conv;
    void *list_item;
    Evas_Object *chat_window;
    Evas_Object *chat_buffer;

@@ -3,7 +3,6 @@
 Eina_Bool
 event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev)
 {
-   DBG("EVENT_IQ %d: %p", ev->type, ev->ev);
    switch(ev->type)
      {
       case SHOTGUN_IQ_EVENT_TYPE_ROSTER:
@@ -129,7 +128,8 @@ event_message_cb(void *data, int type __UNUSED__, void *event)
    if (!c->chat_window)
      chat_window_new(c);
 
-   from = c->base->name ? : c->base->jid;
+   from = (c->info && c->info->full_name) ? c->info->full_name : c->base->name;
+   if (!from) from = c->base->jid;
    if (msg->msg)
      chat_message_insert(c, from, msg->msg);
    if (msg->status)

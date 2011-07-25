@@ -52,7 +52,7 @@ _chat_window_send_cb(void *data, Evas_Object *obj, void *ev __UNUSED__)
 }
 
 static void
-chat_window_close_cb(void *data, Evas_Object *obj __UNUSED__, const char *ev __UNUSED__)
+_chat_window_close_cb(void *data, Evas_Object *obj __UNUSED__, const char *ev __UNUSED__)
 {
    Contact_List *cl;
    Contact *c;
@@ -61,6 +61,7 @@ chat_window_close_cb(void *data, Evas_Object *obj __UNUSED__, const char *ev __U
    INF("Closing window for %s", elm_win_title_get(data));
    cl = evas_object_data_get(data, "list");
    c = evas_object_data_get(data, "contact");
+   eina_stringshare_replace(&c->last_conv, elm_entry_entry_get(c->chat_buffer));
    c->chat_window = NULL;
    c->chat_buffer = NULL;
    c->chat_input = NULL;
@@ -100,25 +101,62 @@ _chat_conv_filter(Contact_List *cl, Evas_Object *obj __UNUSED__, char **str)
         if (!end) /* address goes to end of message */
           {
              len = strlen(http);
-             if ((unsigned int)d != eina_strbuf_length_get(buf))
-               if (!memcmp(http + len - 4, "&gt", 3)) len -= 3;
-             snprintf(fmt, sizeof(fmt), "<a href=%%.%is>%%.%is</a><br>", len - 4, len - 4);
-             eina_strbuf_append_printf(buf, fmt, http, http);
-             char_image_add(cl, strndupa(http, len - 4));
+             if (((unsigned int)d != eina_strbuf_length_get(buf)) &&
+                 (!memcmp(http + len - 3, "&gt", 3)))
+               len -= 3;
+             else if (!strcmp(http + len - 4, "<br>"))
+               len -= 4;
+             if (http[len - 1] == '>')
+               {
+                  while (--len > 1)
+                    if (http[len - 1] == '<') break;
+               }
+             if ((len <= 1) || (http[len - 1] != '<') ||
+                 strcmp(http + len, "</a><br>") || (d < 5) ||
+                 memcmp(http - 5, "href=", 5))
+               {
+                  snprintf(fmt, sizeof(fmt), "<a href=%%.%is>%%.%is</a><br>", len, len);
+                  eina_strbuf_append_printf(buf, fmt, http, http);
+               }
+             else
+               {
+                  eina_strbuf_free(buf);
+                  buf = NULL;
+               }
+             char_image_add(cl, strndupa(http, len));
              //DBG("ANCHOR: ");
              //DBG(fmt, http);
              break;
           }
         len = end - http;
-        if ((unsigned int)d != eina_strbuf_length_get(buf))
-          if (!memcmp(http + len - 4, "&gt", 3)) len -= 3;
-        snprintf(fmt, sizeof(fmt), "<a href=%%.%is>%%.%is</a>", len, len);
-        eina_strbuf_append_printf(buf, fmt, http, http);
-        char_image_add(cl, strndupa(http, len - 4));
+        if (((unsigned int)d != eina_strbuf_length_get(buf)) &&
+            (!memcmp(http + len - 3, "&gt", 3)))
+               len -= 3;
+        else if (!strcmp(http + len - 4, "<br>"))
+          len -= 4;
+        if (http[len - 1] == '>')
+          {
+             while (--len > 1)
+               if (http[len - 1] == '<') break;
+          }
+        if ((len <= 1) || (http[len - 1] != '<') ||
+            strcmp(http + len, "</a><br>") || (d < 5) ||
+            memcmp(http - 5, "href=", 5))
+          {
+             snprintf(fmt, sizeof(fmt), "<a href=%%.%is>%%.%is</a><br>", len, len);
+             eina_strbuf_append_printf(buf, fmt, http, http);
+          }
+        else
+          {
+             eina_strbuf_free(buf);
+             return;
+          }
+        char_image_add(cl, strndupa(http, len));
              //DBG("ANCHOR: ");
              //DBG(fmt, http);
         http = strstr(start, "http");
      }
+   if (!buf) return;
    free(*str);
    *str = eina_strbuf_string_steal(buf);
    eina_strbuf_free(buf);
@@ -138,23 +176,13 @@ chat_window_new(Contact *c)
    Evas_Object *parent_win, *win, *bg, *box, *convo, *entry;
    Evas_Object *topbox, *frame, *status, *close, *icon;
 
-   win = eina_hash_find(c->list->user_convs, c->base->jid);
-   if (win)
-     {
-        c->chat_window = win;
-        c->chat_buffer = evas_object_data_get(win, "conv");
-        c->chat_input = evas_object_data_get(win, "input");
-        c->status_line = evas_object_data_get(win, "status");
-        return;
-     }
-
    parent_win = elm_object_top_widget_get(
       c->list->list_item_parent_get[c->list->mode](c->list_item));
 
    win = elm_win_add(NULL, "chat-window", ELM_WIN_BASIC);
    elm_object_focus_allow_set(win, 0);
    elm_win_title_set(win, c->base->jid);
-   evas_object_smart_callback_add(win, "delete,request", (Evas_Smart_Cb)chat_window_close_cb, win);
+   evas_object_smart_callback_add(win, "delete,request", (Evas_Smart_Cb)_chat_window_close_cb, win);
    evas_object_event_callback_add(win, EVAS_CALLBACK_KEY_DOWN, (Evas_Object_Event_Cb)_chat_window_key, win);
    1 | evas_object_key_grab(win, "Escape", 0, 0, 1); /* worst warn_unused ever. */
    evas_object_resize(win, 300, 320);
@@ -232,13 +260,10 @@ chat_window_new(Contact *c)
    elm_object_focus(entry);
 
    evas_object_smart_callback_add(entry, "activated", _chat_window_send_cb, c);
-   evas_object_smart_callback_add(close, "clicked", (Evas_Smart_Cb)chat_window_close_cb, win);
+   evas_object_smart_callback_add(close, "clicked", (Evas_Smart_Cb)_chat_window_close_cb, win);
 
    eina_hash_add(c->list->user_convs, c->base->jid, win);
    evas_object_data_set(win, "contact", c);
-   evas_object_data_set(win, "conv", convo);
-   evas_object_data_set(win, "input", entry);
-   evas_object_data_set(win, "status", status);
    evas_object_data_set(win, "list", c->list);
 
    c->chat_window = win;
@@ -247,5 +272,7 @@ chat_window_new(Contact *c)
    c->status_line = status;
    if (c->description)
      elm_entry_entry_append(status, c->description);
+   if (c->last_conv)
+     elm_entry_entry_set(convo, c->last_conv);
    elm_win_activate(win);
 }

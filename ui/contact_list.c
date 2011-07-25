@@ -27,13 +27,6 @@ _contact_list_click_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, void *ev)
    Contact *c;
 
    c = cl->list_item_contact_get[cl->mode](ev);
-   if (c->chat_window)
-     {
-        elm_win_activate(c->chat_window);
-        elm_object_focus(c->chat_input);
-        return;
-     }
-
    chat_window_new(c);
 }
 
