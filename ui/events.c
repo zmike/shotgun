@@ -91,12 +91,13 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
      }
 
    c->status = c->cur->status;
-   c->description = c->cur->description;
-   if (c->status_line)
+   if (c->status_line && (c->description != c->cur->description) &&
+       ((!c->description) || (!c->cur->description) || strcmp(c->description, c->cur->description)))
      {
         elm_entry_entry_set(c->status_line, "");
-        elm_entry_entry_append(c->status_line, c->description);
+        if (c->cur->description) elm_entry_entry_append(c->status_line, c->cur->description);
      }
+   c->description = c->cur->description;
    if (c->base->subscription > SHOTGUN_USER_SUBSCRIPTION_NONE)
      {
         if (!c->list_item)
