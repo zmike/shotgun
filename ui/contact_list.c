@@ -190,7 +190,8 @@ contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev)
 void
 contact_list_new(void)
 {
-   Evas_Object *win, *bg, *box, *list, *btn;
+   Evas_Object *win, *obj, *box, *list, *menu;
+   Elm_Toolbar_Item *it;
    Contact_List *cl;
 
    //_setup_extension();
@@ -203,15 +204,27 @@ contact_list_new(void)
    elm_win_title_set(win, "Shotgun - Contacts");
    elm_win_autodel_set(win, 1);
 
-   bg = elm_bg_add(win);
-   WEIGHT(bg, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-   elm_win_resize_object_add(win, bg);
-   evas_object_show(bg);
+   obj = elm_bg_add(win);
+   WEIGHT(obj, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+   elm_win_resize_object_add(win, obj);
+   evas_object_show(obj);
 
    box = elm_box_add(win);
    WEIGHT(box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    elm_win_resize_object_add(win, box);
    evas_object_show(box);
+
+   obj = elm_toolbar_add(win);
+   elm_toolbar_mode_shrink_set(obj, ELM_TOOLBAR_SHRINK_MENU);
+   ALIGN(obj, EVAS_HINT_FILL, 0);
+   elm_toolbar_align_set(obj, 0);
+   it = elm_toolbar_item_append(obj, NULL, "Shotgun", NULL, NULL);
+   elm_toolbar_item_menu_set(it, 1);
+   elm_toolbar_menu_parent_set(obj, win);
+   menu = elm_toolbar_item_menu_get(it);
+   elm_menu_item_add(menu, NULL, "close", "Quit", (Evas_Smart_Cb)_contact_list_close, cl);
+   elm_box_pack_end(box, obj);
+   evas_object_show(obj);
 
    list = elm_genlist_add(win);
    elm_genlist_always_select_mode_set(list, EINA_FALSE);
@@ -220,14 +233,8 @@ contact_list_new(void)
    elm_box_pack_end(box, list);
    evas_object_show(list);
 
-   btn = elm_button_add(win);
-   elm_object_text_set(btn, "My wm has no close button");
-   elm_box_pack_end(box, btn);
-   evas_object_show(btn);
-
    evas_object_smart_callback_add(list, "clicked,double",
                                   _contact_list_click_cb, cl);
-   evas_object_smart_callback_add(btn, "clicked", (Evas_Smart_Cb)_contact_list_close, cl);
    evas_object_event_callback_add(win, EVAS_CALLBACK_FREE,
                                   (Evas_Object_Event_Cb)_contact_list_free_cb, cl);
 
