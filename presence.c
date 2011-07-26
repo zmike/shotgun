@@ -84,8 +84,7 @@ const char *
 shotgun_presence_get(Shotgun_Auth *auth, Shotgun_User_Status *st)
 {
    EINA_SAFETY_ON_NULL_RETURN_VAL(auth, NULL);
-   EINA_SAFETY_ON_NULL_RETURN_VAL(st, NULL);
 
-   *st = auth->status;
+   if (st) *st = auth->status;
    return auth->desc;
 }
