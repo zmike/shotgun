@@ -171,6 +171,22 @@ _contact_list_mode_toggle(Contact_List *cl, Evas_Object *obj __UNUSED__, void *e
 }
 
 static void
+_contact_list_status_changed(Contact_List *cl, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
+{
+   ecore_timer_delay(cl->status_timer, 3);
+}
+
+static Eina_Bool
+_contact_list_status_send(Contact_List *cl)
+{
+   shotgun_presence_send(cl->account);
+
+   cl->status_timer = NULL;
+   evas_object_smart_callback_del(cl->status_entry, "changed", (Evas_Smart_Cb)_contact_list_status_changed);
+   return EINA_FALSE;
+}
+
+static void
 _contact_list_status_menu(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Menu_Item *it)
 {
    Evas_Object *radio;
@@ -180,7 +196,38 @@ _contact_list_status_menu(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Men
    val = elm_radio_state_value_get(radio);
    if ((Shotgun_User_Status)elm_radio_value_get(radio) == val) return;
    elm_radio_value_set(radio, val);
-   shotgun_presence_set(cl->account, val, NULL);
+   shotgun_presence_status_set(cl->account, val);
+   elm_object_focus(cl->status_entry);
+   elm_entry_select_all(cl->status_entry);
+   cl->status_timer = ecore_timer_add(3.0, (Ecore_Task_Cb)_contact_list_status_send, cl);
+   evas_object_smart_callback_add(cl->status_entry, "changed", (Evas_Smart_Cb)_contact_list_status_changed, cl);
+}
+
+static void
+_contact_list_status_priority(Contact_List *cl, Evas_Object *obj, void *ev __UNUSED__)
+{
+   shotgun_presence_priority_set(cl->account, elm_spinner_value_get(obj));
+   if (cl->status_timer) ecore_timer_delay(cl->status_timer, 3);
+   else
+     {
+        cl->status_timer = ecore_timer_add(3.0, (Ecore_Task_Cb)_contact_list_status_send, cl);
+        evas_object_smart_callback_add(cl->status_entry, "changed", (Evas_Smart_Cb)_contact_list_status_changed, cl);
+     }
+}
+
+static void
+_contact_list_status_message(Contact_List *cl, Evas_Object *obj, void *ev __UNUSED__)
+{
+   char *s;
+
+   s = elm_entry_markup_to_utf8(elm_entry_entry_get(obj));
+   shotgun_presence_desc_manage(cl->account, s);
+   shotgun_presence_send(cl->account);
+   if (cl->status_timer)
+     {
+        ecore_timer_del(cl->status_timer);
+        cl->status_timer = NULL;
+     }
 }
 
 void
@@ -264,7 +311,7 @@ contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev)
 void
 contact_list_new(Shotgun_Auth *auth)
 {
-   Evas_Object *win, *obj, *radio, *box, *menu;
+   Evas_Object *win, *obj, *radio, *box, *menu, *entry;
    Elm_Toolbar_Item *it;
    Contact_List *cl;
 
@@ -350,6 +397,39 @@ contact_list_new(Shotgun_Auth *auth)
    cl->list_item_update[1] = (Ecore_Cb)elm_gengrid_item_update;
 
    _contact_list_list_add(cl);
+
+   obj = elm_separator_add(win);
+   elm_separator_horizontal_set(obj, EINA_TRUE);
+   elm_box_pack_end(box, obj);
+   evas_object_show(obj);
+
+   box = elm_box_add(win);
+   WEIGHT(box, EVAS_HINT_EXPAND, 0.0);
+   ALIGN(box, EVAS_HINT_FILL, 1.0);
+   elm_box_horizontal_set(box, EINA_TRUE);
+   elm_box_pack_end(cl->box, box);
+   evas_object_show(box);
+
+   cl->status_entry = entry = elm_entry_add(win);
+   elm_entry_line_wrap_set(entry, ELM_WRAP_MIXED);
+   elm_entry_single_line_set(entry, 1);
+   elm_entry_scrollable_set(entry, 1);
+   WEIGHT(entry, EVAS_HINT_EXPAND, 0);
+   ALIGN(entry, EVAS_HINT_FILL, 0.5);
+   elm_box_pack_end(box, entry);
+   evas_object_smart_callback_add(entry, "activated", (Evas_Smart_Cb)_contact_list_status_message, cl);
+   elm_entry_entry_set(entry, shotgun_presence_desc_get(cl->account));
+   evas_object_show(entry);
+
+   obj = elm_spinner_add(win);
+   elm_spinner_wrap_set(obj, EINA_TRUE);
+   elm_spinner_step_set(obj, 1);
+   elm_spinner_min_max_set(obj, 0, 9999);
+   elm_spinner_value_set(obj, shotgun_presence_priority_get(cl->account));
+   ALIGN(obj, 1.0, 0.5);
+   elm_box_pack_end(box, obj);
+   evas_object_smart_callback_add(obj, "delay,changed", (Evas_Smart_Cb)_contact_list_status_priority, cl);
+   evas_object_show(obj);
 
    evas_object_event_callback_add(win, EVAS_CALLBACK_FREE,
                                   (Evas_Object_Event_Cb)_contact_list_free_cb, cl);

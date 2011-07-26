@@ -29,11 +29,13 @@ struct Contact_List
    Evas_Object *win;
    Evas_Object *box;
    Evas_Object *list;
+   Evas_Object *status_entry;
 
    Eina_List *users_list;
    Eina_Hash *users;
    Eina_Hash *user_convs;
    Eina_Hash *images;
+   Ecore_Timer *status_timer;
 
    Eina_Bool mode : 1; /* 0 for list, 1 for grid */
    void *itc;
