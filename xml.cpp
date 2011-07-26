@@ -630,7 +630,7 @@ E: <message from='romeo@example.net/orchard'
 }
 
 char *
-xml_presence_write(Shotgun_Auth *auth __UNUSED__, Shotgun_User_Status st, const char *msg, size_t *len)
+xml_presence_write(Shotgun_Auth *auth, size_t *len)
 {
 /*
 <presence xml:lang='en'>
@@ -642,14 +642,15 @@ xml_presence_write(Shotgun_Auth *auth __UNUSED__, Shotgun_User_Status st, const 
 */
    xml_document doc;
    xml_node node, show;
+   char buf[64];
 
    node = doc.append_child("presence");
    node.append_attribute("xml:lang").set_value("en");
-   if (st != SHOTGUN_USER_STATUS_NORMAL)
+   if (auth->status != SHOTGUN_USER_STATUS_NORMAL)
      show = node.append_child("show").append_child(node_pcdata);
-   else if (!st)
+   else if (!auth->status)
      node.append_attribute("type").set_value("unavailable");
-   switch (st)
+   switch (auth->status)
      {
       case SHOTGUN_USER_STATUS_AWAY:
         show.set_value("away");
@@ -666,7 +667,9 @@ xml_presence_write(Shotgun_Auth *auth __UNUSED__, Shotgun_User_Status st, const 
       default:
         break;
      }
-   if (msg) node.append_child("status").append_child(node_pcdata).set_value(msg);
+   if (auth->desc) node.append_child("status").append_child(node_pcdata).set_value(auth->desc);
+   snprintf(buf, sizeof(buf), "%i", auth->priority);
+   node.append_child("priority").append_child(node_pcdata).set_value(buf);
 
    return xmlnode_to_buf(doc, len, EINA_FALSE);
 }

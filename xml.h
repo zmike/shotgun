@@ -13,7 +13,7 @@ char *xml_stream_init_create(Shotgun_Auth *auth, const char *lang, size_t *len);
 Eina_Bool xml_stream_init_read(Shotgun_Auth *auth, char *xml, size_t size);
 Eina_Bool xml_starttls_read(char *xml, size_t size);
 char *xml_sasl_write(const char *sasl, size_t *len);
-Eina_Bool xml_sasl_read(const unsigned char *xml, size_t size __UNUSED__);
+Eina_Bool xml_sasl_read(const unsigned char *xml, size_t size);
 
 char *xml_iq_write_preset(Shotgun_Auth *auth, Shotgun_Iq_Preset p, size_t *len);
 char *xml_iq_write_get_vcard(const char *to, size_t *len);
@@ -23,7 +23,7 @@ char *xml_message_write(Shotgun_Auth *auth, const char *to, const char *msg, Sho
 Shotgun_Event_Message *xml_message_read(Shotgun_Auth *auth, char *xml, size_t size);
 
 
-char *xml_presence_write(Shotgun_Auth *auth, Shotgun_User_Status st, const char *msg, size_t *len);
+char *xml_presence_write(Shotgun_Auth *auth, size_t *len);
 Shotgun_Event_Presence *xml_presence_read(Shotgun_Auth *auth, char *xml, size_t size);
 
 #ifdef __cplusplus

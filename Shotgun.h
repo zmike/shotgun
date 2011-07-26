@@ -110,8 +110,17 @@ Eina_Bool shotgun_iq_roster_get(Shotgun_Auth *auth);
 Eina_Bool shotgun_iq_vcard_get(Shotgun_Auth *auth, const char *user);
 
 Eina_Bool shotgun_message_send(Shotgun_Auth *auth, const char *to, const char *msg, Shotgun_Message_Status status);
-Eina_Bool shotgun_presence_set(Shotgun_Auth *auth, Shotgun_User_Status st, const char *desc);
-const char *shotgun_presence_get(Shotgun_Auth *auth, Shotgun_User_Status *st);
+
+Shotgun_User_Status shotgun_presence_status_get(Shotgun_Auth *auth);
+void shotgun_presence_status_set(Shotgun_Auth *auth, Shotgun_User_Status status);
+int shotgun_presence_priority_get(Shotgun_Auth *auth);
+void shotgun_presence_priority_set(Shotgun_Auth *auth, int priority);
+const char *shotgun_presence_desc_get(Shotgun_Auth *auth);
+void shotgun_presence_desc_set(Shotgun_Auth *auth, const char *desc);
+void shotgun_presence_desc_manage(Shotgun_Auth *auth, char *desc);
+void shotgun_presence_set(Shotgun_Auth *auth, Shotgun_User_Status st, const char *desc, int priority);
+const char *shotgun_presence_get(Shotgun_Auth *auth, Shotgun_User_Status *st, int *priority);
+Eina_Bool shotgun_presence_send(Shotgun_Auth *auth);
 
 void shotgun_event_message_free(Shotgun_Event_Message *msg);
 void shotgun_event_presence_free(Shotgun_Event_Presence *pres);

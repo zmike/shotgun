@@ -62,29 +62,89 @@ shotgun_event_presence_free(Shotgun_Event_Presence *pres)
    shotgun_presence_free(NULL, pres);
 }
 
-Eina_Bool
-shotgun_presence_set(Shotgun_Auth *auth, Shotgun_User_Status st, const char *desc)
+void
+shotgun_presence_set(Shotgun_Auth *auth, Shotgun_User_Status st, const char *desc, int priority)
 {
-   size_t len;
-   char *xml;
-
+   auth->priority = priority;
    if (desc) auth->desc = strdup(desc);
    else
      {
         free(auth->desc);
         auth->desc = NULL;
      }
-   xml = xml_presence_write(auth, st, desc, &len);
+   auth->status = st;
+}
+
+Shotgun_User_Status
+shotgun_presence_status_get(Shotgun_Auth *auth)
+{
+   EINA_SAFETY_ON_NULL_RETURN_VAL(auth, SHOTGUN_USER_STATUS_NONE);
+   return auth->status;
+}
+
+void
+shotgun_presence_status_set(Shotgun_Auth *auth, Shotgun_User_Status status)
+{
+   EINA_SAFETY_ON_NULL_RETURN(auth);
+   auth->status = status;
+}
+
+int
+shotgun_presence_priority_get(Shotgun_Auth *auth)
+{
+   EINA_SAFETY_ON_NULL_RETURN_VAL(auth, -1);
+   return auth->priority;
+}
+
+void
+shotgun_presence_priority_set(Shotgun_Auth *auth, int priority)
+{
+   EINA_SAFETY_ON_NULL_RETURN(auth);
+   auth->priority = priority;
+}
+
+const char *
+shotgun_presence_desc_get(Shotgun_Auth *auth)
+{
+   EINA_SAFETY_ON_NULL_RETURN_VAL(auth, NULL);
+   return auth->desc;
+}
+
+void
+shotgun_presence_desc_set(Shotgun_Auth *auth, const char *desc)
+{
+   EINA_SAFETY_ON_NULL_RETURN(auth);
+   free(auth->desc);
+   if (desc) auth->desc = strdup(desc);
+   else auth->desc = NULL;
+}
+
+void
+shotgun_presence_desc_manage(Shotgun_Auth *auth, char *desc)
+{
+   EINA_SAFETY_ON_NULL_RETURN(auth);
+   free(auth->desc);
+   auth->desc = desc;
+}
+
+Eina_Bool
+shotgun_presence_send(Shotgun_Auth *auth)
+{
+   size_t len;
+   char *xml;
+
+   xml = xml_presence_write(auth, &len);
    shotgun_write(auth->svr, xml, len);
    free(xml);
    return EINA_TRUE;
 }
 
 const char *
-shotgun_presence_get(Shotgun_Auth *auth, Shotgun_User_Status *st)
+shotgun_presence_get(Shotgun_Auth *auth, Shotgun_User_Status *st, int *priority)
 {
    EINA_SAFETY_ON_NULL_RETURN_VAL(auth, NULL);
 
    if (st) *st = auth->status;
+   if (priority) *priority = auth->priority;
    return auth->desc;
 }

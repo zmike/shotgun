@@ -58,6 +58,7 @@ struct Shotgun_Auth
    const char *jid; /* bare JID */
    char *desc; /* current status message */
    Shotgun_User_Status status; /* current status */
+   int priority;
 
    const char *pass; /* NOT ALLOCATED! */
 
