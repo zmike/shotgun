@@ -4,8 +4,9 @@
 static Evas_Object *
 _chat_conv_image_provider(Image *i, Evas_Object *obj)
 {
-   Evas_Object *ret, *win = elm_object_top_widget_get(obj);;
+   Evas_Object *ret, *win = elm_object_top_widget_get(obj);
    Contact *c;
+   DBG("(i=%p,win=%p)", i, win);
    if ((!i) || (!i->buf)) goto error;
 
    ret = eina_hash_find(i->wins, win);
