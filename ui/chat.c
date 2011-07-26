@@ -185,7 +185,7 @@ chat_window_new(Contact *c)
    evas_object_smart_callback_add(win, "delete,request", (Evas_Smart_Cb)_chat_window_close_cb, win);
    evas_object_event_callback_add(win, EVAS_CALLBACK_KEY_DOWN, (Evas_Object_Event_Cb)_chat_window_key, win);
    1 | evas_object_key_grab(win, "Escape", 0, 0, 1); /* worst warn_unused ever. */
-   evas_object_resize(win, 300, 320);
+   evas_object_resize(win, 450, 320);
    evas_object_show(win);
 
    bg = elm_bg_add(win);
