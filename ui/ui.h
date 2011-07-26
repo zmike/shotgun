@@ -47,6 +47,7 @@ struct Contact_List
         Ecore_Event_Handler *presence;
         Ecore_Event_Handler *message;
    } event_handlers;
+   Shotgun_Auth *account;
 };
 
 struct Contact
@@ -75,7 +76,7 @@ typedef struct
    Eina_Hash *wins;
 } Image;
 
-void contact_list_new(void);
+void contact_list_new(Shotgun_Auth *auth);
 void contact_list_user_add(Contact_List *cl, Contact *c);
 void contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev);
 
