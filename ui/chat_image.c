@@ -2,16 +2,13 @@
 
 
 static Evas_Object *
-_chat_conv_image_provider(Image *i, Evas_Object *obj)
+_chat_conv_image_provider(Image *i, Evas_Object *obj, Evas_Object *tt)
 {
    Evas_Object *ret, *win = elm_object_top_widget_get(obj);
-   Contact *c;
    DBG("(i=%p,win=%p)", i, win);
    if ((!i) || (!i->buf)) goto error;
 
-   ret = eina_hash_find(i->wins, win);
-   if (ret) return ret;
-   ret = elm_icon_add(win);
+   ret = elm_icon_add(tt);
    if (!elm_icon_memfile_set(ret, eina_binbuf_string_get(i->buf), eina_binbuf_length_get(i->buf), NULL, NULL))
      {
         /* an unloadable image is a useless image! */
@@ -20,10 +17,6 @@ _chat_conv_image_provider(Image *i, Evas_Object *obj)
         goto error;
      }
    elm_icon_scale_set(ret, 0, 0);
-   eina_hash_direct_add(i->wins, win, ret);
-   c = evas_object_data_get(win, "contact");
-   c->imgs = eina_list_append(c->imgs, i);
-   evas_object_ref(ret);
    return ret;
 error:
    ret = elm_label_add(obj); /* FIXME: loading image or something ? */
@@ -40,25 +33,15 @@ chat_conv_image_show(Evas_Object *convo, Evas_Object *obj, Elm_Entry_Anchor_Info
 
    if (c) i = eina_hash_find(c->list->images, ev->name);
    elm_object_tooltip_content_cb_set(convo, (Elm_Tooltip_Content_Cb)_chat_conv_image_provider, i, NULL);
-   elm_object_tooltip_style_set(obj, "transparent");
+   //elm_object_tooltip_style_set(obj, "transparent");
+   elm_tooltip_size_restrict_disable(obj, EINA_TRUE);
    elm_object_tooltip_show(obj);
    DBG("anchor in: '%s' (%i, %i)", ev->name, ev->x, ev->y);
 }
 
 void
-chat_conv_image_hide(Evas_Object *convo, Evas_Object *obj, Elm_Entry_Anchor_Info *ev)
+chat_conv_image_hide(Evas_Object *convo __UNUSED__, Evas_Object *obj, Elm_Entry_Anchor_Info *ev)
 {
-   Evas_Object *ic, *win = elm_object_top_widget_get(convo);
-   Image *i = NULL;
-   Contact *c = evas_object_data_get(win, "contact");
-
-   if (c) i = eina_hash_find(c->list->images, ev->name);
-   if (i)
-     {
-        ic = eina_hash_find(i->wins, win);
-        if (ic) evas_object_hide(ic);
-     }
-
    elm_object_tooltip_hide(obj);
    DBG("anchor out: '%s' (%i, %i)", ev->name, ev->x, ev->y);
 }
@@ -74,7 +57,6 @@ char_image_add(Contact_List *cl, const char *url)
    i->url = ecore_con_url_new(url);
    ecore_con_url_data_set(i->url, i);
    i->cl = cl;
-   i->wins = eina_hash_pointer_new((Eina_Free_Cb)evas_object_unref);
 
    ecore_con_url_get(i->url);
    eina_hash_add(cl->images, url, i);
@@ -86,7 +68,6 @@ chat_image_free(Image *i)
    if (!i) return;
    if (i->url) ecore_con_url_free(i->url);
    if (i->buf) eina_binbuf_free(i->buf);
-   eina_hash_free(i->wins);
    free(i);
 }
 
