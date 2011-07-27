@@ -33,8 +33,8 @@ chat_conv_image_show(Evas_Object *convo, Evas_Object *obj, Elm_Entry_Anchor_Info
 
    if (c) i = eina_hash_find(c->list->images, ev->name);
    elm_object_tooltip_content_cb_set(convo, (Elm_Tooltip_Content_Cb)_chat_conv_image_provider, i, NULL);
-   //elm_object_tooltip_style_set(obj, "transparent");
    elm_tooltip_size_restrict_disable(obj, EINA_TRUE);
+   elm_object_tooltip_style_set(obj, "transparent");
    elm_object_tooltip_show(obj);
    DBG("anchor in: '%s' (%i, %i)", ev->name, ev->x, ev->y);
 }
