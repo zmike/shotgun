@@ -56,7 +56,6 @@ _chat_window_close_cb(void *data, Evas_Object *obj __UNUSED__, const char *ev __
 {
    Contact_List *cl;
    Contact *c;
-   Image *i;
 
    INF("Closing window for %s", elm_win_title_get(data));
    cl = evas_object_data_get(data, "list");
@@ -66,8 +65,6 @@ _chat_window_close_cb(void *data, Evas_Object *obj __UNUSED__, const char *ev __
    c->chat_buffer = NULL;
    c->chat_input = NULL;
    c->status_line = NULL;
-   EINA_LIST_FREE(c->imgs, i)
-     eina_hash_del_by_key(i->wins, data);
    eina_hash_del_by_data(cl->user_convs, data);
 }
 
