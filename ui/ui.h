@@ -24,6 +24,8 @@ extern int ui_log_dom;
 typedef struct Contact_List Contact_List;
 typedef struct Contact Contact;
 
+typedef void (*Contact_List_Item_Tooltip_Cb)(void *item, Elm_Tooltip_Item_Content_Cb func, const void *data, Evas_Smart_Cb del_cb);
+typedef Eina_Bool (*Contact_List_Item_Tooltip_Resize_Cb)(void *item, Eina_Bool set);
 struct Contact_List
 {
    Evas_Object *win;
@@ -43,6 +45,8 @@ struct Contact_List
    Ecore_Data_Cb list_item_parent_get[2];
    Ecore_Cb list_item_del[2];
    Ecore_Cb list_item_update[2];
+   Contact_List_Item_Tooltip_Cb list_item_tooltip_add[2];
+   Contact_List_Item_Tooltip_Resize_Cb list_item_tooltip_resize[2];
 
    struct {
         Ecore_Event_Handler *iq;
@@ -62,12 +66,14 @@ struct Contact
    Shotgun_User_Status status;
    char *description;
    const char *last_conv;
+   const char *tooltip_label;
    void *list_item;
    Evas_Object *chat_window;
    Evas_Object *chat_buffer;
    Evas_Object *chat_input;
    Evas_Object *status_line;
    Contact_List *list;
+   Eina_Bool tooltip_changed : 1;
 };
 
 typedef struct
@@ -75,7 +81,6 @@ typedef struct
    Ecore_Con_Url *url;
    Eina_Binbuf *buf;
    Contact_List *cl;
-   Eina_Hash *wins;
 } Image;
 
 void contact_list_new(Shotgun_Auth *auth);

@@ -99,6 +99,7 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
    c->description = c->cur->description;
    if (c->base->subscription > SHOTGUN_USER_SUBSCRIPTION_NONE)
      {
+        c->tooltip_changed = EINA_TRUE;
         if (!c->list_item)
           {
              contact_list_user_add(cl, c);

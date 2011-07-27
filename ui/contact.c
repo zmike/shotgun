@@ -16,6 +16,7 @@ contact_free(Contact *c)
    shotgun_user_info_free(c->info);
    c->list->users_list = eina_list_remove(c->list->users_list, c);
    eina_stringshare_del(c->last_conv);
+   eina_stringshare_del(c->tooltip_label);
    free(c);
 }
 

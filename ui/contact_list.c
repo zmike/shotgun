@@ -230,6 +230,39 @@ _contact_list_status_message(Contact_List *cl, Evas_Object *obj, void *ev __UNUS
      }
 }
 
+static Evas_Object *
+_contact_list_item_tooltip_cb(Contact *c, Evas_Object *obj __UNUSED__, Evas_Object *tt, void *it __UNUSED__)
+{
+   Evas_Object *label;
+   const char *text;
+   Eina_Strbuf *buf;
+   Eina_List *l;
+   Shotgun_Event_Presence *p;
+
+   if (!c->tooltip_changed) goto out;
+   buf = eina_strbuf_new();
+   eina_strbuf_append_printf(buf, "<title>%s</title><br>"
+                                  "<subtitle><u>%s (%i)%c</u></subtitle><br>"
+                                  "%s%s",
+                                  c->base->jid,
+                                  c->cur->jid + strlen(c->base->jid) + 1, c->cur->priority, c->description ? ':' : 0,
+                                  c->description ?: NULL, c->description ? "<br>" : NULL);
+   EINA_LIST_FOREACH(c->plist, l, p)
+     eina_strbuf_append_printf(buf, "<b>%s (%i)%c</b><br>"
+                                    "%s%s",
+                                    p->jid + strlen(c->base->jid) + 1, c->cur->priority, c->description ? ':' : 0,
+                                    p->description ?: NULL, p->description ? "<br>" : NULL);
+   text = eina_stringshare_add(eina_strbuf_string_get(buf));
+   eina_strbuf_free(buf);
+   eina_stringshare_del(c->tooltip_label);
+   c->tooltip_label = text;
+out:
+   label = elm_label_add(tt);
+   elm_label_line_wrap_set(label, ELM_WRAP_MIXED);
+   elm_object_text_set(label, text);
+   return label;
+}
+
 void
 contact_list_user_add(Contact_List *cl, Contact *c)
 {
@@ -251,11 +284,14 @@ contact_list_user_add(Contact_List *cl, Contact *c)
              .del = (GridItemDelFunc)_it_del
         }
    };
-   if (c->list->mode)
+   if (cl->mode)
      c->list_item = elm_gengrid_item_append(cl->list, &ggit, c, NULL, NULL);
    else
      c->list_item = elm_genlist_item_append(cl->list, &glit, c, NULL,
                                                      ELM_GENLIST_ITEM_NONE, NULL, NULL);
+   cl->list_item_tooltip_add[cl->mode](c->list_item,
+     (Elm_Tooltip_Item_Content_Cb)_contact_list_item_tooltip_cb, c, NULL);
+   cl->list_item_tooltip_resize[cl->mode](c->list_item, EINA_TRUE);
 }
 
 void
@@ -395,6 +431,10 @@ contact_list_new(Shotgun_Auth *auth)
    cl->list_item_del[1] = (Ecore_Cb)elm_gengrid_item_del;
    cl->list_item_update[0] = (Ecore_Cb)elm_genlist_item_update;
    cl->list_item_update[1] = (Ecore_Cb)elm_gengrid_item_update;
+   cl->list_item_tooltip_add[0] = (Contact_List_Item_Tooltip_Cb)elm_genlist_item_tooltip_content_cb_set;
+   cl->list_item_tooltip_add[1] = (Contact_List_Item_Tooltip_Cb)elm_gengrid_item_tooltip_content_cb_set;
+   cl->list_item_tooltip_resize[0] = (Contact_List_Item_Tooltip_Resize_Cb)elm_genlist_item_tooltip_size_restrict_disable;
+   cl->list_item_tooltip_resize[1] = (Contact_List_Item_Tooltip_Resize_Cb)elm_gengrid_item_tooltip_size_restrict_disable;
 
    _contact_list_list_add(cl);
 
