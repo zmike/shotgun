@@ -97,9 +97,9 @@ extern "C" {
 #endif
 
 int shotgun_init(void);
-Eina_Bool shotgun_gchat_connect(Shotgun_Auth *auth);
+Eina_Bool shotgun_connect(Shotgun_Auth *auth);
 
-Shotgun_Auth *shotgun_new(const char *username, const char *domain);
+Shotgun_Auth *shotgun_new(const char *svr_name, const char *username, const char *domain);
 /**
  * DOES NOT ALLOCATE FOR PASSWORD.
  */

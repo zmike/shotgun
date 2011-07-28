@@ -45,6 +45,10 @@ shotgun_data_tokenize(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
 static Eina_Bool
 shotgun_data_detect(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
 {
+   size_t len;
+   const char *data, *tag, *c;
+   char buf[24] = {0};
+
    if (((char*)ev->data)[ev->size - 1] != '>')
      {
         if (!auth->buf)
@@ -56,29 +60,52 @@ shotgun_data_detect(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
         eina_strbuf_append_length(auth->buf, ev->data, ev->size);
         return EINA_FALSE;
      }
-   if (auth->buf)
-     {
-        size_t len;
-        const char *data, *tag;
-        char buf[24] = {0};
+   if (!auth->buf) return EINA_TRUE;
 
-        DBG("Appending %i to buffer", ev->size);
-        eina_strbuf_append_length(auth->buf, ev->data, ev->size);
-        len = eina_strbuf_length_get(auth->buf);
-        data = eina_strbuf_string_get(auth->buf);
-        tag = data + (len - 2);
-        while (tag[0] != '<') tag--;
-        tag += 2;
-        if (!memcmp(data + 1, tag, len - (tag - data) - 1)) /* open/end tags maybe match? */
+   DBG("Appending %i to buffer", ev->size);
+   eina_strbuf_append_length(auth->buf, ev->data, ev->size);
+   len = eina_strbuf_length_get(auth->buf);
+   data = eina_strbuf_string_get(auth->buf);
+   tag = data + (len - 2);
+   while ((tag[0] != '<') && (tag[0] != ' ')) tag--;
+   tag++;
+   c = strchr(tag, ':');
+   if (!c) tag++;
+   switch (auth->state)
+     {
+      case SHOTGUN_STATE_NONE:
+      case SHOTGUN_STATE_FEATURES:
+      case SHOTGUN_STATE_BIND:
+        if ((!memcmp(data + 1, "stream:stream", sizeof("stream:stream") - 1)) &&
+            ((tag - data + sizeof("/stream:features>") - 1 <= len) &&
+             (!memcmp(tag, "/stream:features>", sizeof("/stream:features>") - 1))))
+               {
+                  DBG("stream:features detected!");
+                  return EINA_TRUE;
+               }
+        break;
+      case SHOTGUN_STATE_TLS:
+        if ((len == sizeof("<proceed xmlns='urn:ietf:params:xml:ns:xmpp-tls'/>") - 1) &&
+            (!memcmp(data + 1, "proceed", 7)))
+          return EINA_TRUE;
+        else if (data[len - 1] == '>') return EINA_TRUE;
+        break;
+      case SHOTGUN_STATE_SASL:
+        if ((len == sizeof("<success xmlns='urn:ietf:params:xml:ns:xmpp-sasl'/>") - 1) &&
+            (!memcmp(data + 1, "success", 7)))
+          return EINA_TRUE;
+        else if (data[len - 1] == '>') return EINA_TRUE;
+        break;
+      default:
+        if ((data + 1 != tag) && (!memcmp(data + 1, tag, c ? (size_t)(c - tag) : (size_t)(len - (tag - data) - 1)))) /* open/end tags maybe match? */
           {
              DBG("Releasing buffered event!");
              return EINA_TRUE;
           }
         memcpy(buf, data, sizeof(buf) - 1);
         DBG("%s and %s do not match!", buf, tag);
-        return EINA_FALSE;
      }
-   return EINA_TRUE;
+   return EINA_FALSE;
 }
 
 static Eina_Bool
@@ -95,6 +122,13 @@ data(Shotgun_Auth *auth, int type __UNUSED__, Ecore_Con_Event_Server_Data *ev)
         DBG("Received carriage return");
         return ECORE_CALLBACK_RENEW;
      }
+   else if ((ev->size == 38) &&
+            (!memcmp(ev->data, "<?xml version=\"1.0", sizeof("<?xml version=\"1.0") - 1)) &&
+            (((unsigned char*)ev->data)[ev->size - 1] == '>'))
+     {
+        DBG("Received xml version tag");
+        return ECORE_CALLBACK_RENEW;
+     }
    recv = alloca(ev->size + 1);
    memcpy(recv, ev->data, ev->size);
    for (p = recv + ev->size - 1; isspace(*p); p--)
@@ -102,14 +136,14 @@ data(Shotgun_Auth *auth, int type __UNUSED__, Ecore_Con_Event_Server_Data *ev)
    recv[ev->size] = 0;
    DBG("Receiving %i bytes:\n%s", ev->size, recv);
 
+   if (!shotgun_data_detect(auth, ev))
+     return ECORE_CALLBACK_RENEW;
+
    if (auth->state < SHOTGUN_STATE_CONNECTED)
      {
         shotgun_login(auth, ev);
         return ECORE_CALLBACK_RENEW;
      }
-
-   if (!shotgun_data_detect(auth, ev))
-     return ECORE_CALLBACK_RENEW;
 
    data = auth->buf ? (char*)eina_strbuf_string_get(auth->buf) : (char*)ev->data;
    size = auth->buf ? eina_strbuf_length_get(auth->buf) : (size_t)ev->size;
@@ -162,30 +196,32 @@ shotgun_init(void)
 }
 
 Eina_Bool
-shotgun_gchat_connect(Shotgun_Auth *auth)
+shotgun_connect(Shotgun_Auth *auth)
 {
    ecore_event_handler_add(ECORE_CON_EVENT_SERVER_ADD, (Ecore_Event_Handler_Cb)shotgun_login_con, auth);
    ecore_event_handler_add(ECORE_CON_EVENT_SERVER_DEL, (Ecore_Event_Handler_Cb)disc, NULL);
    ecore_event_handler_add(ECORE_CON_EVENT_SERVER_DATA, (Ecore_Event_Handler_Cb)data, auth);
    ecore_event_handler_add(ECORE_CON_EVENT_SERVER_ERROR, (Ecore_Event_Handler_Cb)error, NULL);
    ecore_event_handler_add(ECORE_CON_EVENT_SERVER_UPGRADE, (Ecore_Event_Handler_Cb)shotgun_login_con, auth);
-   auth->svr = ecore_con_server_connect(ECORE_CON_REMOTE_NODELAY, "talk.google.com", 5222, auth);
+   auth->svr = ecore_con_server_connect(ECORE_CON_REMOTE_NODELAY, auth->svr_name, 5222, auth);
 
    return EINA_TRUE;
 }
 
 Shotgun_Auth *
-shotgun_new(const char *username, const char *domain)
+shotgun_new(const char *svr_name, const char *username, const char *domain)
 {
    Shotgun_Auth *auth;
    EINA_SAFETY_ON_NULL_RETURN_VAL(username, NULL);
    EINA_SAFETY_ON_NULL_RETURN_VAL(domain, NULL);
+   EINA_SAFETY_ON_NULL_RETURN_VAL(svr_name, NULL);
 
    auth = calloc(1, sizeof(Shotgun_Auth));
    auth->user = eina_stringshare_add(username);
    auth->from = eina_stringshare_add(domain);
    auth->resource = eina_stringshare_add("SHOTGUN!");
    auth->jid = eina_stringshare_printf("%s@%s/%s", auth->user, auth->from, auth->resource);
+   auth->svr_name = eina_stringshare_add(svr_name);
    return auth;
 }
 

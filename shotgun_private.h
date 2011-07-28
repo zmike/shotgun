@@ -65,6 +65,7 @@ struct Shotgun_Auth
    Eina_Strbuf *buf;
 
    Ecore_Con_Server *svr;
+   const char *svr_name;
 
    struct
    {  /* this serves no real purpose */

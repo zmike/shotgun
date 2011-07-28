@@ -159,7 +159,7 @@ S: <stream:stream
    xml_parse_result res;
 
    res = doc.load_buffer_inplace(xml, size, parse_default, encoding_auto);
-   if (res.status != status_ok)
+   if ((res.status != status_ok) && (res.status != status_end_element_mismatch))
      {
         ERR("%s", res.description());
         //goto error;
@@ -229,7 +229,7 @@ http://code.google.com/apis/talk/jep_extensions/jid_domain_change.html
 }
 
 Eina_Bool
-xml_sasl_read(const unsigned char *xml, size_t size __UNUSED__)
+xml_sasl_read(const char *xml, size_t size __UNUSED__)
 {
 /*
 S: <success xmlns="urn:ietf:params:xml:ns:xmpp-sasl"/>
@@ -501,7 +501,7 @@ xml_iq_read(Shotgun_Auth *auth, char *xml, size_t size)
    const char *str;
 
    res = doc.load_buffer_inplace(xml, size, parse_default, encoding_auto);
-   if (res.status != status_ok)
+   if ((res.status != status_ok) && (res.status != status_end_element_mismatch))
      {
         ERR("%s", res.description());
         return NULL;
@@ -602,7 +602,7 @@ E: <message from='romeo@example.net/orchard'
    const char *msg;
 
    res = doc.load_buffer_inplace(xml, size, parse_default, encoding_auto);
-   if (res.status != status_ok)
+   if ((res.status != status_ok) && (res.status != status_end_element_mismatch))
      {
         ERR("%s", res.description());
         return NULL;
@@ -707,7 +707,7 @@ xml_presence_read(Shotgun_Auth *auth, char *xml, size_t size)
    const char *desc;
 
    res = doc.load_buffer_inplace(xml, size, parse_default, encoding_auto);
-   if (res.status != status_ok)
+   if ((res.status != status_ok) && (res.status != status_end_element_mismatch))
      {
         ERR("%s", res.description());
         return NULL;

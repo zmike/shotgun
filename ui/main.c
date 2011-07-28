@@ -33,9 +33,10 @@ main(int argc, char *argv[])
    Shotgun_Auth *auth;
    char *getpass_x(const char *prompt);
 
-   if (argc != 3)
+   if (argc != 4)
      {
-        fprintf(stderr, "Usage: %s [username] [domain]\n", argv[0]);
+        fprintf(stderr, "Usage: %s [server] [username] [domain]\n", argv[0]);
+        fprintf(stderr, "Usage example: %s talk.google.com my_username gmail.com\n", argv[0]);
         return 1;
      }
 
@@ -56,7 +57,7 @@ main(int argc, char *argv[])
    ecore_event_handler_add(ECORE_CON_EVENT_URL_COMPLETE, (Ecore_Event_Handler_Cb)chat_image_complete, NULL);
    ecore_event_handler_add(SHOTGUN_EVENT_CONNECT, (Ecore_Event_Handler_Cb)con, NULL);
 
-   auth = shotgun_new(argv[1], argv[2]);
+   auth = shotgun_new(argv[1], argv[2], argv[3]);
    pass = getpass_x("Password: ");
    if (!pass)
      {
@@ -64,7 +65,7 @@ main(int argc, char *argv[])
         return 1;
      }
    shotgun_password_set(auth, pass);
-   shotgun_gchat_connect(auth);
+   shotgun_connect(auth);
    ecore_main_loop_begin();
 
    elm_shutdown();

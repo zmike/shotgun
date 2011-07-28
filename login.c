@@ -54,12 +54,16 @@ void
 shotgun_login(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
 {
    char *out;
-   size_t len;
+   char *data;
+   size_t len, size;
+
+   data = auth->buf ? (char*)eina_strbuf_string_get(auth->buf) : (char*)ev->data;
+   size = auth->buf ? eina_strbuf_length_get(auth->buf) : (size_t)ev->size;
 
    switch (auth->state)
      {
       case SHOTGUN_STATE_NONE:
-        if (!xml_stream_init_read(auth, ev->data, ev->size)) break;
+        if (!xml_stream_init_read(auth, data, size)) break;
 
         if (auth->features.starttls)
           {
@@ -70,14 +74,14 @@ shotgun_login(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
           ecore_main_loop_quit();
         break;
       case SHOTGUN_STATE_TLS:
-        if (xml_starttls_read(ev->data, ev->size))
+        if (xml_starttls_read(data, size))
           ecore_con_ssl_server_upgrade(ev->server, ECORE_CON_USE_MIXED);
         else
           ecore_main_loop_quit();
         return;
 
       case SHOTGUN_STATE_FEATURES:
-        if (!xml_stream_init_read(auth, ev->data, ev->size)) break;
+        if (!xml_stream_init_read(auth, data, size)) break;
         out = sasl_init(auth, &len);
         if (!out) ecore_main_loop_quit();
         else
@@ -96,7 +100,7 @@ shotgun_login(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
           }
         break;
       case SHOTGUN_STATE_SASL:
-        if (!xml_sasl_read(ev->data, ev->size))
+        if (!xml_sasl_read(data, size))
           {
              ERR("Login failed!");
              ecore_main_loop_quit();
@@ -107,7 +111,7 @@ shotgun_login(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
         auth->state++;
         break;
       case SHOTGUN_STATE_BIND:
-        if (!xml_stream_init_read(auth, ev->data, ev->size))
+        if (!xml_stream_init_read(auth, data, size))
           break;
 
         out = xml_iq_write_preset(auth, SHOTGUN_IQ_PRESET_BIND, &len);
@@ -118,7 +122,7 @@ shotgun_login(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
         auth->state++;
         break;
       case SHOTGUN_STATE_CONNECTING:
-        xml_iq_read(auth, ev->data, ev->size);
+        xml_iq_read(auth, data, size);
         EINA_SAFETY_ON_NULL_GOTO(auth->bind, error);
         INF("Bind: %s", auth->bind);
         INF("Login complete!");
@@ -127,6 +131,8 @@ shotgun_login(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
       default:
         break;
      }
+   if (auth->buf) eina_strbuf_free(auth->buf);
+   auth->buf = NULL;
    return;
 error:
    ERR("wtf");
