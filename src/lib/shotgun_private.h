@@ -5,6 +5,23 @@
 # define __UNUSED__ __attribute__((unused))
 #endif
 
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
+
+#ifndef alloca
+#ifdef HAVE_ALLOCA_H
+#include <alloca.h>
+#elif defined __GNUC__
+#define alloca __builtin_alloca
+#elif defined _AIX
+#define alloca __alloca
+#else
+#include <stddef.h>
+void *alloca (size_t);
+#endif
+#endif
+
 #include <Ecore_Con.h>
 #include "Shotgun.h"
 

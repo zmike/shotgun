@@ -1,8 +1,8 @@
 #!/bin/bash
 
-CF="-I$(readlink -f .) -D_GNU_SOURCE=1 -O0 -pipe -Wall -Wextra -g"
+CF="-I$(readlink -f .) -D_GNU_SOURCE=1 -O0 -pipe -Wall -Wextra -g -I$(readlink -f src/include)"
 
-DEPS=($(pkg-config --print-requires-private ecore-con elementary))
+#DEPS=($(pkg-config --print-requires-private ecore-con ecore-x elementary))
 #echo "DEPENDENCIES: ${DEPS[@]}"
 CFLAGS="$(pkg-config --cflags ${DEPS[@]} ecore-con ecore-x elementary)"
 #echo "DEPENDENCY CFLAGS: $CFLAGS"
@@ -15,7 +15,7 @@ link=0
 compile=0
 
 if [[ -f ./shotgun ]] ; then
-	for x in *.h ui/*.h ; do
+	for x in *.h src/{bin,include,lib}/*.h ; do
 		if [[ "$x" -nt ./shotgun ]] ; then
 			compile=1
 			break;
@@ -23,7 +23,7 @@ if [[ -f ./shotgun ]] ; then
 	done
 fi
 
-for x in *.c ui/*.c  ; do
+for x in src/lib/*.c src/bin/*.c  ; do
 	[[ $compile == 0 && -f "${x/.c/.o}" && "$x" -ot "${x/.c/.o}" ]] && continue
 #	echo "gcc -c $x -o ${x/.c/.o} $CFLAGS $CF || exit 1"
 	echo "gcc $x"
@@ -31,7 +31,7 @@ for x in *.c ui/*.c  ; do
 	link=1
 done
 
-for x in *.cpp ; do
+for x in src/lib/*.cpp ; do
 	[[ $compile == 0 && -f "${x/.cpp/.o}" && "$x" -ot "${x/.cpp/.o}" ]] && continue
 #	echo "gcc -c $x -o ${x/.cpp/.o} $CFLAGS $CF || exit 1"
 	echo "gcc $x"
@@ -43,4 +43,4 @@ done
 wait
 #echo "g++ *.o -o shotgun -L/usr/lib -lc $LIBS" #pugixml.a
 echo "g++ *.o -o shotgun" #pugixml.a
-g++ *.o ui/*.o -o shotgun -L/usr/lib -lc $LIBS #pugixml.a
+g++ src/lib/*.o src/bin/*.o -o shotgun -L/usr/lib -lc $LIBS #pugixml.a

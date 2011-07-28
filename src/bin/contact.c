@@ -1,5 +1,5 @@
-#include <sys/stat.h>
 #include "ui.h"
+#include <sys/stat.h>
 
 void
 contact_free(Contact *c)
