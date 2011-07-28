@@ -4,10 +4,10 @@ CF="-I$(readlink -f .) -D_GNU_SOURCE=1 -O0 -pipe -Wall -Wextra -g"
 
 DEPS=($(pkg-config --print-requires-private ecore-con elementary))
 #echo "DEPENDENCIES: ${DEPS[@]}"
-CFLAGS="$(pkg-config --cflags ${DEPS[@]} ecore-con elementary)"
+CFLAGS="$(pkg-config --cflags ${DEPS[@]} ecore-con ecore-x elementary)"
 #echo "DEPENDENCY CFLAGS: $CFLAGS"
 
-LIBS="$(pkg-config --libs ${DEPS[@]} ecore-con elementary)"
+LIBS="$(pkg-config --libs ${DEPS[@]} ecore-con ecore-x elementary)"
 #echo "DEPENDENCY LIBS: $LIBS"
 #echo
 

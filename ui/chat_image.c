@@ -1,10 +1,14 @@
 #include "ui.h"
+//#ifdef HAVE_ECORE_X
+# include <Ecore_X.h>
+//#endif
 
 
 static Evas_Object *
 _chat_conv_image_provider(Image *i, Evas_Object *obj, Evas_Object *tt)
 {
    Evas_Object *ret, *win = elm_object_top_widget_get(obj);
+   int w, h, cw, ch;
    DBG("(i=%p,win=%p)", i, win);
    if ((!i) || (!i->buf)) goto error;
 
@@ -16,10 +20,28 @@ _chat_conv_image_provider(Image *i, Evas_Object *obj, Evas_Object *tt)
         evas_object_del(ret);
         goto error;
      }
-   elm_icon_scale_set(ret, 0, 0);
+
+//#ifdef HAVE_ECORE_X
+   Ecore_X_Window xwin;
+   xwin = elm_win_xwindow_get(elm_object_top_widget_get(obj));
+   if (xwin)
+     {
+        xwin = ecore_x_window_root_get(xwin);
+        ecore_x_randr_screen_current_size_get(xwin, &cw, &ch, NULL, NULL);
+     }
+/*
+#else
+   evas_object_geometry_get(elm_object_top_widget_get(obj), NULL, NULL, &cw, &ch);
+*/
+//#endif
+   elm_icon_size_get(ret, &w, &h);
+   if (((float)w / (float)cw >= 0.8) || ((float)h / (float)ch >= 0.8))
+     elm_icon_scale_set(ret, ((float)cw * 0.8) / (float)w, ((float)ch * 0.8) / (float)h);
+   else
+     elm_icon_scale_set(ret, 0, 0);
    return ret;
 error:
-   ret = elm_label_add(obj); /* FIXME: loading image or something ? */
+   ret = elm_label_add(tt); /* FIXME: loading image or something ? */
    elm_object_text_set(ret, "Image could not be loaded!");
    return ret;
 }
