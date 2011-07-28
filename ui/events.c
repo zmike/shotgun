@@ -122,7 +122,7 @@ event_message_cb(void *data, int type __UNUSED__, void *event)
 
    jid = strdupa(msg->jid);
    p = strchr(jid, '/');
-   *p = 0;
+   if (p) *p = 0;
    c = eina_hash_find(cl->users, jid);
    if (!c) return EINA_TRUE;
 
