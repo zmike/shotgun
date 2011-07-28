@@ -1,7 +1,7 @@
 #include "ui.h"
 
 void
-chat_message_insert(Contact *c, const char *from, const char *msg)
+chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me)
 {
    size_t len;
    char timebuf[11];
@@ -12,9 +12,10 @@ chat_message_insert(Contact *c, const char *from, const char *msg)
             localtime((time_t[]){ time(NULL) }));
 
    s = elm_entry_utf8_to_markup(msg);
-   len += strlen(from) + strlen(s) + 20;
+   len += strlen(from) + strlen(s) + sizeof("<color=#%s>%s <b>%s:</b></color> %s<ps>") + 5;
    buf = alloca(len);
-   snprintf(buf, len, "%s <b>%s:</b> %s<br>", timebuf, from, s);
+   snprintf(buf, len, "<color=#%s>%s <b>%s:</b></color> %s<ps>", me ? "00FF01" : "0001FF", timebuf, from, s);
+   DBG("%s", buf);
    free(s);
 
    elm_entry_entry_append(e, buf);
@@ -45,7 +46,7 @@ _chat_window_send_cb(void *data, Evas_Object *obj, void *ev __UNUSED__)
    s = elm_entry_markup_to_utf8(elm_entry_entry_get(obj));
 
    shotgun_message_send(c->base->account, c->cur->jid, s, 0);
-   chat_message_insert(c, "me", s);
+   chat_message_insert(c, "me", s, EINA_TRUE);
    elm_entry_entry_set(obj, "");
 
    free(s);
@@ -101,7 +102,7 @@ _chat_conv_filter(Contact_List *cl, Evas_Object *obj __UNUSED__, char **str)
              if (((unsigned int)d != eina_strbuf_length_get(buf)) &&
                  (!memcmp(http + len - 3, "&gt", 3)))
                len -= 3;
-             else if (!strcmp(http + len - 4, "<br>"))
+             else if (!strcmp(http + len - 4, "<ps>"))
                len -= 4;
              if (http[len - 1] == '>')
                {
@@ -109,10 +110,10 @@ _chat_conv_filter(Contact_List *cl, Evas_Object *obj __UNUSED__, char **str)
                     if (http[len - 1] == '<') break;
                }
              if ((len <= 1) || (http[len - 1] != '<') ||
-                 strcmp(http + len, "</a><br>") || (d < 5) ||
+                 strcmp(http + len, "</a><ps>") || (d < 5) ||
                  memcmp(http - 5, "href=", 5))
                {
-                  snprintf(fmt, sizeof(fmt), "<a href=%%.%is>%%.%is</a><br>", len, len);
+                  snprintf(fmt, sizeof(fmt), "<a href=%%.%is>%%.%is</a><ps>", len, len);
                   eina_strbuf_append_printf(buf, fmt, http, http);
                }
              else
@@ -129,7 +130,7 @@ _chat_conv_filter(Contact_List *cl, Evas_Object *obj __UNUSED__, char **str)
         if (((unsigned int)d != eina_strbuf_length_get(buf)) &&
             (!memcmp(http + len - 3, "&gt", 3)))
                len -= 3;
-        else if (!strcmp(http + len - 4, "<br>"))
+        else if (!strcmp(http + len - 4, "<ps>"))
           len -= 4;
         if (http[len - 1] == '>')
           {
@@ -137,10 +138,10 @@ _chat_conv_filter(Contact_List *cl, Evas_Object *obj __UNUSED__, char **str)
                if (http[len - 1] == '<') break;
           }
         if ((len <= 1) || (http[len - 1] != '<') ||
-            strcmp(http + len, "</a><br>") || (d < 5) ||
+            strcmp(http + len, "</a><ps>") || (d < 5) ||
             memcmp(http - 5, "href=", 5))
           {
-             snprintf(fmt, sizeof(fmt), "<a href=%%.%is>%%.%is</a><br>", len, len);
+             snprintf(fmt, sizeof(fmt), "<a href=%%.%is>%%.%is</a><ps>", len, len);
              eina_strbuf_append_printf(buf, fmt, http, http);
           }
         else

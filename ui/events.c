@@ -132,7 +132,7 @@ event_message_cb(void *data, int type __UNUSED__, void *event)
    from = (c->info && c->info->full_name) ? c->info->full_name : c->base->name;
    if (!from) from = c->base->jid;
    if (msg->msg)
-     chat_message_insert(c, from, msg->msg);
+     chat_message_insert(c, from, msg->msg, EINA_FALSE);
    if (msg->status)
      chat_message_status(c, msg);
 

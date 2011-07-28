@@ -89,7 +89,7 @@ void contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev);
 
 void chat_window_new(Contact *c);
 void chat_message_status(Contact *c, Shotgun_Event_Message *msg);
-void chat_message_insert(Contact *c, const char *from, const char *msg);
+void chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me);
 
 
 void char_image_add(Contact_List *cl, const char *url);
