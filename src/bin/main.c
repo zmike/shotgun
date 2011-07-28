@@ -5,6 +5,7 @@ int ui_log_dom = -1;
 static Eina_Bool
 con(void *d __UNUSED__, int type __UNUSED__, Shotgun_Auth *auth)
 {
+   INF("Connected!");
    shotgun_iq_roster_get(auth);
    shotgun_presence_set(auth, SHOTGUN_USER_STATUS_CHAT, "testing SHOTGUN!", 1);
    shotgun_presence_send(auth);
