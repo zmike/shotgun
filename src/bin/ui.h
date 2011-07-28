@@ -57,6 +57,7 @@ struct Contact_List
    Ecore_Timer *status_timer;
 
    Eina_Bool mode : 1; /* 0 for list, 1 for grid */
+   Eina_Bool view : 1; /* 0 for regular, 1 for offlines */
    void *itc;
    Ecore_Data_Cb list_item_contact_get[2];
    Ecore_Data_Cb list_item_parent_get[2];

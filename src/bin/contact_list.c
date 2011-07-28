@@ -170,8 +170,27 @@ _contact_list_mode_toggle(Contact_List *cl, Evas_Object *obj __UNUSED__, void *e
      _contact_list_grid_add(cl);
    EINA_LIST_FOREACH(cl->users_list, l, c)
      {
-        if ((c->base->subscription > SHOTGUN_USER_SUBSCRIPTION_NONE) && c->status)
+        if (cl->view || ((c->base->subscription > SHOTGUN_USER_SUBSCRIPTION_NONE) && c->status))
           contact_list_user_add(cl, c);
+     }
+}
+
+static void
+_contact_list_show_toggle(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Menu_Item *ev)
+{
+   Eina_List *l;
+   Contact *c;
+
+   cl->view = !cl->view;
+   if (cl->view)
+     elm_menu_item_label_set(ev, "Hide Offline Contacts");
+   else
+     elm_menu_item_label_set(ev, "Show Offline Contacts");
+   EINA_LIST_FOREACH(cl->users_list, l, c)
+     {
+        if (cl->view && (!c->list_item)) contact_list_user_add(cl, c);
+        else if ((!cl->view) && (((!c->cur) || (!c->cur->status)) || (!c->base->subscription)))
+          contact_list_user_del(c, c->cur ?: NULL);
      }
 }
 
@@ -304,7 +323,7 @@ contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev)
 {
    Eina_List *l;
    Shotgun_Event_Presence *pres;
-   if (!c->plist)
+   if ((!c->plist) || (!ev))
      {
         shotgun_event_presence_free(c->cur);
         if (c->list_item)
@@ -344,6 +363,7 @@ contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev)
                }
           }
      }
+   if (!c->cur) return;
    c->status = c->cur->status;
    c->description = c->cur->description;
    c->list->list_item_update[c->list->mode](c->list_item);
@@ -386,6 +406,7 @@ contact_list_new(Shotgun_Auth *auth)
    evas_object_show(obj);
    menu = elm_toolbar_item_menu_get(it);
    elm_menu_item_add(menu, NULL, "refresh", "Toggle View Mode", (Evas_Smart_Cb)_contact_list_mode_toggle, cl);
+   elm_menu_item_add(menu, NULL, "chat", "Show Offline Contacts", (Evas_Smart_Cb)_contact_list_show_toggle, cl);
    elm_menu_item_add(menu, NULL, "close", "Quit", (Evas_Smart_Cb)_contact_list_close, cl);
 
    it = elm_toolbar_item_append(obj, NULL, "Status", NULL, NULL);
