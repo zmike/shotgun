@@ -60,8 +60,23 @@ xmlnode_to_buf(xml_node node,
    xml_memory_writer writer(buffer, counter.result);
    node.print(writer);
    buffer[writer.written_size() - 1] = 0;
-   if (leave_open) buffer[writer.written_size() - 3] = ' ';
-   *len = writer.written_size();
+   if (leave_open)
+     {
+        if (buffer[writer.written_size() - 4] == ' ')
+          {
+             buffer[writer.written_size() - 4] = '>';
+             buffer[writer.written_size() - 3] = 0;
+             *len = writer.written_size() - 2;
+          }
+        else
+          {
+             buffer[writer.written_size() - 3] = '>';
+             buffer[writer.written_size() - 2] = 0;
+             *len = writer.written_size() - 1;
+          }
+     }
+   else
+     *len = writer.written_size();
 
    return buffer;
 }
