@@ -113,18 +113,27 @@ shotgun_login(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
       case SHOTGUN_STATE_BIND:
         if (!xml_stream_init_read(auth, data, size))
           break;
+        if (auth->features.bind)
+          {
+             out = xml_iq_write_preset(auth, SHOTGUN_IQ_PRESET_BIND, &len);
+             EINA_SAFETY_ON_NULL_GOTO(out, error);
 
-        out = xml_iq_write_preset(auth, SHOTGUN_IQ_PRESET_BIND, &len);
-        EINA_SAFETY_ON_NULL_GOTO(out, error);
-
-        shotgun_write(ev->server, out, strlen(out));
-        free(out);
-        auth->state++;
+             shotgun_write(ev->server, out, strlen(out));
+             free(out);
+             auth->state++;
+             break;
+          }
+        INF("Login complete!");
+        auth->state = SHOTGUN_STATE_CONNECTED;
+        ecore_event_add(SHOTGUN_EVENT_CONNECT, auth, shotgun_fake_free, NULL);
         break;
       case SHOTGUN_STATE_CONNECTING:
         xml_iq_read(auth, data, size);
-        EINA_SAFETY_ON_NULL_GOTO(auth->bind, error);
-        INF("Bind: %s", auth->bind);
+        if (auth->features.bind)
+          {
+             EINA_SAFETY_ON_NULL_GOTO(auth->bind, error);
+             INF("Bind: %s", auth->bind);
+          }
         INF("Login complete!");
         auth->state++;
         ecore_event_add(SHOTGUN_EVENT_CONNECT, auth, shotgun_fake_free, NULL);

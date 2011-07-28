@@ -186,6 +186,7 @@ S: <stream:stream
      return xml_stream_init_read_mechanisms(auth, stream, node);
 
    node = stream.child("bind");
+   if (!node.empty()) auth->features.bind = EINA_TRUE;
    /* something something */
    return EINA_TRUE;
 }

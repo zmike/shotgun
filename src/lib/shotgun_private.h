@@ -88,6 +88,7 @@ struct Shotgun_Auth
    {  /* this serves no real purpose */
       Eina_Bool starttls : 1;
       Eina_Bool sasl : 1;
+      Eina_Bool bind : 1;
    } features;
    Shotgun_State state;
 };
