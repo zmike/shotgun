@@ -234,6 +234,7 @@ chat_window_new(Contact *c)
 
    entry = elm_entry_add(win);
    elm_entry_single_line_set(entry, 1);
+   elm_entry_scrollable_set(entry, 1);
    elm_entry_line_wrap_set(entry, ELM_WRAP_MIXED);
    WEIGHT(entry, EVAS_HINT_EXPAND, 0);
    ALIGN(entry, EVAS_HINT_FILL, 0);
