@@ -15,7 +15,6 @@ chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me)
    len += strlen(from) + strlen(s) + sizeof("<color=#%s>%s <b>%s:</b></color> %s<ps>") + 5;
    buf = alloca(len);
    snprintf(buf, len, "<color=#%s>%s <b>%s:</b></color> %s<ps>", me ? "00FF01" : "0001FF", timebuf, from, s);
-   DBG("%s", buf);
    free(s);
 
    elm_entry_entry_append(e, buf);

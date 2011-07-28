@@ -46,7 +46,6 @@ main(int argc, char *argv[])
 
    ui_log_dom = eina_log_domain_register("shotgun_ui", EINA_COLOR_LIGHTRED);
    eina_log_domain_level_set("shotgun_ui", EINA_LOG_LEVEL_DBG);
-   eina_log_domain_level_set("shotgun", EINA_LOG_LEVEL_INFO);
    if (!ecore_con_ssl_available_get())
      {
         CRI("SSL support is required in ecore!");
