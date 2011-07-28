@@ -35,12 +35,19 @@ _chat_conv_image_provider(Image *i, Evas_Object *obj, Evas_Object *tt)
 */
 //#endif
    elm_icon_size_get(ret, &w, &h);
-   if (((float)w / (float)cw >= 0.8) || ((float)h / (float)ch >= 0.8))
-     elm_icon_scale_set(ret, ((float)cw * 0.8) / (float)w, ((float)ch * 0.8) / (float)h);
-   else
-     elm_icon_scale_set(ret, 0, 0);
+   elm_icon_scale_set(ret, 0, 0);
+   {
+      float sc = 0;
+      if ((float)w / (float)cw >= 0.6)
+        sc = ((float)cw * 0.6) / (float)w;
+      else if ((float)h / (float)ch >= 0.6)
+        sc = ((float)ch * 0.6) / (float)h;
+      if (sc) elm_object_scale_set(ret, sc);
+   }
    return ret;
 error:
+   ret = elm_bg_add(tt);
+   elm_bg_color_set(ret, 0, 0, 0);
    ret = elm_label_add(tt); /* FIXME: loading image or something ? */
    elm_object_text_set(ret, "Image could not be loaded!");
    return ret;
