@@ -174,6 +174,7 @@ chat_window_new(Contact *c)
    Evas_Object *parent_win, *win, *bg, *box, *convo, *entry;
    Evas_Object *topbox, *frame, *status, *close, *icon;
 
+   if (c->chat_window) return;
    parent_win = elm_object_top_widget_get(
       c->list->list_item_parent_get[c->list->mode](c->list_item));
 
@@ -215,9 +216,9 @@ chat_window_new(Contact *c)
 
    status = elm_entry_add(win);
    elm_entry_single_line_set(status, 1);
-   elm_entry_scrollable_set(status, 1);
    elm_entry_editable_set(status, 0);
    elm_object_focus_allow_set(status, 0);
+   elm_entry_line_wrap_set(status, ELM_WRAP_MIXED);
    WEIGHT(status, EVAS_HINT_EXPAND, 0);
    ALIGN(status, EVAS_HINT_FILL, 0);
    elm_entry_text_filter_append(status, (Elm_Entry_Filter_Cb)_chat_conv_filter, c->list);
@@ -250,7 +251,7 @@ chat_window_new(Contact *c)
 
    entry = elm_entry_add(win);
    elm_entry_single_line_set(entry, 1);
-   elm_entry_scrollable_set(entry, 1);
+   elm_entry_line_wrap_set(entry, ELM_WRAP_MIXED);
    WEIGHT(entry, EVAS_HINT_EXPAND, 0);
    ALIGN(entry, EVAS_HINT_FILL, 0);
    elm_box_pack_end(box, entry);
