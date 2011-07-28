@@ -60,50 +60,42 @@ shotgun_data_detect(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
         eina_strbuf_append_length(auth->buf, ev->data, ev->size);
         return EINA_FALSE;
      }
-   if (!auth->buf) return EINA_TRUE;
 
-   DBG("Appending %i to buffer", ev->size);
-   eina_strbuf_append_length(auth->buf, ev->data, ev->size);
-   len = eina_strbuf_length_get(auth->buf);
-   data = eina_strbuf_string_get(auth->buf);
-   tag = data + (len - 2);
-   while ((tag[0] != '<') && (tag[0] != ' ')) tag--;
-   tag++;
-   c = strchr(tag, ':');
-   if (!c) tag++;
-   switch (auth->state)
+   if (auth->buf)
      {
-      case SHOTGUN_STATE_NONE:
-      case SHOTGUN_STATE_FEATURES:
-      case SHOTGUN_STATE_BIND:
-        if ((!memcmp(data + 1, "stream:stream", sizeof("stream:stream") - 1)) &&
-            ((tag - data + sizeof("/stream:features>") - 1 <= len) &&
-             (!memcmp(tag, "/stream:features>", sizeof("/stream:features>") - 1))))
-               {
-                  DBG("stream:features detected!");
-                  return EINA_TRUE;
-               }
-        break;
-      case SHOTGUN_STATE_TLS:
-        if ((len == sizeof("<proceed xmlns='urn:ietf:params:xml:ns:xmpp-tls'/>") - 1) &&
-            (!memcmp(data + 1, "proceed", 7)))
-          return EINA_TRUE;
-        else if (data[len - 1] == '>') return EINA_TRUE;
-        break;
-      case SHOTGUN_STATE_SASL:
-        if ((len == sizeof("<success xmlns='urn:ietf:params:xml:ns:xmpp-sasl'/>") - 1) &&
-            (!memcmp(data + 1, "success", 7)))
-          return EINA_TRUE;
-        else if (data[len - 1] == '>') return EINA_TRUE;
-        break;
-      default:
-        if ((data + 1 != tag) && (!memcmp(data + 1, tag, c ? (size_t)(c - tag) : (size_t)(len - (tag - data) - 1)))) /* open/end tags maybe match? */
-          {
-             DBG("Releasing buffered event!");
-             return EINA_TRUE;
-          }
-        memcpy(buf, data, sizeof(buf) - 1);
-        DBG("%s and %s do not match!", buf, tag);
+        DBG("Appending %i to buffer", ev->size);
+        eina_strbuf_append_length(auth->buf, ev->data, ev->size);
+     }
+
+
+   data = auth->buf ? (char*)eina_strbuf_string_get(auth->buf) : (char*)ev->data;
+   len = auth->buf ? eina_strbuf_length_get(auth->buf) : (size_t)ev->size;
+
+   tag = data + 1, len--;;
+   while ((tag[0] != '>') && (tag[0] != ' '))
+     {
+        DBG("\ndata: '%s'\ntag: '%s'", data, tag);
+        tag++, len--;
+     }
+
+   if (!memcmp(data, "<stream:stream", sizeof("<stream:stream") - 1)) return EINA_TRUE;
+   if ((tag[len - 2] == '/') && (len >= 7) && memcmp(data, "<stream", 7)) return EINA_TRUE;
+   if ((data != tag + len - (tag - data) - 1) && (!memcmp(data + 1, tag + len - (tag - data), tag - data - 1)))
+     {
+        memcpy(buf, data + 1, sizeof(buf) - 1);
+        DBG("'%s' and '%s' match!", buf, tag + len - (tag - data));
+        DBG("Releasing buffered event!");
+        return EINA_TRUE;
+     }
+
+   memcpy(buf, data + 1, sizeof(buf) - 1);
+   DBG("'%s' and '%s' do not match!", buf, tag + len - (tag - data));
+   if (!auth->buf)
+     {
+        DBG("Creating event buffer");
+        auth->buf = eina_strbuf_new();
+        DBG("Appending %i to buffer", ev->size);
+        eina_strbuf_append_length(auth->buf, ev->data, ev->size);
      }
    return EINA_FALSE;
 }
