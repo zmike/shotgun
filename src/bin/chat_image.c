@@ -1,7 +1,7 @@
 #include "ui.h"
-//#ifdef HAVE_ECORE_X
+#ifdef HAVE_ECORE_X
 # include <Ecore_X.h>
-//#endif
+#endif
 
 
 static Evas_Object *
@@ -21,7 +21,7 @@ _chat_conv_image_provider(Image *i, Evas_Object *obj, Evas_Object *tt)
         goto error;
      }
 
-//#ifdef HAVE_ECORE_X
+#ifdef HAVE_ECORE_X
    Ecore_X_Window xwin;
    xwin = elm_win_xwindow_get(elm_object_top_widget_get(obj));
    if (xwin)
@@ -29,11 +29,9 @@ _chat_conv_image_provider(Image *i, Evas_Object *obj, Evas_Object *tt)
         xwin = ecore_x_window_root_get(xwin);
         ecore_x_randr_screen_current_size_get(xwin, &cw, &ch, NULL, NULL);
      }
-/*
 #else
    evas_object_geometry_get(elm_object_top_widget_get(obj), NULL, NULL, &cw, &ch);
-*/
-//#endif
+#endif
    elm_icon_size_get(ret, &w, &h);
    elm_icon_scale_set(ret, 0, 0);
    {
