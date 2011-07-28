@@ -171,7 +171,7 @@ void
 chat_window_new(Contact *c)
 {
    Evas_Object *parent_win, *win, *bg, *box, *convo, *entry;
-   Evas_Object *topbox, *frame, *status, *close, *icon;
+   Evas_Object *frame, *status;
 
    if (c->chat_window) return;
    parent_win = elm_object_top_widget_get(
@@ -206,33 +206,17 @@ chat_window_new(Contact *c)
    elm_box_pack_end(box, frame);
    evas_object_show(frame);
 
-   topbox = elm_box_add(win);
-   elm_box_horizontal_set(topbox, 1);
-   elm_object_focus_allow_set(topbox, 0);
-   WEIGHT(topbox, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-   elm_frame_content_set(frame, topbox);
-   evas_object_show(topbox);
-
    status = elm_entry_add(win);
    elm_entry_single_line_set(status, 1);
    elm_entry_editable_set(status, 0);
    elm_object_focus_allow_set(status, 0);
    elm_entry_line_wrap_set(status, ELM_WRAP_MIXED);
    WEIGHT(status, EVAS_HINT_EXPAND, 0);
-   ALIGN(status, EVAS_HINT_FILL, 0);
    elm_entry_text_filter_append(status, (Elm_Entry_Filter_Cb)_chat_conv_filter, c->list);
    evas_object_smart_callback_add(status, "anchor,in", (Evas_Smart_Cb)chat_conv_image_show, status);
    evas_object_smart_callback_add(status, "anchor,out", (Evas_Smart_Cb)chat_conv_image_hide, status);
-   elm_box_pack_end(topbox, status);
+   elm_frame_content_set(frame, status);
    evas_object_show(status);
-
-   close = elm_button_add(win);
-   elm_object_focus_allow_set(close, 0);
-   elm_box_pack_end(topbox, close);
-   evas_object_show(close);
-   icon = elm_icon_add(win);
-   elm_icon_standard_set(icon, "close");
-   elm_button_icon_set(close, icon);
 
    convo = elm_entry_add(win);
    elm_entry_editable_set(convo, 0);
@@ -258,7 +242,6 @@ chat_window_new(Contact *c)
    elm_object_focus(entry);
 
    evas_object_smart_callback_add(entry, "activated", _chat_window_send_cb, c);
-   evas_object_smart_callback_add(close, "clicked", (Evas_Smart_Cb)_chat_window_close_cb, win);
 
    eina_hash_add(c->list->user_convs, c->base->jid, win);
    evas_object_data_set(win, "contact", c);
