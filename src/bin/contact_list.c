@@ -3,6 +3,7 @@
 static void
 _contact_list_free_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, void *ev __UNUSED__)
 {
+   Contact *c;
    ecore_event_handler_del(cl->event_handlers.iq);
    ecore_event_handler_del(cl->event_handlers.presence);
    ecore_event_handler_del(cl->event_handlers.message);
@@ -10,7 +11,8 @@ _contact_list_free_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj __U
    eina_hash_free(cl->users);
    eina_hash_free(cl->images);
    eina_hash_free(cl->user_convs);
-   cl->users_list = eina_list_free(cl->users_list);
+   EINA_LIST_FREE(cl->users_list, c)
+     contact_free(c);
 
    free(cl);
 }
@@ -38,25 +40,15 @@ _contact_list_click_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, void *ev)
 static char *
 _it_label_get_grid(Contact *c, Evas_Object *obj __UNUSED__, const char *part __UNUSED__)
 {
-   if (c->base->name)
-     return strdup(c->base->name);
-   if (c->info && c->info->full_name)
-     return strdup(c->info->full_name);
-   return strdup(c->base->jid);
+   return strdup(contact_name_get(c));
 }
 
 static char *
 _it_label_get_list(Contact *c, Evas_Object *obj __UNUSED__, const char *part)
 {
    if (!strcmp(part, "elm.text"))
-     {
-        if (c->base->name)
-          return strdup(c->base->name);
-        if (c->info && c->info->full_name)
-          return strdup(c->info->full_name);
-        return strdup(c->base->jid);
-     }
-   else if (!strcmp(part, "elm.text.sub"))
+     return strdup(contact_name_get(c));
+   if (!strcmp(part, "elm.text.sub"))
      {
         char *buf;
         const char *status;
@@ -366,13 +358,13 @@ contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev)
                }
           }
      }
+   contact_jids_menu_del(c, ev->jid);
    if (!c->cur) return;
    EINA_LIST_FOREACH_SAFE(c->plist, l, ll, pres)
      {
         if (pres->jid) continue;
         c->plist = eina_list_remove_list(c->plist, l);
         shotgun_event_presence_free(pres);
-
      }
    c->status = c->cur->status;
    c->description = c->cur->description;
@@ -510,7 +502,8 @@ contact_list_new(Shotgun_Auth *auth)
    evas_object_event_callback_add(win, EVAS_CALLBACK_FREE,
                                   (Evas_Object_Event_Cb)_contact_list_free_cb, cl);
 
-   cl->users = eina_hash_string_superfast_new((Eina_Free_Cb)contact_free);
+   cl->users = eina_hash_string_superfast_new(NULL);
+//   cl->users = eina_hash_string_superfast_new((Eina_Free_Cb)contact_free);
    cl->user_convs = eina_hash_string_superfast_new((Eina_Free_Cb)evas_object_del);
    cl->images = eina_hash_string_superfast_new((Eina_Free_Cb)chat_image_free);
 

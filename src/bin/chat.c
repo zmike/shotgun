@@ -261,7 +261,7 @@ chat_window_new(Contact *c)
 
    win = elm_win_add(NULL, "chat-window", ELM_WIN_BASIC);
    elm_object_focus_allow_set(win, 0);
-   elm_win_title_set(win, c->base->jid);
+   elm_win_title_set(win, contact_name_get(c));
    evas_object_smart_callback_add(win, "delete,request", (Evas_Smart_Cb)_chat_window_close_cb, win);
    evas_object_event_callback_add(win, EVAS_CALLBACK_KEY_DOWN, (Evas_Object_Event_Cb)_chat_window_key, win);
    1 | evas_object_key_grab(win, "Escape", 0, 0, 1); /* worst warn_unused ever. */
@@ -322,7 +322,7 @@ chat_window_new(Contact *c)
 
    frame = elm_frame_add(win);
    elm_object_focus_allow_set(frame, 0);
-   elm_object_text_set(frame, c->base->name ? : c->base->jid);
+   elm_object_text_set(frame, contact_name_get(c));
    WEIGHT(frame, EVAS_HINT_EXPAND, 0);
    ALIGN(frame, EVAS_HINT_FILL, 0);
    elm_box_pack_end(box, frame);
