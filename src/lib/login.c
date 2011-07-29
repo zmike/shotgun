@@ -44,6 +44,7 @@ shotgun_login_con(Shotgun_Auth *auth, int type, Ecore_Con_Event_Server_Add *ev)
      {
         INF("STARTTLS succeeded!");
         auth->state++;
+        ecore_event_add(SHOTGUN_EVENT_CONNECTION_STATE, auth, shotgun_fake_free, NULL);
      }
    auth->svr = ev->server;
    shotgun_stream_init(auth);
@@ -62,28 +63,28 @@ shotgun_login(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
 
    switch (auth->state)
      {
-      case SHOTGUN_STATE_NONE:
+      case SHOTGUN_CONNECTION_STATE_NONE:
         if (!xml_stream_init_read(auth, data, size)) break;
 
         if (auth->features.starttls)
           {
-             auth->state = SHOTGUN_STATE_TLS;
+             auth->state = SHOTGUN_CONNECTION_STATE_TLS;
              shotgun_write(ev->server, XML_STARTTLS, sizeof(XML_STARTTLS) - 1);
           }
         else /* who cares */
-          ecore_main_loop_quit();
+          shotgun_disconnect(auth);
         break;
-      case SHOTGUN_STATE_TLS:
+      case SHOTGUN_CONNECTION_STATE_TLS:
         if (xml_starttls_read(data, size))
           ecore_con_ssl_server_upgrade(ev->server, ECORE_CON_USE_MIXED);
         else
-          ecore_main_loop_quit();
+          shotgun_disconnect(auth);
         return;
 
-      case SHOTGUN_STATE_FEATURES:
+      case SHOTGUN_CONNECTION_STATE_FEATURES:
         if (!xml_stream_init_read(auth, data, size)) break;
         out = sasl_init(auth, &len);
-        if (!out) ecore_main_loop_quit();
+        if (!out) shotgun_disconnect(auth);
         else
           {
              char *send;
@@ -97,20 +98,22 @@ shotgun_login(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
              free(out);
              free(send);
              auth->state++;
+             ecore_event_add(SHOTGUN_EVENT_CONNECTION_STATE, auth, shotgun_fake_free, NULL);
           }
         break;
-      case SHOTGUN_STATE_SASL:
+      case SHOTGUN_CONNECTION_STATE_SASL:
         if (!xml_sasl_read(data, size))
           {
              ERR("Login failed!");
-             ecore_main_loop_quit();
+             shotgun_disconnect(auth);
              break;
           }
         /* yes, another stream. */
         shotgun_stream_init(auth);
         auth->state++;
+        ecore_event_add(SHOTGUN_EVENT_CONNECTION_STATE, auth, shotgun_fake_free, NULL);
         break;
-      case SHOTGUN_STATE_BIND:
+      case SHOTGUN_CONNECTION_STATE_BIND:
         if (!xml_stream_init_read(auth, data, size))
           break;
         if (auth->features.bind)
@@ -121,13 +124,14 @@ shotgun_login(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
              shotgun_write(ev->server, out, strlen(out));
              free(out);
              auth->state++;
+             ecore_event_add(SHOTGUN_EVENT_CONNECTION_STATE, auth, shotgun_fake_free, NULL);
              break;
           }
         INF("Login complete!");
-        auth->state = SHOTGUN_STATE_CONNECTED;
+        auth->state = SHOTGUN_CONNECTION_STATE_CONNECTED;
         ecore_event_add(SHOTGUN_EVENT_CONNECT, auth, shotgun_fake_free, NULL);
         break;
-      case SHOTGUN_STATE_CONNECTING:
+      case SHOTGUN_CONNECTION_STATE_CONNECTING:
         xml_iq_read(auth, data, size);
         if (auth->features.bind)
           {
@@ -145,5 +149,5 @@ shotgun_login(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
    return;
 error:
    ERR("wtf");
-   ecore_main_loop_quit();
+   shotgun_disconnect(auth);
 }

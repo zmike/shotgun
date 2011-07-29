@@ -42,17 +42,6 @@ void *alloca (size_t);
 
 typedef enum
 {
-   SHOTGUN_STATE_NONE,
-   SHOTGUN_STATE_TLS,
-   SHOTGUN_STATE_FEATURES,
-   SHOTGUN_STATE_SASL,
-   SHOTGUN_STATE_BIND,
-   SHOTGUN_STATE_CONNECTING,
-   SHOTGUN_STATE_CONNECTED
-} Shotgun_State;
-
-typedef enum
-{
    SHOTGUN_DATA_TYPE_UNKNOWN,
    SHOTGUN_DATA_TYPE_MSG,
    SHOTGUN_DATA_TYPE_IQ,
@@ -101,7 +90,7 @@ struct Shotgun_Auth
       Eina_Bool sasl : 1;
       Eina_Bool bind : 1;
    } features;
-   Shotgun_State state;
+   Shotgun_Connection_State state;
 };
 
 extern int shotgun_log_dom;

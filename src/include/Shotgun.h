@@ -42,6 +42,7 @@
 */
 
 extern int SHOTGUN_EVENT_CONNECT; /* Shotgun_Auth */
+extern int SHOTGUN_EVENT_CONNECTION_STATE;
 extern int SHOTGUN_EVENT_DISCONNECT; /* Shotgun_Auth */
 extern int SHOTGUN_EVENT_IQ; /* Shotgun_Event_Iq */
 extern int SHOTGUN_EVENT_MESSAGE; /* Shotgun_Event_Message */
@@ -83,6 +84,17 @@ typedef enum
    SHOTGUN_MESSAGE_STATUS_INACTIVE,
    SHOTGUN_MESSAGE_STATUS_GONE
 } Shotgun_Message_Status;
+
+typedef enum
+{
+   SHOTGUN_CONNECTION_STATE_NONE,
+   SHOTGUN_CONNECTION_STATE_TLS,
+   SHOTGUN_CONNECTION_STATE_FEATURES,
+   SHOTGUN_CONNECTION_STATE_SASL,
+   SHOTGUN_CONNECTION_STATE_BIND,
+   SHOTGUN_CONNECTION_STATE_CONNECTING,
+   SHOTGUN_CONNECTION_STATE_CONNECTED
+} Shotgun_Connection_State;
 
 typedef struct
 {
@@ -141,6 +153,7 @@ void shotgun_disconnect(Shotgun_Auth *auth);
 
 Shotgun_Auth *shotgun_new(const char *svr_name, const char *username, const char *domain);
 void shotgun_free(Shotgun_Auth *auth);
+Shotgun_Connection_State shotgun_connection_state_get(Shotgun_Auth *auth);
 /**
  * DOES NOT ALLOCATE FOR PASSWORD.
  */

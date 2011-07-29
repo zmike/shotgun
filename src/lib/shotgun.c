@@ -9,6 +9,7 @@
 int shotgun_log_dom = -1;
 
 int SHOTGUN_EVENT_CONNECT = 0;
+int SHOTGUN_EVENT_CONNECTION_STATE = 0;
 int SHOTGUN_EVENT_DISCONNECT = 0;
 int SHOTGUN_EVENT_MESSAGE = 0;
 int SHOTGUN_EVENT_PRESENCE = 0;
@@ -138,7 +139,7 @@ data(Shotgun_Auth *auth, int type __UNUSED__, Ecore_Con_Event_Server_Data *ev)
    if (!shotgun_data_detect(auth, ev))
      return ECORE_CALLBACK_RENEW;
 
-   if (auth->state < SHOTGUN_STATE_CONNECTED)
+   if (auth->state < SHOTGUN_CONNECTION_STATE_CONNECTED)
      {
         shotgun_login(auth, ev);
         return ECORE_CALLBACK_RENEW;
@@ -169,10 +170,10 @@ data(Shotgun_Auth *auth, int type __UNUSED__, Ecore_Con_Event_Server_Data *ev)
 }
 
 static Eina_Bool
-error(void *d __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Server_Error *ev)
+error(Shotgun_Auth *auth, int type __UNUSED__, Ecore_Con_Event_Server_Error *ev)
 {
    ERR("%s", ev->error);
-   ecore_main_loop_quit();
+   shotgun_disconnect(auth);
    return ECORE_CALLBACK_RENEW;
 }
 
@@ -187,6 +188,7 @@ shotgun_init(void)
    shotgun_log_dom = eina_log_domain_register("shotgun", EINA_COLOR_RED);
 
    SHOTGUN_EVENT_CONNECT = ecore_event_type_new();
+   SHOTGUN_EVENT_CONNECTION_STATE = ecore_event_type_new();
    SHOTGUN_EVENT_DISCONNECT = ecore_event_type_new();
    SHOTGUN_EVENT_MESSAGE = ecore_event_type_new();
    SHOTGUN_EVENT_PRESENCE = ecore_event_type_new();
@@ -257,6 +259,13 @@ shotgun_new(const char *svr_name, const char *username, const char *domain)
    auth->jid = eina_stringshare_printf("%s@%s/%s", auth->user, auth->from, auth->resource);
    auth->svr_name = eina_stringshare_add(svr_name);
    return auth;
+}
+
+Shotgun_Connection_State
+shotgun_connection_state_get(Shotgun_Auth *auth)
+{
+   EINA_SAFETY_ON_NULL_RETURN_VAL(auth, 0);
+   return auth->state;
 }
 
 void
