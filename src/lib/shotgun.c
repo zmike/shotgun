@@ -268,6 +268,52 @@ shotgun_connection_state_get(Shotgun_Auth *auth)
    return auth->state;
 }
 
+const char *
+shotgun_username_get(Shotgun_Auth *auth)
+{
+   EINA_SAFETY_ON_NULL_RETURN_VAL(auth, NULL);
+
+   return auth->user;
+}
+
+const char *
+shotgun_password_get(Shotgun_Auth *auth)
+{
+   EINA_SAFETY_ON_NULL_RETURN_VAL(auth, NULL);
+
+   return auth->pass;
+}
+
+const char *
+shotgun_domain_get(Shotgun_Auth *auth)
+{
+   EINA_SAFETY_ON_NULL_RETURN_VAL(auth, NULL);
+
+   return auth->from;
+}
+
+const char *
+shotgun_servername_get(Shotgun_Auth *auth)
+{
+   EINA_SAFETY_ON_NULL_RETURN_VAL(auth, NULL);
+
+   return auth->svr_name;
+}
+
+void
+shotgun_data_set(Shotgun_Auth *auth, void *data)
+{
+   EINA_SAFETY_ON_NULL_RETURN(auth);
+   auth->data = data;
+}
+
+void *
+shotgun_data_get(Shotgun_Auth *auth)
+{
+   EINA_SAFETY_ON_NULL_RETURN_VAL(auth, NULL);
+   return auth->data;
+}
+
 void
 shotgun_password_set(Shotgun_Auth *auth, const char *password)
 {

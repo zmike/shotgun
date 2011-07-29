@@ -154,6 +154,13 @@ void shotgun_disconnect(Shotgun_Auth *auth);
 Shotgun_Auth *shotgun_new(const char *svr_name, const char *username, const char *domain);
 void shotgun_free(Shotgun_Auth *auth);
 Shotgun_Connection_State shotgun_connection_state_get(Shotgun_Auth *auth);
+const char *shotgun_username_get(Shotgun_Auth *auth);
+const char *shotgun_password_get(Shotgun_Auth *auth);
+const char *shotgun_domain_get(Shotgun_Auth *auth);
+const char *shotgun_servername_get(Shotgun_Auth *auth);
+void shotgun_data_set(Shotgun_Auth *auth, void *data);
+void *shotgun_data_get(Shotgun_Auth *auth);
+
 /**
  * DOES NOT ALLOCATE FOR PASSWORD.
  */

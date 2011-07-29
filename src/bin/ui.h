@@ -150,4 +150,6 @@ Eina_Bool event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *e
 Eina_Bool event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence *ev);
 Eina_Bool event_message_cb(void *data, int type __UNUSED__, void *event);
 
+const char *util_configdir_get(void);
+
 #endif /* __UI_H */

@@ -25,6 +25,7 @@ contact_list.c \
 dbus.c \
 events.c \
 getpass_x.c \
-main.c
+main.c \
+util.c
 
 MAINTAINERCLEANFILES = Makefile.in

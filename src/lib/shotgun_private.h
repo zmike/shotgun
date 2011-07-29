@@ -91,6 +91,7 @@ struct Shotgun_Auth
       Eina_Bool bind : 1;
    } features;
    Shotgun_Connection_State state;
+   void *data;
 };
 
 extern int shotgun_log_dom;
