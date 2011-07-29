@@ -216,7 +216,7 @@ _contact_list_status_menu(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Men
    Evas_Object *radio;
    Shotgun_User_Status val;
 
-   radio = (Evas_Object*)elm_menu_item_object_icon_get(it);
+   radio = (Evas_Object*)elm_menu_item_object_content_get(it);
    val = elm_radio_state_value_get(radio);
    if ((Shotgun_User_Status)elm_radio_value_get(radio) == val) return;
    elm_radio_value_set(radio, val);
@@ -321,7 +321,7 @@ contact_list_user_add(Contact_List *cl, Contact *c)
 void
 contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev)
 {
-   Eina_List *l;
+   Eina_List *l, *ll;
    Shotgun_Event_Presence *pres;
    if ((!c->plist) || (!ev))
      {
@@ -333,6 +333,7 @@ contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev)
           }
         c->list_item = NULL;
         c->cur = NULL;
+        c->force_resource = NULL;
         return;
      }
    if (ev->jid == c->cur->jid)
@@ -349,14 +350,16 @@ contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev)
              if (pres->priority < c->cur->priority) continue;
              c->cur = pres;
           }
+        if (ev->jid == c->force_resource) c->force_resource = NULL;
         c->plist = eina_list_remove(c->plist, c->cur);
      }
    else
      {
-        EINA_LIST_FOREACH(c->plist, l, pres)
+        EINA_LIST_FOREACH_SAFE(c->plist, l, ll, pres)
           {
              if (ev->jid == pres->jid)
                {
+                  if (ev->jid == c->force_resource) c->force_resource = NULL;
                   shotgun_event_presence_free(pres);
                   c->plist = eina_list_remove_list(c->plist, l);
                   break;
@@ -364,6 +367,13 @@ contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev)
           }
      }
    if (!c->cur) return;
+   EINA_LIST_FOREACH_SAFE(c->plist, l, ll, pres)
+     {
+        if (pres->jid) continue;
+        c->plist = eina_list_remove_list(c->plist, l);
+        shotgun_event_presence_free(pres);
+
+     }
    c->status = c->cur->status;
    c->description = c->cur->description;
    c->list->list_item_update[c->list->mode](c->list_item);

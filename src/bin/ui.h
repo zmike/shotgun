@@ -99,15 +99,18 @@ struct Contact
    Shotgun_User_Status status;
    int priority;
    char *description;
+   const char *force_resource;
    const char *last_conv;
    const char *tooltip_label;
    void *list_item;
    Evas_Object *chat_window;
    Evas_Object *chat_buffer;
    Evas_Object *chat_input;
+   Evas_Object *chat_jid_menu;
    Evas_Object *status_line;
    Contact_List *list;
    Eina_Bool tooltip_changed : 1;
+   Eina_Bool ignore_resource : 1;
 };
 
 typedef struct

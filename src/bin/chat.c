@@ -50,12 +50,22 @@ _chat_window_send_cb(void *data, Evas_Object *obj, void *ev __UNUSED__)
 {
    Contact *c = data;
    char *s;
+   const char *jid;
 
    s = elm_entry_markup_to_utf8(elm_entry_entry_get(obj));
 
-   shotgun_message_send(c->base->account, c->cur ? c->cur->jid : c->base->jid, s, 0);
+   if (c->ignore_resource)
+     jid = c->base->jid;
+   else if (c->force_resource)
+     jid = c->force_resource;
+   else if (c->cur)
+     jid = c->cur->jid;
+   else
+     jid = c->base->jid;
+   shotgun_message_send(c->base->account, jid, s, 0);
    chat_message_insert(c, "me", s, EINA_TRUE);
    elm_entry_entry_set(obj, "");
+   elm_entry_cursor_end_set(obj);
 
    free(s);
 }
@@ -169,6 +179,66 @@ _chat_conv_filter(Contact_List *cl, Evas_Object *obj __UNUSED__, char **str)
 }
 
 static void
+_chat_resource_ignore_toggle(Contact *c, Evas_Object *obj __UNUSED__, Elm_Menu_Item *ev)
+{
+   Elm_Menu_Item *next = elm_menu_item_next_get(ev);
+   c->ignore_resource = !c->ignore_resource;
+   if (c->ignore_resource)
+     {
+        const Eina_List *l;
+        Evas_Object *radio;
+        elm_menu_item_label_set(ev, "Unignore Resource");
+        l = elm_menu_item_subitems_get(next);
+        radio = elm_menu_item_object_content_get(l->data);
+        c->force_resource = NULL;
+        elm_radio_state_value_set(radio, 0);
+     }
+   else
+     elm_menu_item_label_set(ev, "Ignore Resource");
+   elm_menu_item_disabled_set(next, c->ignore_resource);
+}
+
+static void
+_chat_resource_force(Contact *c, Evas_Object *obj __UNUSED__, Elm_Menu_Item *ev)
+{
+   Eina_List *l;
+   Shotgun_Event_Presence *pres;
+   const char *res, *s;
+   Evas_Object *radio;
+   int val;
+
+
+   radio = (Evas_Object*)elm_menu_item_object_content_get(ev);
+   val = elm_radio_state_value_get(radio);
+   if (!val)
+     {
+        /* selected use priority */
+        c->force_resource = NULL;
+        elm_radio_state_value_set(radio, 0);
+        return;
+     }
+   res = elm_object_text_get(radio);
+   if (c->force_resource)
+     {
+        s = strchr(c->force_resource, '/');
+        if (s) s++;
+        else s = c->base->jid;
+        /* selected previously set resource */
+        if (!memcmp(res, s, strlen(s))) return;
+     }
+   EINA_LIST_FOREACH(c->plist, l, pres)
+     {
+        s = strchr(pres->jid, '/');
+        if (*s) s++;
+        else s = c->base->jid;
+        if (!memcmp(res, s, strlen(s))) continue;
+        c->force_resource = pres->jid;
+        break;
+     }
+   elm_radio_state_value_set(radio, elm_menu_item_index_get(ev));
+}
+
+static void
 _chat_window_key(Evas_Object *win, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, Evas_Event_Key_Down *ev)
 {
    DBG("%s", ev->keyname);
@@ -179,8 +249,11 @@ _chat_window_key(Evas_Object *win, Evas *e __UNUSED__, Evas_Object *obj __UNUSED
 void
 chat_window_new(Contact *c)
 {
-   Evas_Object *parent_win, *win, *bg, *box, *convo, *entry;
-   Evas_Object *frame, *status;
+   Evas_Object *parent_win, *win, *bg, *box, *convo, *entry, *radio, *obj;
+   Evas_Object *frame, *status, *menu;
+   void *it;
+   Eina_List *l;
+   Shotgun_Event_Presence *pres;
 
    if (c->chat_window) return;
    parent_win = elm_object_top_widget_get(
@@ -206,6 +279,46 @@ chat_window_new(Contact *c)
    WEIGHT(box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    elm_win_resize_object_add(win, box);
    evas_object_show(box);
+
+   obj = elm_toolbar_add(win);
+   elm_toolbar_mode_shrink_set(obj, ELM_TOOLBAR_SHRINK_MENU);
+   ALIGN(obj, EVAS_HINT_FILL, 0.5);
+   elm_toolbar_align_set(obj, 0);
+   it = elm_toolbar_item_append(obj, NULL, "Options", NULL, NULL);
+   elm_toolbar_item_menu_set(it, 1);
+   elm_toolbar_menu_parent_set(obj, win);
+   elm_box_pack_end(box, obj);
+   evas_object_show(obj);
+   c->chat_jid_menu = menu = elm_toolbar_item_menu_get(it);
+   elm_menu_item_add(menu, NULL, NULL, "Ignore Resource", (Evas_Smart_Cb)_chat_resource_ignore_toggle, c);
+   it = elm_menu_item_add(menu, NULL, "menu/arrow_right", "Send to", NULL, NULL);
+
+   radio = elm_radio_add(win);
+   elm_radio_state_value_set(radio, 0);
+   elm_object_text_set(radio, "Use Priority");
+   evas_object_show(radio);
+   elm_menu_item_add_object(menu, it, radio, (Evas_Smart_Cb)_chat_resource_force, c);
+
+   EINA_LIST_FOREACH(c->plist, l, pres)
+     {
+        const char *s;
+        char *buf;
+        size_t len;
+        int i = 1;
+
+        s = strchr(pres->jid, '/');
+        if (s) s++;
+        len = strlen(s);
+        buf = alloca(len + 20);
+        snprintf(buf, len, "%s (%i)", s ?: c->base->jid, pres->priority);
+        obj = elm_radio_add(win);
+        elm_radio_group_add(obj, radio);
+        elm_radio_state_value_set(obj, i++);
+        elm_object_text_set(obj, buf);
+        evas_object_show(obj);
+        elm_menu_item_add_object(menu, it, obj, (Evas_Smart_Cb)_chat_resource_force, c);
+     }
+   elm_radio_value_set(radio, 0);
 
    frame = elm_frame_add(win);
    elm_object_focus_allow_set(frame, 0);
@@ -265,5 +378,6 @@ chat_window_new(Contact *c)
      elm_entry_entry_append(status, c->description);
    if (c->last_conv)
      elm_entry_entry_set(convo, c->last_conv);
+   elm_entry_cursor_end_set(convo);
    elm_win_activate(win);
 }

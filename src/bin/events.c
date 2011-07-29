@@ -35,6 +35,12 @@ event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev)
    return EINA_TRUE;
 }
 
+static int
+_list_sort_cb(Shotgun_Event_Presence *a, Shotgun_Event_Presence *b)
+{
+   return a->priority - b->priority;
+}
+
 Eina_Bool
 event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence *ev)
 {
@@ -109,6 +115,7 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
         else
           cl->list_item_update[cl->mode](c->list_item);
      }
+   c->plist = eina_list_sort(c->plist, 0, (Eina_Compare_Cb)_list_sort_cb);
    return EINA_TRUE;
 }
 

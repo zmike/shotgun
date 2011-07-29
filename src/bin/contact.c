@@ -21,6 +21,33 @@ contact_free(Contact *c)
 }
 
 void
+contact_jids_menu_del(Contact *c, const char *jid)
+{
+   const Eina_List *l, *ll;
+   Elm_Menu_Item *it;
+   Evas_Object *radio;
+   const char *s, *rs;
+
+   l = elm_menu_item_subitems_get(elm_menu_last_item_get(c->chat_jid_menu));
+   s = strchr(jid, '/');
+   if (s) s++;
+   else s = jid;
+   EINA_LIST_REVERSE_FOREACH(l, ll, it)
+     {
+        radio = elm_menu_item_object_content_get(it);
+        rs = elm_object_text_get(radio);
+        if (strcmp(rs, s)) continue;
+        if (elm_radio_state_value_get(radio) == elm_radio_value_get(radio))
+          {
+             elm_radio_value_set(radio, 0);
+             c->force_resource = NULL;
+          }
+        elm_menu_item_del(it);
+        break;
+     }
+}
+
+void
 do_something_with_user(Contact_List *cl, Shotgun_User *user)
 {
    Contact *c;

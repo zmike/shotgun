@@ -73,7 +73,7 @@ _dbus_contact_status_cb(E_DBus_Object *obj, DBusMessage *msg)
    if (s) name = strndupa(name, s - name);
    c = eina_hash_find(cl->users, name);
    if (!c) goto error;
-   
+
    dbus_message_iter_append_basic(&iter, 's', &c->description);
    dbus_message_iter_append_basic(&iter, 'u', (uintptr_t*)c->status);
    dbus_message_iter_append_basic(&iter, 'i', (intptr_t*)c->priority);
