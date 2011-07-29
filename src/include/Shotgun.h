@@ -3,6 +3,44 @@
 
 #include <Eina.h>
 
+#define SHOTGUN_DBUS_INTERFACE "org.shotgun"
+#define SHOTGUN_DBUS_PATH "/org/shotgun/remote"
+#define SHOTGUN_DBUS_METHOD_BASE "org.shotgun"
+/**
+ * DBUS API:
+ *
+ * @brief Disconnect Shotgun
+ * void org.shotgun.core.quit(void)
+ *
+ * @brief Retrieve the string array of online contact JIDs (username@server.com)
+ * @return An array of strings containing all online contacts from the user's contact list
+ * Array<String> org.shotgun.list.get(void)
+ *
+ * @brief Retrieve the string array of all contact JIDs (username@server.com)
+ * @return An array of strings containing all contacts from the user's contact list
+ * Array<String> org.shotgun.list.get(void)
+ *
+ * @brief Retrieve the full status of a contact's current presence (based on priority)
+ * @return The contact's status message (if set)
+ * @param JID The contact's JID
+ * @param st The contact's status on return
+ * @param priority The contact's priority on return
+ * String org.shotgun.contact.status(String JID, Shotgun_User_Status *st, int *priority)
+ *
+ * @brief Retrieve the contact's icon's eet key
+ * @return The key to use for retrieving the eet key of the icon belonging to contact represented
+ * by @p JID
+ * @param JID The contact's JID
+ * String org.shotgun.contact.icon(String JID)
+ *
+ * @brief Send a message and message status to a contact
+ * @return TRUE on successful send, else FALSE
+ * @param JID The contact's JID
+ * @param msg The message to send
+ * @param st The (optional) #Shotgun_Message_Status to set along with the message
+ * Bool org.shotgun.contact.send(String JID, String msg, Shotgun_Message_Status st)
+*/
+
 extern int SHOTGUN_EVENT_CONNECT; /* Shotgun_Auth */
 extern int SHOTGUN_EVENT_IQ; /* Shotgun_Event_Iq */
 extern int SHOTGUN_EVENT_MESSAGE; /* Shotgun_Event_Message */
