@@ -26,7 +26,7 @@ event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev)
            shotgun_user_info_free(c->info);
            c->info = info;
            ev->ev = NULL;
-           if (c->list_item && info->photo.data) cl->list_item_update[cl->mode](c->list_item);
+           if (c->list_item && (info->photo.data || info->full_name)) cl->list_item_update[cl->mode](c->list_item);
            break;
         }
       default:
@@ -90,6 +90,7 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
                   c->plist = eina_list_append(c->plist, pres);
                   return EINA_TRUE;
                }
+             c->plist = eina_list_remove(c->plist, pres);
              c->plist = eina_list_append(c->plist, c->cur);
           }
         c->cur = pres;
@@ -115,7 +116,7 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
         else
           cl->list_item_update[cl->mode](c->list_item);
      }
-   c->plist = eina_list_sort(c->plist, 0, (Eina_Compare_Cb)_list_sort_cb);
+   if (c->plist) c->plist = eina_list_sort(c->plist, 0, (Eina_Compare_Cb)_list_sort_cb);
    return EINA_TRUE;
 }
 
@@ -126,7 +127,6 @@ event_message_cb(void *data, int type __UNUSED__, void *event)
    Contact_List *cl = data;
    Contact *c;
    char *jid, *p;
-   const char *from;
 
    jid = strdupa(msg->jid);
    p = strchr(jid, '/');
@@ -137,10 +137,8 @@ event_message_cb(void *data, int type __UNUSED__, void *event)
    if (!c->chat_window)
      chat_window_new(c);
 
-   from = (c->info && c->info->full_name) ? c->info->full_name : c->base->name;
-   if (!from) from = c->base->jid;
    if (msg->msg)
-     chat_message_insert(c, from, msg->msg, EINA_FALSE);
+     chat_message_insert(c, contact_name_get(c), msg->msg, EINA_FALSE);
    if (msg->status)
      chat_message_status(c, msg);
 
