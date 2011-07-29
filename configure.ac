@@ -64,7 +64,6 @@ AC_FUNC_MEMCMP
 
 AC_FUNC_ALLOCA
 AC_C___ATTRIBUTE__
-AC_CHECK_FUNCS([strndupa])
 CC_PIC="$lt_prog_compiler_pic"
 CXX_PIC="$lt_prog_compiler_pic_CXX"
 AC_SUBST([CC_PIC])

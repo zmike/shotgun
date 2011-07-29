@@ -26,6 +26,14 @@ void *alloca (size_t);
 #include <Ecore_Con.h>
 #include "Shotgun.h"
 
+#ifndef strdupa
+# define strdupa(str)       strcpy(alloca(strlen(str) + 1), str)
+#endif
+
+#ifndef strndupa
+# define strndupa(str, len) strncpy(alloca(len + 1), str, len)
+#endif
+
 #define DBG(...)            EINA_LOG_DOM_DBG(shotgun_log_dom, __VA_ARGS__)
 #define INF(...)            EINA_LOG_DOM_INFO(shotgun_log_dom, __VA_ARGS__)
 #define WRN(...)            EINA_LOG_DOM_WARN(shotgun_log_dom, __VA_ARGS__)
