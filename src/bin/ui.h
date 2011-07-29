@@ -136,6 +136,8 @@ void chat_conv_image_hide(Evas_Object *convo __UNUSED__, Evas_Object *obj, Elm_E
 Eina_Bool chat_image_data(void *d __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Url_Data *ev);
 Eina_Bool chat_image_complete(void *d __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Url_Complete *ev);
 
+const char *contact_name_get(Contact *c);
+void contact_jids_menu_del(Contact *c, const char *jid);
 void contact_free(Contact *c);
 void do_something_with_user(Contact_List *cl, Shotgun_User *user);
 #ifdef HAVE_DBUS

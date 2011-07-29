@@ -1,10 +1,23 @@
 #include "ui.h"
 #include <sys/stat.h>
 
+const char *
+contact_name_get(Contact *c)
+{
+   if (!c) return NULL;
+   if (c->base->name)
+     return c->base->name;
+   if (c->info && c->info->full_name)
+     return c->info->full_name;
+   return c->base->jid;
+}
+
 void
 contact_free(Contact *c)
 {
    Shotgun_Event_Presence *pres;
+
+   if (!c) return;
    shotgun_event_presence_free(c->cur);
    EINA_LIST_FREE(c->plist, pres)
      shotgun_event_presence_free(pres);
@@ -14,7 +27,6 @@ contact_free(Contact *c)
      evas_object_del(c->chat_window);
    shotgun_user_free(c->base);
    shotgun_user_info_free(c->info);
-   c->list->users_list = eina_list_remove(c->list->users_list, c);
    eina_stringshare_del(c->last_conv);
    eina_stringshare_del(c->tooltip_label);
    free(c);
