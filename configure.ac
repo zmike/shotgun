@@ -118,6 +118,28 @@ if test "x$want_edbus" = "xyes" -a "x$have_edbus" = "xno"; then
     AC_MSG_ERROR([edbus support requested, but not found by pkg-config.])
 fi
 
+have_enotify="no"                                                                                                                                                                                                                         
+want_enotify="auto"
+AC_ARG_ENABLE([enotify],
+   [AC_HELP_STRING([--disable-enotify], [disable enotify support. @<:@default=detect@:>@])],
+   [want_enotify=$enableval], [])
+
+if test "x$want_enotify" != "xno"; then
+   PKG_CHECK_MODULES([enotify],
+      [enotify >= 1.0.0],
+      [
+       AC_DEFINE(HAVE_NOTIFY, 1, [DBUS Notification support])
+       have_enotify="yes"
+      ],
+      [have_enotify="no"]
+   )
+else
+    have_enotify="no"
+fi
+if test "x$want_enotify" = "xyes" -a "x$have_enotify" = "xno"; then
+    AC_MSG_ERROR([enotify support requested, but not found by pkg-config.])
+fi
+
 #EFL_CHECK_DOXYGEN([build_doc="yes"], [build_doc="no"])
 # write output
 AC_CONFIG_FILES([

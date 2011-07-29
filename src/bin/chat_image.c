@@ -1,7 +1,4 @@
 #include "ui.h"
-#ifdef HAVE_ECORE_X
-# include <Ecore_X.h>
-#endif
 
 
 static Evas_Object *

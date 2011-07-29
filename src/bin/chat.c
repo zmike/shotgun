@@ -17,6 +17,15 @@ chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me)
    snprintf(buf, len, "<color=#%s>%s <b>%s:</b></color> %s<ps>", me ? "00FF01" : "0001FF", timebuf, from, s);
    free(s);
 
+#ifdef HAVE_NOTIFY
+   if (!me)
+     {
+        Ecore_X_Window xwin = elm_win_xwindow_get(c->chat_window);
+
+        if (xwin != ecore_x_window_focus_get())
+          ui_dbus_notify(from, msg);
+     }
+#endif
    elm_entry_entry_append(e, buf);
    elm_entry_cursor_end_set(e);
 }

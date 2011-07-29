@@ -22,6 +22,9 @@ void *alloca (size_t);
 #include <Ecore.h>
 #include <Ecore_Con.h>
 #include <Elementary.h>
+#ifdef HAVE_ECORE_X
+# include <Ecore_X.h>
+#endif
 
 #ifndef __UNUSED__
 # define __UNUSED__ __attribute__((unused))
@@ -126,6 +129,9 @@ void contact_free(Contact *c);
 void do_something_with_user(Contact_List *cl, Shotgun_User *user);
 #ifdef HAVE_DBUS
 void ui_dbus_init(Contact_List *cl);
+# ifdef HAVE_NOTIFY
+void ui_dbus_notify(const char *from, const char *msg);
+# endif
 #endif
 Eina_Bool event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev);
 Eina_Bool event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence *ev);

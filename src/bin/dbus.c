@@ -2,6 +2,10 @@
 #ifdef HAVE_DBUS
 #include <E_DBus.h>
 
+#ifdef HAVE_NOTIFY
+#include <E_Notify.h>
+#endif
+
 static DBusMessage *
 _dbus_quit_cb(E_DBus_Object *obj, DBusMessage *msg)
 {
@@ -124,7 +128,9 @@ ui_dbus_init(Contact_List *cl)
    E_DBus_Interface *iface;
 
    e_dbus_init();
-
+#ifdef HAVE_NOTIFY
+   e_notification_init();
+#endif
    cl->dbus = e_dbus_bus_get(DBUS_BUS_SESSION);
    e_dbus_request_name(cl->dbus, "org.shotgun", 0, NULL, NULL);
    cl->dbus_object = e_dbus_object_add(cl->dbus, "/org/shotgun/remote", cl);
@@ -150,6 +156,18 @@ ui_dbus_init(Contact_List *cl)
    e_dbus_interface_method_add(iface, "send", "ssu", "b", _dbus_contact_send_cb);
 }
 
+#ifdef HAVE_NOTIFY
+void
+ui_dbus_notify(const char *from, const char *msg)
+{
+   E_Notification *n;
+
+   n = e_notification_full_new("SHOTGUN!", 0, NULL, from, msg, 3);
+   e_notification_send(n, NULL, NULL);
+   e_notification_unref(n);
+}
+#endif
+
 void
 ui_dbus_shutdown(Contact_List *cl)
 {
@@ -158,6 +176,9 @@ ui_dbus_shutdown(Contact_List *cl)
    if (cl->dbus) e_dbus_connection_close(cl->dbus);
    cl->dbus = NULL;
    cl->dbus_object = NULL;
+#ifdef HAVE_NOTIFY
+   e_notification_shutdown();
+#endif
    e_dbus_shutdown();
 }
 #endif
