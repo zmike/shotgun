@@ -686,6 +686,9 @@ xml_presence_write(Shotgun_Auth *auth, size_t *len)
    if (auth->desc) node.append_child("status").append_child(node_pcdata).set_value(auth->desc);
    snprintf(buf, sizeof(buf), "%i", auth->priority);
    node.append_child("priority").append_child(node_pcdata).set_value(buf);
+   node = node.append_child("x");
+   node.append_attribute("xmlns").set_value("vcard-temp:x:update");
+   node.append_child("photo"); /* FIXME: photo data */
 
    return xmlnode_to_buf(doc, len, EINA_FALSE);
 }
