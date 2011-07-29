@@ -162,7 +162,7 @@ ui_dbus_notify(const char *from, const char *msg)
 {
    E_Notification *n;
 
-   n = e_notification_full_new("SHOTGUN!", 0, NULL, from, msg, 3);
+   n = e_notification_full_new("SHOTGUN!", 0, NULL, from, msg, 5000);
    e_notification_send(n, NULL, NULL);
    e_notification_unref(n);
 }
