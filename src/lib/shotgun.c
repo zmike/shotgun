@@ -46,7 +46,7 @@ static Eina_Bool
 shotgun_data_detect(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
 {
    size_t len;
-   const char *data, *tag, *c;
+   const char *data, *tag;
    char buf[24] = {0};
 
    if (((char*)ev->data)[ev->size - 1] != '>')
