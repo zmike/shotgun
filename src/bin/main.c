@@ -3,6 +3,14 @@
 int ui_log_dom = -1;
 
 static Eina_Bool
+disc(void *d __UNUSED__, int type __UNUSED__, Shotgun_Auth *auth __UNUSED__)
+{
+   INF("Disconnected");
+   ecore_main_loop_quit();
+   return ECORE_CALLBACK_RENEW;
+}
+
+static Eina_Bool
 con(void *d __UNUSED__, int type __UNUSED__, Shotgun_Auth *auth)
 {
    Contact_List *cl;
@@ -61,6 +69,7 @@ main(int argc, char *argv[])
    ecore_event_handler_add(ECORE_CON_EVENT_URL_DATA, (Ecore_Event_Handler_Cb)chat_image_data, NULL);
    ecore_event_handler_add(ECORE_CON_EVENT_URL_COMPLETE, (Ecore_Event_Handler_Cb)chat_image_complete, NULL);
    ecore_event_handler_add(SHOTGUN_EVENT_CONNECT, (Ecore_Event_Handler_Cb)con, NULL);
+   ecore_event_handler_add(SHOTGUN_EVENT_DISCONNECT, (Ecore_Event_Handler_Cb)disc, NULL);
 
    auth = shotgun_new(argv[1], argv[2], argv[3]);
    pass = getpass_x("Password: ");

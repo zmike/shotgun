@@ -42,6 +42,7 @@
 */
 
 extern int SHOTGUN_EVENT_CONNECT; /* Shotgun_Auth */
+extern int SHOTGUN_EVENT_DISCONNECT; /* Shotgun_Auth */
 extern int SHOTGUN_EVENT_IQ; /* Shotgun_Event_Iq */
 extern int SHOTGUN_EVENT_MESSAGE; /* Shotgun_Event_Message */
 extern int SHOTGUN_EVENT_PRESENCE; /* Shotgun_Event_Presence */
@@ -139,6 +140,7 @@ Eina_Bool shotgun_connect(Shotgun_Auth *auth);
 void shotgun_disconnect(Shotgun_Auth *auth);
 
 Shotgun_Auth *shotgun_new(const char *svr_name, const char *username, const char *domain);
+void shotgun_free(Shotgun_Auth *auth);
 /**
  * DOES NOT ALLOCATE FOR PASSWORD.
  */

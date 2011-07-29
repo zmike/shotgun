@@ -9,16 +9,23 @@
 int shotgun_log_dom = -1;
 
 int SHOTGUN_EVENT_CONNECT = 0;
+int SHOTGUN_EVENT_DISCONNECT = 0;
 int SHOTGUN_EVENT_MESSAGE = 0;
 int SHOTGUN_EVENT_PRESENCE = 0;
 int SHOTGUN_EVENT_IQ = 0;
 
 static Eina_Bool
-disc(void *data __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Server_Add *ev __UNUSED__)
+disc(Shotgun_Auth *auth, int type __UNUSED__, Ecore_Con_Event_Server_Del *ev)
 {
-   ecore_main_loop_quit();
+   if (auth != ecore_con_server_data_get(ev->server))
+     return ECORE_CALLBACK_PASS_ON;
+
    INF("Disconnected");
-   return ECORE_CALLBACK_RENEW;
+   ecore_con_server_del(auth->svr);
+   auth->svr = NULL;
+   auth->ev_del = NULL;
+   ecore_event_add(SHOTGUN_EVENT_DISCONNECT, auth, shotgun_fake_free, NULL);
+   return EINA_FALSE;
 }
 
 static Shotgun_Data_Type
@@ -180,6 +187,7 @@ shotgun_init(void)
    shotgun_log_dom = eina_log_domain_register("shotgun", EINA_COLOR_RED);
 
    SHOTGUN_EVENT_CONNECT = ecore_event_type_new();
+   SHOTGUN_EVENT_DISCONNECT = ecore_event_type_new();
    SHOTGUN_EVENT_MESSAGE = ecore_event_type_new();
    SHOTGUN_EVENT_PRESENCE = ecore_event_type_new();
    SHOTGUN_EVENT_IQ = ecore_event_type_new();
@@ -204,18 +212,34 @@ void
 shotgun_disconnect(Shotgun_Auth *auth)
 {
    if (!auth) return;
-   ecore_event_handler_del(auth->ev_add);
-   ecore_event_handler_del(auth->ev_del);
-   ecore_event_handler_del(auth->ev_data);
-   ecore_event_handler_del(auth->ev_error);
-   ecore_event_handler_del(auth->ev_upgrade);
-   ecore_con_server_del(auth->svr);
+   if (auth->ev_add) ecore_event_handler_del(auth->ev_add);
+   if (auth->ev_del) ecore_event_handler_del(auth->ev_del);
+   if (auth->ev_data) ecore_event_handler_del(auth->ev_data);
+   if (auth->ev_error) ecore_event_handler_del(auth->ev_error);
+   if (auth->ev_upgrade) ecore_event_handler_del(auth->ev_upgrade);
+   if (auth->svr) ecore_con_server_del(auth->svr);
    auth->ev_add = NULL;
    auth->ev_del = NULL;
    auth->ev_data = NULL;
    auth->ev_error = NULL;
    auth->ev_upgrade = NULL;
    auth->svr = NULL;
+}
+
+void
+shotgun_free(Shotgun_Auth *auth)
+{
+   if (!auth) return;
+   shotgun_disconnect(auth);
+   eina_stringshare_del(auth->user);
+   eina_stringshare_del(auth->from);
+   eina_stringshare_del(auth->resource);
+   eina_stringshare_del(auth->jid);
+   eina_stringshare_del(auth->svr_name);
+   eina_stringshare_del(auth->bind);
+   free(auth->desc);
+   if (auth->buf) eina_strbuf_free(auth->buf);
+   free(auth);
 }
 
 Shotgun_Auth *
