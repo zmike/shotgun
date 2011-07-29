@@ -270,12 +270,12 @@ _contact_list_item_tooltip_cb(Contact *c, Evas_Object *obj __UNUSED__, Evas_Obje
                                   "%s%s",
                                   c->base->jid,
                                   c->cur->jid + strlen(c->base->jid) + 1, c->cur->priority, c->description ? ':' : 0,
-                                  c->description ?: NULL, c->description ? "<ps>" : NULL);
+                                  c->description ?: "", c->description ? "<ps>" : "");
    EINA_LIST_FOREACH(c->plist, l, p)
      eina_strbuf_append_printf(buf, "<b>%s (%i)%c</b><ps>"
                                     "%s%s",
                                     p->jid + strlen(c->base->jid) + 1, c->cur->priority, c->description ? ':' : 0,
-                                    p->description ?: NULL, p->description ? "<ps>" : NULL);
+                                    p->description ?: "", p->description ? "<ps>" : "");
    text = eina_stringshare_add(eina_strbuf_string_get(buf));
    eina_strbuf_free(buf);
    eina_stringshare_del(c->tooltip_label);
