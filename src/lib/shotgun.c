@@ -74,7 +74,7 @@ shotgun_data_detect(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
    tag = data + 1, len--;;
    while ((tag[0] != '>') && (tag[0] != ' '))
      {
-        DBG("\ndata: '%s'\ntag: '%s'", data, tag);
+        //DBG("\ndata: '%s'\ntag: '%s'", data, tag);
         tag++, len--;
      }
 
@@ -190,14 +190,32 @@ shotgun_init(void)
 Eina_Bool
 shotgun_connect(Shotgun_Auth *auth)
 {
-   ecore_event_handler_add(ECORE_CON_EVENT_SERVER_ADD, (Ecore_Event_Handler_Cb)shotgun_login_con, auth);
-   ecore_event_handler_add(ECORE_CON_EVENT_SERVER_DEL, (Ecore_Event_Handler_Cb)disc, NULL);
-   ecore_event_handler_add(ECORE_CON_EVENT_SERVER_DATA, (Ecore_Event_Handler_Cb)data, auth);
-   ecore_event_handler_add(ECORE_CON_EVENT_SERVER_ERROR, (Ecore_Event_Handler_Cb)error, NULL);
-   ecore_event_handler_add(ECORE_CON_EVENT_SERVER_UPGRADE, (Ecore_Event_Handler_Cb)shotgun_login_con, auth);
+   auth->ev_add = ecore_event_handler_add(ECORE_CON_EVENT_SERVER_ADD, (Ecore_Event_Handler_Cb)shotgun_login_con, auth);
+   auth->ev_del = ecore_event_handler_add(ECORE_CON_EVENT_SERVER_DEL, (Ecore_Event_Handler_Cb)disc, NULL);
+   auth->ev_data = ecore_event_handler_add(ECORE_CON_EVENT_SERVER_DATA, (Ecore_Event_Handler_Cb)data, auth);
+   auth->ev_error = ecore_event_handler_add(ECORE_CON_EVENT_SERVER_ERROR, (Ecore_Event_Handler_Cb)error, NULL);
+   auth->ev_upgrade = ecore_event_handler_add(ECORE_CON_EVENT_SERVER_UPGRADE, (Ecore_Event_Handler_Cb)shotgun_login_con, auth);
    auth->svr = ecore_con_server_connect(ECORE_CON_REMOTE_NODELAY, auth->svr_name, 5222, auth);
 
    return EINA_TRUE;
+}
+
+void
+shotgun_disconnect(Shotgun_Auth *auth)
+{
+   if (!auth) return;
+   ecore_event_handler_del(auth->ev_add);
+   ecore_event_handler_del(auth->ev_del);
+   ecore_event_handler_del(auth->ev_data);
+   ecore_event_handler_del(auth->ev_error);
+   ecore_event_handler_del(auth->ev_upgrade);
+   ecore_con_server_del(auth->svr);
+   auth->ev_add = NULL;
+   auth->ev_del = NULL;
+   auth->ev_data = NULL;
+   auth->ev_error = NULL;
+   auth->ev_upgrade = NULL;
+   auth->svr = NULL;
 }
 
 Shotgun_Auth *

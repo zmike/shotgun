@@ -369,7 +369,7 @@ contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev)
    c->list->list_item_update[c->list->mode](c->list_item);
 }
 
-void
+Contact_List *
 contact_list_new(Shotgun_Auth *auth)
 {
    Evas_Object *win, *obj, *radio, *box, *menu, *entry;
@@ -517,4 +517,5 @@ contact_list_new(Shotgun_Auth *auth)
 
    evas_object_resize(win, 300, 700);
    evas_object_show(win);
+   return cl;
 }

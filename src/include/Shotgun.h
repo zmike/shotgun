@@ -98,6 +98,7 @@ extern "C" {
 
 int shotgun_init(void);
 Eina_Bool shotgun_connect(Shotgun_Auth *auth);
+void shotgun_disconnect(Shotgun_Auth *auth);
 
 Shotgun_Auth *shotgun_new(const char *svr_name, const char *username, const char *domain);
 /**

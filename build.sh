@@ -1,13 +1,13 @@
 #!/bin/bash
 
-CF="-I$(readlink -f .) -D_GNU_SOURCE=1 -O0 -pipe -Wall -Wextra -g -I$(readlink -f src/include) -DHAVE_ECORE_X"
+CF="-I$(readlink -f .) -D_GNU_SOURCE=1 -O0 -pipe -Wall -Wextra -g -I$(readlink -f src/include) -DHAVE_ECORE_X -DHAVE_DBUS"
 
-#DEPS=($(pkg-config --print-requires-private ecore-con ecore-x elementary))
+#DEPS=($(pkg-config --print-requires-private ecore-con edbus ecore-x elementary))
 #echo "DEPENDENCIES: ${DEPS[@]}"
-CFLAGS="$(pkg-config --cflags ${DEPS[@]} ecore-con ecore-x elementary)"
+CFLAGS="$(pkg-config --cflags ${DEPS[@]} ecore-con edbus ecore-x elementary)"
 #echo "DEPENDENCY CFLAGS: $CFLAGS"
 
-LIBS="$(pkg-config --libs ${DEPS[@]} ecore-con ecore-x elementary)"
+LIBS="$(pkg-config --libs ${DEPS[@]} ecore-con edbus ecore-x elementary)"
 #echo "DEPENDENCY LIBS: $LIBS"
 #echo
 

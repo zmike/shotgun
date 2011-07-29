@@ -97,6 +97,7 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
         if (c->cur->description) elm_entry_entry_append(c->status_line, c->cur->description);
      }
    c->description = c->cur->description;
+   c->priority = c->cur->priority;
    if (cl->view || (c->base->subscription > SHOTGUN_USER_SUBSCRIPTION_NONE))
      {
         c->tooltip_changed = EINA_TRUE;

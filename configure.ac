@@ -96,6 +96,28 @@ if test "x$want_ecore_x" = "xyes" -a "x$have_ecore_x" = "xno"; then
     AC_MSG_ERROR([ecore-x support requested, but not found by pkg-config.])
 fi
 
+have_edbus="no"                                                                                                                                                                                                                         
+want_edbus="auto"
+AC_ARG_ENABLE([edbus],
+   [AC_HELP_STRING([--disable-edbus], [disable edbus support. @<:@default=detect@:>@])],
+   [want_edbus=$enableval], [])
+
+if test "x$want_edbus" != "xno"; then
+   PKG_CHECK_MODULES([edbus],
+      [edbus >= 1.0.0],
+      [
+       AC_DEFINE(HAVE_DBUS, 1, [DBUS support])
+       have_edbus="yes"
+      ],
+      [have_edbus="no"]
+   )
+else
+    have_edbus="no"
+fi
+if test "x$want_edbus" = "xyes" -a "x$have_edbus" = "xno"; then
+    AC_MSG_ERROR([edbus support requested, but not found by pkg-config.])
+fi
+
 #EFL_CHECK_DOXYGEN([build_doc="yes"], [build_doc="no"])
 # write output
 AC_CONFIG_FILES([

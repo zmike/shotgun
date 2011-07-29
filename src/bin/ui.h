@@ -58,6 +58,10 @@ struct Contact_List
 
    Eina_Bool mode : 1; /* 0 for list, 1 for grid */
    Eina_Bool view : 1; /* 0 for regular, 1 for offlines */
+
+   E_DBus_Connection *dbus;
+   E_DBus_Object *dbus_object;
+   
    void *itc;
    Ecore_Data_Cb list_item_contact_get[2];
    Ecore_Data_Cb list_item_parent_get[2];
@@ -82,6 +86,7 @@ struct Contact
    Eina_List *plist;
    Eina_List *imgs;
    Shotgun_User_Status status;
+   int priority;
    char *description;
    const char *last_conv;
    const char *tooltip_label;
@@ -101,7 +106,7 @@ typedef struct
    Contact_List *cl;
 } Image;
 
-void contact_list_new(Shotgun_Auth *auth);
+Contact_List *contact_list_new(Shotgun_Auth *auth);
 void contact_list_user_add(Contact_List *cl, Contact *c);
 void contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev);
 
@@ -119,7 +124,9 @@ Eina_Bool chat_image_complete(void *d __UNUSED__, int type __UNUSED__, Ecore_Con
 
 void contact_free(Contact *c);
 void do_something_with_user(Contact_List *cl, Shotgun_User *user);
-
+#ifdef HAVE_DBUS
+void ui_dbus_init(Contact_List *cl);
+#endif
 Eina_Bool event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev);
 Eina_Bool event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence *ev);
 Eina_Bool event_message_cb(void *data, int type __UNUSED__, void *event);

@@ -18,6 +18,7 @@ chat.c \
 chat_image.c \
 contact.c \
 contact_list.c \
+dbus.c \
 events.c \
 getpass_x.c \
 main.c

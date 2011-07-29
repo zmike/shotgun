@@ -22,6 +22,7 @@ void *alloca (size_t);
 #endif
 #endif
 
+#include <Ecore.h>
 #include <Ecore_Con.h>
 #include "Shotgun.h"
 
@@ -83,6 +84,8 @@ struct Shotgun_Auth
 
    Ecore_Con_Server *svr;
    const char *svr_name;
+
+   Ecore_Event_Handler *ev_add, *ev_del, *ev_error, *ev_data, *ev_upgrade;
 
    struct
    {  /* this serves no real purpose */
