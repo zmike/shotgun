@@ -23,6 +23,7 @@ chat_image.c \
 contact.c \
 contact_list.c \
 dbus.c \
+eet.c \
 events.c \
 getpass_x.c \
 main.c \
