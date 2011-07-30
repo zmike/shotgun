@@ -69,6 +69,7 @@ ui_eet_image_add(const char *url, Eina_Binbuf *buf)
 
    sha1 = sha1_buffer(eina_binbuf_string_get(buf), eina_binbuf_length_get(buf));
    INF("Image: %s - %s", url, sha1);
+
    list = eet_list(images, url, &lsize);
    if (lsize)
      {
@@ -79,15 +80,16 @@ ui_eet_image_add(const char *url, Eina_Binbuf *buf)
    list = eet_list(images, sha1, &lsize);
    if (lsize)
      {
-        eet_alias(images, sha1, url, 1);
+        eet_alias(images, url, sha1, 1);
         eet_sync(images);
         INF("Added new alias for image %s", sha1);
         eina_stringshare_del(sha1);
         free(list);
         return;
      }
+
    eet_write(images, sha1, eina_binbuf_string_get(buf), eina_binbuf_length_get(buf), 1);
-   eet_alias(images, sha1, url, 1);
+   eet_alias(images, url, sha1, 1);
    eet_sync(images);
    INF("Added new image with length %zu: %s", eina_binbuf_length_get(buf), sha1);
 }
