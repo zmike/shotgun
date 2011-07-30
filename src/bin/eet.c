@@ -22,10 +22,17 @@ ui_eet_init(Shotgun_Auth *auth)
    if (!ecore_file_exists(home))
      {
         if (mkdir(home, S_IRWXU))
-          { /* FIXME: ~/.config not existing */
-             ERR("Could not create %s: '%s'", home, strerror(errno));
+          {
+             int x = errno;
+             snprintf(buf, sizeof(buf), "%s/.config", getenv("HOME"));
+             if (ecore_file_exists(buf) || mkdir(buf, S_IRWXU))
+               {
+                  ERR("Could not create %s: '%s'", home, strerror(x));
+                  eet_shutdown();
+                  return EINA_FALSE;
+               }
              eet_shutdown();
-             return EINA_FALSE;
+             return ui_eet_init(auth);
           }
      }
    if (!images)
