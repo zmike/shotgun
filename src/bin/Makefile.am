@@ -27,6 +27,8 @@ eet.c \
 events.c \
 getpass_x.c \
 main.c \
+sha1.c \
+sha1wrap.c \
 util.c
 
 MAINTAINERCLEANFILES = Makefile.in
