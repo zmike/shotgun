@@ -129,11 +129,22 @@ S: <stream:features>
    for (attr = node.first_attribute(); attr; attr = attr.next_attribute())
       if (!strcmp(attr.name(), "xmlns"))
         {
-           const char *colon;
+           const char *s;
 
-           colon = strrchr(attr.value(), ':');
-           if (colon && (!strcmp(colon + 1, "xmpp-sasl")))
-             auth->features.sasl = EINA_TRUE;
+           s = strrchr(attr.value(), ':');
+           if (s && (!strcmp(s + 1, "xmpp-sasl")))
+             {
+                for (xml_node it = node.first_child(); it; it = it.next_sibling())
+                  {
+                     s = it.child_value();
+                     if (s && (!strcmp(s, "PLAIN")))
+                       auth->features.sasl_plain = EINA_TRUE;
+                     else if (s && (!strcmp(s, "X-OAUTH2")))
+                       auth->features.sasl_oauth2 = EINA_TRUE;
+                     else if (s && (!strcmp(s, "X-GOOGLE_TOKEN")))
+                       auth->features.sasl_gtoken = EINA_TRUE;
+                  }
+             }
            break;
         }
    /* lots more auth mechanisms here but who cares */
@@ -205,7 +216,7 @@ S: <failure xmlns='urn:ietf:params:xml:ns:xmpp-tls'/>
 }
 
 char *
-xml_sasl_write(const char *sasl, size_t *len)
+xml_sasl_write(Shotgun_Auth *auth, const char *sasl, size_t *len)
 {
 /*
 http://code.google.com/apis/talk/jep_extensions/jid_domain_change.html
@@ -217,16 +228,24 @@ http://code.google.com/apis/talk/jep_extensions/jid_domain_change.html
 </auth>
 */
    xml_document doc;
-   xml_node auth;
+   xml_node a;
 
-   auth = doc.append_child("auth");
-   auth.append_attribute("xmlns").set_value("urn:ietf:params:xml:ns:xmpp-sasl");
-   auth.append_attribute("mechanism").set_value("PLAIN");
-   auth.append_attribute("xmlns:ga").set_value("http://www.google.com/talk/protocol/auth");
-   auth.append_attribute("ga:client-uses-full-bind-result").set_value("true");
-   auth.append_child(node_pcdata).set_value(sasl);
+   a = doc.append_child("auth");
+   a.append_attribute("xmlns").set_value("urn:ietf:params:xml:ns:xmpp-sasl");
+/*
+   if (auth->features.sasl_oauth2)
+     a.append_attribute("mechanism").set_value("X-OAUTH2");
+   else
+*/
+     a.append_attribute("mechanism").set_value("PLAIN");
+   if (auth->features.sasl_gtoken)
+     {
+        a.append_attribute("xmlns:ga").set_value("http://www.google.com/talk/protocol/auth");
+        a.append_attribute("ga:client-uses-full-bind-result").set_value("true");
+     }
+   a.append_child(node_pcdata).set_value(sasl);
 
-   return xmlnode_to_buf(auth, len, EINA_FALSE);
+   return xmlnode_to_buf(a, len, EINA_FALSE);
 }
 
 Eina_Bool

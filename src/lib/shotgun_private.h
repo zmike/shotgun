@@ -87,7 +87,9 @@ struct Shotgun_Auth
    struct
    {  /* this serves no real purpose */
       Eina_Bool starttls : 1;
-      Eina_Bool sasl : 1;
+      Eina_Bool sasl_plain : 1;
+      Eina_Bool sasl_oauth2 : 1;
+      Eina_Bool sasl_gtoken : 1;
       Eina_Bool bind : 1;
    } features;
    Shotgun_Connection_State state;

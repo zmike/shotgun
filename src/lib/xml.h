@@ -12,7 +12,7 @@ extern "C" {
 char *xml_stream_init_create(Shotgun_Auth *auth, const char *lang, size_t *len);
 Eina_Bool xml_stream_init_read(Shotgun_Auth *auth, char *xml, size_t size);
 Eina_Bool xml_starttls_read(char *xml, size_t size);
-char *xml_sasl_write(const char *sasl, size_t *len);
+char *xml_sasl_write(Shotgun_Auth *auth, const char *sasl, size_t *len);
 Eina_Bool xml_sasl_read(const char *xml, size_t size);
 
 char *xml_iq_write_preset(Shotgun_Auth *auth, Shotgun_Iq_Preset p, size_t *len);
