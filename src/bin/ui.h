@@ -25,6 +25,9 @@ void *alloca (size_t);
 #ifdef HAVE_ECORE_X
 # include <Ecore_X.h>
 #endif
+#ifdef HAVE_DBUS
+# include <E_DBus.h>
+#endif
 
 #ifndef __UNUSED__
 # define __UNUSED__ __attribute__((unused))
