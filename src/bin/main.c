@@ -88,10 +88,16 @@ main(int argc, char *argv[])
         return 1;
      }
    shotgun_password_set(auth, pass);
+   if (!ui_eet_init(auth))
+     {
+        CRI("Could not initialize eet backend!");
+        return 1;
+     }
    shotgun_connect(auth);
    ecore_main_loop_begin();
 
    elm_shutdown();
+   ui_eet_shutdown(auth);
 
    return 0;
 }

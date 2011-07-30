@@ -120,6 +120,7 @@ typedef struct
 {
    Ecore_Con_Url *url;
    Eina_Binbuf *buf;
+   const char *addr;
    Contact_List *cl;
 } Image;
 
@@ -143,6 +144,12 @@ const char *contact_name_get(Contact *c);
 void contact_jids_menu_del(Contact *c, const char *jid);
 void contact_free(Contact *c);
 void do_something_with_user(Contact_List *cl, Shotgun_User *user);
+
+Eina_Bool ui_eet_init(Shotgun_Auth *auth);
+void ui_eet_image_add(const char *url, Eina_Binbuf *buf);
+Eina_Binbuf *ui_eet_image_get(const char *url);
+void ui_eet_shutdown(Shotgun_Auth *auth);
+
 #ifdef HAVE_DBUS
 void ui_dbus_init(Contact_List *cl);
 # ifdef HAVE_NOTIFY

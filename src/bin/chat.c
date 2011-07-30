@@ -139,7 +139,7 @@ _chat_conv_filter(Contact_List *cl, Evas_Object *obj __UNUSED__, char **str)
                   eina_strbuf_free(buf);
                   buf = NULL;
                }
-             char_image_add(cl, strndupa(http, len));
+             char_image_add(cl, eina_stringshare_add_length(http, len));
              //DBG("ANCHOR: ");
              //DBG(fmt, http);
              break;
@@ -167,7 +167,7 @@ _chat_conv_filter(Contact_List *cl, Evas_Object *obj __UNUSED__, char **str)
              eina_strbuf_free(buf);
              return;
           }
-        char_image_add(cl, strndupa(http, len));
+        char_image_add(cl, eina_stringshare_add_length(http, len));
              //DBG("ANCHOR: ");
              //DBG(fmt, http);
         http = strstr(start, "http");

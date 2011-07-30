@@ -78,11 +78,15 @@ char_image_add(Contact_List *cl, const char *url)
    i = eina_hash_find(cl->images, url);
    if (i) return;
    i = calloc(1, sizeof(Image));
-   i->url = ecore_con_url_new(url);
-   ecore_con_url_data_set(i->url, i);
+   i->buf = ui_eet_image_get(url);
+   if (!i->buf)
+     {
+        i->url = ecore_con_url_new(url);
+        ecore_con_url_data_set(i->url, i);
+        ecore_con_url_get(i->url);
+     }
    i->cl = cl;
-
-   ecore_con_url_get(i->url);
+   i->addr = url;
    eina_hash_add(cl->images, url, i);
 }
 
@@ -92,6 +96,7 @@ chat_image_free(Image *i)
    if (!i) return;
    if (i->url) ecore_con_url_free(i->url);
    if (i->buf) eina_binbuf_free(i->buf);
+   eina_stringshare_del(i->addr);
    free(i);
 }
 
@@ -116,7 +121,7 @@ chat_image_complete(void *d __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Url
         eina_hash_del_by_key(i->cl->images, ecore_con_url_url_get(ev->url_con));
         return ECORE_CALLBACK_RENEW;
      }
-
+   ui_eet_image_add(i->addr, i->buf);
    return ECORE_CALLBACK_RENEW;
 }
 
