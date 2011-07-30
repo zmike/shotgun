@@ -121,6 +121,8 @@ _contact_list_list_add(Contact_List *cl)
    cl->list = list = elm_genlist_add(cl->win);
    cl->mode = EINA_FALSE;
    elm_genlist_always_select_mode_set(list, EINA_FALSE);
+   elm_genlist_bounce_set(list, EINA_FALSE, EINA_FALSE);
+   elm_genlist_scroller_policy_set(list, ELM_SCROLLER_POLICY_OFF, ELM_SCROLLER_POLICY_AUTO);
    WEIGHT(list, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    ALIGN(list, EVAS_HINT_FILL, EVAS_HINT_FILL);
    l = elm_box_children_get(cl->box);
@@ -140,7 +142,7 @@ _contact_list_grid_add(Contact_List *cl)
    cl->mode = EINA_TRUE;
    elm_gengrid_always_select_mode_set(grid, EINA_FALSE);
    elm_gengrid_item_size_set(grid, 75, 100);
-
+   elm_gengrid_bounce_set(grid, EINA_FALSE, EINA_FALSE);
    WEIGHT(grid, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    ALIGN(grid, EVAS_HINT_FILL, EVAS_HINT_FILL);
    l = elm_box_children_get(cl->box);
