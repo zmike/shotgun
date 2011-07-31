@@ -75,7 +75,7 @@ struct Contact_List
 
    E_DBus_Connection *dbus;
    E_DBus_Object *dbus_object;
-   
+
    void *itc;
    Ecore_Data_Cb list_item_contact_get[2];
    Ecore_Data_Cb list_item_parent_get[2];
@@ -149,6 +149,8 @@ Eina_Bool ui_eet_init(Shotgun_Auth *auth);
 void ui_eet_image_add(const char *url, Eina_Binbuf *buf);
 Eina_Binbuf *ui_eet_image_get(const char *url);
 void ui_eet_shutdown(Shotgun_Auth *auth);
+Shotgun_Auth *ui_eet_auth_get(void);
+void ui_eet_auth_set(Shotgun_Auth *auth, Eina_Bool store_pw, Eina_Bool use_auth);
 
 #ifdef HAVE_DBUS
 void ui_dbus_init(Contact_List *cl);
@@ -161,5 +163,6 @@ Eina_Bool event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event
 Eina_Bool event_message_cb(void *data, int type __UNUSED__, void *event);
 
 const char *util_configdir_get(void);
+Eina_Bool util_configdir_create(void);
 
 #endif /* __UI_H */

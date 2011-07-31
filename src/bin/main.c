@@ -54,10 +54,11 @@ main(int argc, char *argv[])
    Shotgun_Auth *auth;
    char *getpass_x(const char *prompt);
 
-   if (argc != 4)
+   if ((argc != 4) && (argc != 1) && (argc != 2))
      {
         fprintf(stderr, "Usage: %s [server] [username] [domain]\n", argv[0]);
         fprintf(stderr, "Usage example: %s talk.google.com my_username gmail.com\n", argv[0]);
+        fprintf(stderr, "Usage example (with saved account): %s\n", argv[0]);
         return 1;
      }
 
@@ -80,14 +81,27 @@ main(int argc, char *argv[])
    ecore_event_handler_add(SHOTGUN_EVENT_CONNECTION_STATE, (Ecore_Event_Handler_Cb)con_state, NULL);
    ecore_event_handler_add(SHOTGUN_EVENT_DISCONNECT, (Ecore_Event_Handler_Cb)disc, NULL);
 
-   auth = shotgun_new(argv[1], argv[2], argv[3]);
-   pass = getpass_x("Password: ");
-   if (!pass)
+   if (argc < 3)
      {
-        ERR("No password entered!");
-        return 1;
+        auth = ui_eet_auth_get();
+        if (!auth)
+          {
+             CRI("Could not load an account!");
+             return 1;
+          }
      }
-   shotgun_password_set(auth, pass);
+   else
+     auth = shotgun_new(argv[1], argv[2], argv[3]);
+   if (!shotgun_password_get(auth))
+     {
+        pass = getpass_x("Password: ");
+        if (!pass)
+          {
+             ERR("No password entered!");
+             return 1;
+          }
+        shotgun_password_set(auth, pass);
+     }
    if (!ui_eet_init(auth))
      {
         CRI("Could not initialize eet backend!");

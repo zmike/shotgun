@@ -14,6 +14,8 @@ _contact_list_free_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj __U
    EINA_LIST_FREE(cl->users_list, c)
      contact_free(c);
 
+   shotgun_disconnect(cl->account);
+
    free(cl);
 }
 
@@ -281,6 +283,12 @@ out:
    return label;
 }
 
+static void
+_contact_list_saveinfo_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, void *ev __UNUSED__)
+{
+   ui_eet_auth_set(cl->account, EINA_TRUE, EINA_FALSE);
+}
+
 void
 contact_list_user_add(Contact_List *cl, Contact *c)
 {
@@ -376,7 +384,7 @@ contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev)
 Contact_List *
 contact_list_new(Shotgun_Auth *auth)
 {
-   Evas_Object *win, *obj, *radio, *box, *menu, *entry;
+   Evas_Object *win, *obj, *tb, *radio, *box, *menu, *entry;
    Elm_Toolbar_Item *it;
    Contact_List *cl;
 
@@ -399,23 +407,24 @@ contact_list_new(Shotgun_Auth *auth)
    elm_win_resize_object_add(win, box);
    evas_object_show(box);
 
-   obj = elm_toolbar_add(win);
-   elm_toolbar_mode_shrink_set(obj, ELM_TOOLBAR_SHRINK_MENU);
-   ALIGN(obj, EVAS_HINT_FILL, 0);
-   elm_toolbar_align_set(obj, 0);
-   it = elm_toolbar_item_append(obj, NULL, "Shotgun", NULL, NULL);
+   tb = elm_toolbar_add(win);
+   elm_toolbar_mode_shrink_set(tb, ELM_TOOLBAR_SHRINK_MENU);
+   ALIGN(tb, EVAS_HINT_FILL, 0);
+   elm_toolbar_align_set(tb, 0);
+   it = elm_toolbar_item_append(tb, NULL, "Shotgun", NULL, NULL);
    elm_toolbar_item_menu_set(it, 1);
-   elm_toolbar_menu_parent_set(obj, win);
-   elm_box_pack_end(box, obj);
-   evas_object_show(obj);
+   elm_toolbar_menu_parent_set(tb, win);
+   elm_box_pack_end(box, tb);
+   evas_object_show(tb);
    menu = elm_toolbar_item_menu_get(it);
+   elm_menu_item_add(menu, NULL, "menu/folder", "Save Account Info", (Evas_Smart_Cb)_contact_list_saveinfo_cb, cl);
    elm_menu_item_add(menu, NULL, "refresh", "Toggle View Mode", (Evas_Smart_Cb)_contact_list_mode_toggle, cl);
    elm_menu_item_add(menu, NULL, "chat", "Show Offline Contacts", (Evas_Smart_Cb)_contact_list_show_toggle, cl);
    elm_menu_item_add(menu, NULL, "close", "Quit", (Evas_Smart_Cb)_contact_list_close, cl);
 
-   it = elm_toolbar_item_append(obj, NULL, "Status", NULL, NULL);
+   it = elm_toolbar_item_append(tb, NULL, "Status", NULL, NULL);
    elm_toolbar_item_menu_set(it, 1);
-   elm_toolbar_menu_parent_set(obj, win);
+   elm_toolbar_menu_parent_set(tb, win);
    menu = elm_toolbar_item_menu_get(it);
 
    radio = elm_radio_add(win);
