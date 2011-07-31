@@ -300,6 +300,13 @@ shotgun_servername_get(Shotgun_Auth *auth)
    return auth->svr_name;
 }
 
+const char *
+shotgun_jid_get(Shotgun_Auth *auth)
+{
+   EINA_SAFETY_ON_NULL_RETURN_VAL(auth, NULL);
+   return auth->jid;
+}
+
 void
 shotgun_data_set(Shotgun_Auth *auth, void *data)
 {

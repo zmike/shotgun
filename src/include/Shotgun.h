@@ -158,6 +158,7 @@ const char *shotgun_username_get(Shotgun_Auth *auth);
 const char *shotgun_password_get(Shotgun_Auth *auth);
 const char *shotgun_domain_get(Shotgun_Auth *auth);
 const char *shotgun_servername_get(Shotgun_Auth *auth);
+const char *shotgun_jid_get(Shotgun_Auth *auth);
 void shotgun_data_set(Shotgun_Auth *auth, void *data);
 void *shotgun_data_get(Shotgun_Auth *auth);
 
