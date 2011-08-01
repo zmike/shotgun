@@ -111,6 +111,7 @@ typedef struct
    struct
      {
         const char *type;
+        const char *sha1;
         void *data;
         size_t size;
      } photo;
