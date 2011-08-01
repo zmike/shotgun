@@ -151,6 +151,8 @@ Eina_Binbuf *ui_eet_image_get(const char *url);
 void ui_eet_shutdown(Shotgun_Auth *auth);
 Shotgun_Auth *ui_eet_auth_get(void);
 void ui_eet_auth_set(Shotgun_Auth *auth, Eina_Bool store_pw, Eina_Bool use_auth);
+void ui_eet_userinfo_add(Shotgun_Auth *auth, Shotgun_User_Info *info);
+Shotgun_User_Info *ui_eet_userinfo_get(Shotgun_Auth *auth, const char *jid);
 
 #ifdef HAVE_DBUS
 void ui_dbus_init(Contact_List *cl);

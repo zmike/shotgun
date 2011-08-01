@@ -24,9 +24,11 @@ event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev)
                 break;
              }
            shotgun_user_info_free(c->info);
+           if (c->cur && c->cur->photo) info->photo.sha1 = eina_stringshare_ref(c->cur->photo);
            c->info = info;
            ev->ev = NULL;
            if (c->list_item && (info->photo.data || info->full_name)) cl->list_item_update[cl->mode](c->list_item);
+           ui_eet_userinfo_add(cl->account, info);
            break;
         }
       default:
@@ -111,7 +113,13 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
         if (!c->list_item)
           {
              contact_list_user_add(cl, c);
-             if (ev->vcard) shotgun_iq_vcard_get(ev->account, c->base->jid);
+             if (ev->vcard)
+               {
+                  c->info = ui_eet_userinfo_get(cl->account, c->base->jid);
+                  if (c->info) cl->list_item_update[cl->mode](c->list_item);
+                  if ((!c->info) || (c->cur && c->info && (c->info->photo.sha1 != c->cur->photo)))
+                    shotgun_iq_vcard_get(ev->account, c->base->jid);
+               }
           }
         else
           cl->list_item_update[cl->mode](c->list_item);

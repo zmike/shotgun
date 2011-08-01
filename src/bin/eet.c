@@ -23,17 +23,35 @@ typedef struct UI_Eet_Auth
 static Eet_Data_Descriptor *
 eet_auth_edd_new(void)
 {
-   Eet_Data_Descriptor *ed;
+   Eet_Data_Descriptor *edd;
    Eet_Data_Descriptor_Class eddc;
    EET_EINA_FILE_DATA_DESCRIPTOR_CLASS_SET(&eddc, UI_Eet_Auth);
-   ed = eet_data_descriptor_file_new(&eddc);
+   edd = eet_data_descriptor_stream_new(&eddc);
 #define ADD(name, type) \
-  EET_DATA_DESCRIPTOR_ADD_BASIC(ed, UI_Eet_Auth, #name, name, EET_T_##type)
+  EET_DATA_DESCRIPTOR_ADD_BASIC(edd, UI_Eet_Auth, #name, name, EET_T_##type)
 
    ADD(username, INLINED_STRING);
    ADD(domain, INLINED_STRING);
    ADD(server, INLINED_STRING);
-   return ed;
+#undef ADD
+   return edd;
+}
+
+static Eet_Data_Descriptor *
+eet_userinfo_edd_new(void)
+{
+   Eet_Data_Descriptor *edd;
+   Eet_Data_Descriptor_Class eddc;
+   EET_EINA_FILE_DATA_DESCRIPTOR_CLASS_SET(&eddc, Shotgun_User_Info);
+   edd = eet_data_descriptor_stream_new(&eddc);
+#define ADD(name, type) \
+  EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Shotgun_User_Info, #name, name, EET_T_##type)
+
+   ADD(full_name, INLINED_STRING);
+   ADD(photo.type, INLINED_STRING);
+   ADD(photo.sha1, INLINED_STRING);
+#undef ADD
+   return edd;
 }
 
 Eina_Bool
@@ -86,7 +104,7 @@ Shotgun_Auth *
 ui_eet_auth_get(void)
 {
    Eet_File *ef;
-   Eet_Data_Descriptor *ed;
+   Eet_Data_Descriptor *edd;
    UI_Eet_Auth *a;
    char *jid, buf[4096], *p;
    const char *home;
@@ -108,9 +126,9 @@ ui_eet_auth_get(void)
         ERR("Could not read name of last account!");
         return NULL;
      }
-   ed = eet_auth_edd_new();
-   a = eet_data_read(ef, ed, jid);
-   eet_data_descriptor_free(ed);
+   edd = eet_auth_edd_new();
+   a = eet_data_read(ef, edd, jid);
+   eet_data_descriptor_free(edd);
    if (!a)
      {
         eet_close(ef);
@@ -149,7 +167,7 @@ ui_eet_auth_set(Shotgun_Auth *auth, Eina_Bool store_pw, Eina_Bool use_auth)
    Eet_File *ef;
    const char *s, *jid;
    char buf[1024];
-   Eet_Data_Descriptor *ed;
+   Eet_Data_Descriptor *edd;
    UI_Eet_Auth a;
 
    ef = shotgun_data_get(auth);
@@ -159,12 +177,12 @@ ui_eet_auth_set(Shotgun_Auth *auth, Eina_Bool store_pw, Eina_Bool use_auth)
    a.domain = shotgun_domain_get(auth);
    a.server = shotgun_servername_get(auth);
    /* FIXME: list for multiple accounts */
-   ed = eet_auth_edd_new();
+   edd = eet_auth_edd_new();
 
    eet_write(ef, "last_account", s, strlen(s) + 1, 0);
 
-   eet_data_write(ef, ed, jid, &a, 0);
-   eet_data_descriptor_free(ed);
+   eet_data_write(ef, edd, jid, &a, 0);
+   eet_data_descriptor_free(edd);
    if (!store_pw) return;
    snprintf(buf, sizeof(buf), "%s/pw", jid);
    if (!use_auth)
@@ -188,6 +206,52 @@ ui_eet_auth_set(Shotgun_Auth *auth, Eina_Bool store_pw, Eina_Bool use_auth)
    CRI("PAM support not detected! Unable to store password!");
    return;
 #endif
+}
+
+void
+ui_eet_userinfo_add(Shotgun_Auth *auth, Shotgun_User_Info *info)
+{
+   char buf[1024];
+   Eet_Data_Descriptor *edd;
+   Eet_File *ef = shotgun_data_get(auth);
+
+   edd = eet_userinfo_edd_new();
+   snprintf(buf, sizeof(buf), "%s/%s", shotgun_jid_get(auth), info->jid);
+   if (!eet_data_write_cipher(ef, edd, buf, shotgun_password_get(auth), info, 0))
+     {
+        ERR("Failed to write userinfo for %s!", info->jid);
+        eet_data_descriptor_free(edd);
+        return;
+     }
+   snprintf(buf, sizeof(buf), "%s/%s/img", shotgun_jid_get(auth), info->jid);
+   eet_write_cipher(ef, buf, info->photo.data, info->photo.size, 1, shotgun_password_get(auth));
+   eet_sync(ef);
+   eet_data_descriptor_free(edd);
+   INF("Wrote encrypted userinfo for %s to disk", info->jid);
+}
+
+Shotgun_User_Info *
+ui_eet_userinfo_get(Shotgun_Auth *auth, const char *jid)
+{
+   char buf[1024];
+   Eet_Data_Descriptor *edd;
+   Shotgun_User_Info *info;
+   Eet_File *ef = shotgun_data_get(auth);
+
+   edd = eet_userinfo_edd_new();
+   snprintf(buf, sizeof(buf), "%s/%s", shotgun_jid_get(auth), jid);
+   info = eet_data_read_cipher(ef, edd, buf, shotgun_password_get(auth));
+   if (!info)
+     {
+        INF("Userinfo for %s does not exist", jid);
+        eet_data_descriptor_free(edd);
+        return NULL;
+     }
+   snprintf(buf, sizeof(buf), "%s/%s/img", shotgun_jid_get(auth), jid);
+   info->photo.data = eet_read_cipher(ef, buf, (int*)&info->photo.size, shotgun_password_get(auth));
+   eet_data_descriptor_free(edd);
+   INF("Read encrypted userinfo for %s from disk", jid);
+   return info;
 }
 
 void

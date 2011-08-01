@@ -280,6 +280,8 @@ out:
    label = elm_label_add(tt);
    elm_label_line_wrap_set(label, ELM_WRAP_MIXED);
    elm_object_text_set(label, text);
+   WEIGHT(label, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+   ALIGN(label, EVAS_HINT_FILL, EVAS_HINT_FILL);
    return label;
 }
 
@@ -393,8 +395,8 @@ contact_list_new(Shotgun_Auth *auth)
    cl = calloc(1, sizeof(Contact_List));
    cl->account = auth;
 
-   cl->win = win = elm_win_add(NULL, "Shotgun - Contacts", ELM_WIN_BASIC);
-   elm_win_title_set(win, "Shotgun - Contacts");
+   cl->win = win = elm_win_add(NULL, "Contacts", ELM_WIN_BASIC);
+   elm_win_title_set(win, "Contacts");
    elm_win_autodel_set(win, 1);
 
    obj = elm_bg_add(win);
