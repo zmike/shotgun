@@ -262,8 +262,8 @@ _contact_list_item_tooltip_cb(Contact *c, Evas_Object *obj __UNUSED__, Evas_Obje
 
    if (!c->tooltip_changed) goto out;
    buf = eina_strbuf_new();
-   eina_strbuf_append_printf(buf, "<title>%s</title><ps>"
-                                  "<subtitle><u>%s (%i)%c</u></subtitle><ps>"
+   eina_strbuf_append_printf(buf, "<b><title>%s</title></b><ps>"
+                                  "<b><subtitle><u>%s (%i)%c</u></subtitle></b><ps>"
                                   "%s%s",
                                   c->base->jid,
                                   c->cur->jid + strlen(c->base->jid) + 1, c->cur->priority, c->description ? ':' : 0,
