@@ -86,7 +86,9 @@ main(int argc, char *argv[])
         auth = ui_eet_auth_get();
         if (!auth)
           {
-             CRI("Could not load an account!");
+             fprintf(stderr, "Usage: %s [server] [username] [domain]\n", argv[0]);
+             fprintf(stderr, "Usage example: %s talk.google.com my_username gmail.com\n", argv[0]);
+             fprintf(stderr, "Usage example (with saved account): %s\n", argv[0]);
              return 1;
           }
      }
