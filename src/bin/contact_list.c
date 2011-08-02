@@ -127,6 +127,7 @@ _contact_list_list_add(Contact_List *cl)
    elm_genlist_scroller_policy_set(list, ELM_SCROLLER_POLICY_OFF, ELM_SCROLLER_POLICY_AUTO);
    WEIGHT(list, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    ALIGN(list, EVAS_HINT_FILL, EVAS_HINT_FILL);
+   elm_genlist_compress_mode_set(list, EINA_TRUE);
    l = elm_box_children_get(cl->box);
    elm_box_pack_after(cl->box, list, l->data);
    evas_object_show(list);
