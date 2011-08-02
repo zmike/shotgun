@@ -39,6 +39,14 @@
  * @param msg The message to send
  * @param st The (optional) #Shotgun_Message_Status to set along with the message
  * Bool org.shotgun.contact.send(String JID, String msg, Shotgun_Message_Status st)
+ *
+ * @brief Send a message and message status to a contact, echoing the message to
+ * the contact's chat window
+ * @return TRUE on successful send, else FALSE
+ * @param JID The contact's JID
+ * @param msg The message to send
+ * @param st The (optional) #Shotgun_Message_Status to set along with the message
+ * Bool org.shotgun.contact.send_echo(String JID, String msg, Shotgun_Message_Status st)
 */
 
 extern int SHOTGUN_EVENT_CONNECT; /* Shotgun_Auth */

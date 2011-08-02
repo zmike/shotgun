@@ -113,6 +113,37 @@ error:
 }
 
 static DBusMessage *
+_dbus_contact_send_echo_cb(E_DBus_Object *obj, DBusMessage *msg)
+{
+   Contact_List *cl = e_dbus_object_data_get(obj);
+   DBusMessageIter iter;
+   DBusMessage *reply;
+   Contact *c;
+   char *name, *s;
+   Shotgun_Message_Status st;
+   Eina_Bool ret = EINA_FALSE;
+
+   dbus_message_iter_init(msg, &iter);
+   dbus_message_iter_get_basic(&iter, &name);
+   reply = dbus_message_new_method_return(msg);
+   dbus_message_iter_init_append(reply, &iter);
+   if ((!name) || (!name[0])) goto error;
+   s = strchr(name, '/');
+   if (s) name = strndupa(name, s - name);
+   c = eina_hash_find(cl->users, name);
+   if (!c) goto error;
+   dbus_message_iter_get_basic(&iter, &s);
+   if (!s) goto error;
+   dbus_message_iter_get_basic(&iter, &st);
+
+   ret = shotgun_message_send(c->base->account, name, s, st);
+   chat_message_insert(c, "me", s, EINA_TRUE);
+error:
+   dbus_message_iter_append_basic(&iter, DBUS_TYPE_BOOLEAN, &ret);
+   return reply;
+}
+
+static DBusMessage *
 _dbus_contact_icon_cb(E_DBus_Object *obj, DBusMessage *msg)
 {
    Contact_List *cl = e_dbus_object_data_get(obj);
@@ -154,6 +185,7 @@ ui_dbus_init(Contact_List *cl)
    e_dbus_interface_method_add(iface, "status", "s", "sui", _dbus_contact_status_cb);
    e_dbus_interface_method_add(iface, "icon", "s", "s", _dbus_contact_icon_cb);
    e_dbus_interface_method_add(iface, "send", "ssu", "b", _dbus_contact_send_cb);
+   e_dbus_interface_method_add(iface, "send_echo", "ssu", "b", _dbus_contact_send_echo_cb);
 }
 
 #ifdef HAVE_NOTIFY
