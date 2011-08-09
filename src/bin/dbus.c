@@ -66,20 +66,20 @@ _dbus_contact_status_cb(E_DBus_Object *obj, DBusMessage *msg)
 
    dbus_message_iter_init(msg, &iter);
    dbus_message_iter_get_basic(&iter, &name);
-   reply = dbus_message_new_method_return(msg);
-   dbus_message_iter_init_append(reply, &iter);
    if ((!name) || (!name[0])) goto error;
    s = strchr(name, '/');
    if (s) name = strndupa(name, s - name);
    c = eina_hash_find(cl->users, name);
    if (!c) goto error;
+   reply = dbus_message_new_method_return(msg);
+   dbus_message_iter_init_append(reply, &iter);
 
    dbus_message_iter_append_basic(&iter, 's', &c->description);
-   dbus_message_iter_append_basic(&iter, 'u', (uintptr_t*)c->status);
-   dbus_message_iter_append_basic(&iter, 'i', (intptr_t*)c->priority);
+   dbus_message_iter_append_basic(&iter, 'u', (uintptr_t*)&c->status);
+   dbus_message_iter_append_basic(&iter, 'i', (intptr_t*)&c->priority);
    return reply;
 error:
-   dbus_message_iter_append_basic(&iter, DBUS_TYPE_STRING, NULL);
+   reply = dbus_message_new_error(msg, "org.shotgun.contact.invalid", "Contact specified was invalid or not found!");
    return reply;
 }
 
