@@ -6,8 +6,8 @@ static void
 shotgun_presence_free(void *d __UNUSED__, Shotgun_Event_Presence *pres)
 {
    eina_stringshare_del(pres->jid);
+   eina_stringshare_del(pres->photo);
    free(pres->description);
-   free(pres->photo);
    free(pres);
 }
 

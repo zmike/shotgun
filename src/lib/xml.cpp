@@ -785,7 +785,10 @@ xml_presence_read(Shotgun_Auth *auth, char *xml, size_t size)
                   ret->vcard = EINA_TRUE;
                   node = it.child("photo");
                   if (!node.empty())
-                    ret->photo = strdup(node.child_value());
+                    {
+                       DBG("Photo sha1: %s", node.child_value());
+                       ret->photo = eina_stringshare_add(node.child_value());
+                    }
                }
           }
      }

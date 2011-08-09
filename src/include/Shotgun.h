@@ -143,8 +143,8 @@ typedef struct
 typedef struct
 {
    const char *jid;
+   const char *photo;
    char *description;
-   char *photo;
    int priority;
    Shotgun_User_Status status;
    Eina_Bool vcard : 1;
