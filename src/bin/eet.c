@@ -224,7 +224,7 @@ ui_eet_userinfo_add(Shotgun_Auth *auth, Shotgun_User_Info *info)
         return;
      }
    snprintf(buf, sizeof(buf), "%s/%s/img", shotgun_jid_get(auth), info->jid);
-   eet_write_cipher(ef, buf, info->photo.data, info->photo.size, 1, shotgun_password_get(auth));
+   eet_write(ef, buf, info->photo.data, info->photo.size, 1);
    eet_sync(ef);
    eet_data_descriptor_free(edd);
    INF("Wrote encrypted userinfo for %s to disk", info->jid);
@@ -248,7 +248,7 @@ ui_eet_userinfo_get(Shotgun_Auth *auth, const char *jid)
         return NULL;
      }
    snprintf(buf, sizeof(buf), "%s/%s/img", shotgun_jid_get(auth), jid);
-   info->photo.data = eet_read_cipher(ef, buf, (int*)&info->photo.size, shotgun_password_get(auth));
+   info->photo.data = eet_read(ef, buf, (int*)&info->photo.size);
    eet_data_descriptor_free(edd);
    INF("Read encrypted userinfo for %s from disk", jid);
    return info;
