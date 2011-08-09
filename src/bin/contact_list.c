@@ -218,7 +218,7 @@ _contact_list_status_menu(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Men
    if ((Shotgun_User_Status)elm_radio_value_get(radio) == val) return;
    elm_radio_value_set(radio, val);
    shotgun_presence_status_set(cl->account, val);
-   elm_object_focus(cl->status_entry);
+   elm_object_focus_set(cl->status_entry, EINA_TRUE);
    elm_entry_select_all(cl->status_entry);
    cl->status_timer = ecore_timer_add(3.0, (Ecore_Task_Cb)_contact_list_status_send, cl);
    evas_object_smart_callback_add(cl->status_entry, "changed", (Evas_Smart_Cb)_contact_list_status_changed, cl);

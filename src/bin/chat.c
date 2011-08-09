@@ -362,7 +362,7 @@ chat_window_new(Contact *c)
    ALIGN(entry, EVAS_HINT_FILL, 0);
    elm_box_pack_end(box, entry);
    evas_object_show(entry);
-   elm_object_focus(entry);
+   elm_object_focus_set(entry, EINA_TRUE);
 
    evas_object_smart_callback_add(entry, "activated", _chat_window_send_cb, c);
 
