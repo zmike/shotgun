@@ -17,6 +17,7 @@ typedef struct UI_Eet_Auth
 {
    const char *username;
    const char *domain;
+   const char *resource;
    const char *server;
 } UI_Eet_Auth;
 
@@ -136,6 +137,7 @@ ui_eet_auth_get(void)
         return NULL;
      }
    auth = shotgun_new(a->server, a->username, a->domain);
+   /* FIXME: use resource */
    if (!auth)
      {
         ERR("Could not create auth info!");
@@ -150,6 +152,7 @@ ui_eet_auth_get(void)
    eina_stringshare_del(a->server);
    eina_stringshare_del(a->username);
    eina_stringshare_del(a->domain);
+   eina_stringshare_del(a->resource);
    free(a);
    return auth;
 error:
@@ -157,6 +160,7 @@ error:
    eina_stringshare_del(a->server);
    eina_stringshare_del(a->username);
    eina_stringshare_del(a->domain);
+   eina_stringshare_del(a->resource);
    free(a);
    return NULL;
 }
@@ -171,15 +175,15 @@ ui_eet_auth_set(Shotgun_Auth *auth, Eina_Bool store_pw, Eina_Bool use_auth)
    UI_Eet_Auth a;
 
    ef = shotgun_data_get(auth);
-   s = shotgun_jid_get(auth);
    jid = shotgun_jid_get(auth);
    a.username = shotgun_username_get(auth);
    a.domain = shotgun_domain_get(auth);
+   a.resource = shotgun_resource_get(auth);
    a.server = shotgun_servername_get(auth);
    /* FIXME: list for multiple accounts */
    edd = eet_auth_edd_new();
 
-   eet_write(ef, "last_account", s, strlen(s) + 1, 0);
+   eet_write(ef, "last_account", jid, strlen(jid) + 1, 0);
 
    eet_data_write(ef, edd, jid, &a, 0);
    eet_data_descriptor_free(edd);
@@ -212,18 +216,20 @@ void
 ui_eet_userinfo_add(Shotgun_Auth *auth, Shotgun_User_Info *info)
 {
    char buf[1024];
+   const char *jid;
    Eet_Data_Descriptor *edd;
    Eet_File *ef = shotgun_data_get(auth);
 
+   jid = shotgun_jid_get(auth);
    edd = eet_userinfo_edd_new();
-   snprintf(buf, sizeof(buf), "%s/%s", shotgun_jid_get(auth), info->jid);
+   snprintf(buf, sizeof(buf), "%s/%s", jid, info->jid);
    if (!eet_data_write_cipher(ef, edd, buf, shotgun_password_get(auth), info, 0))
      {
         ERR("Failed to write userinfo for %s!", info->jid);
         eet_data_descriptor_free(edd);
         return;
      }
-   snprintf(buf, sizeof(buf), "%s/%s/img", shotgun_jid_get(auth), info->jid);
+   snprintf(buf, sizeof(buf), "%s/%s/img", jid, info->jid);
    eet_write(ef, buf, info->photo.data, info->photo.size, 1);
    eet_sync(ef);
    eet_data_descriptor_free(edd);
@@ -234,12 +240,14 @@ Shotgun_User_Info *
 ui_eet_userinfo_get(Shotgun_Auth *auth, const char *jid)
 {
    char buf[1024];
+   const char *me;
    Eet_Data_Descriptor *edd;
    Shotgun_User_Info *info;
    Eet_File *ef = shotgun_data_get(auth);
 
    edd = eet_userinfo_edd_new();
-   snprintf(buf, sizeof(buf), "%s/%s", shotgun_jid_get(auth), jid);
+   me = shotgun_jid_get(auth);
+   snprintf(buf, sizeof(buf), "%s/%s", me, jid);
    info = eet_data_read_cipher(ef, edd, buf, shotgun_password_get(auth));
    if (!info)
      {
@@ -247,7 +255,7 @@ ui_eet_userinfo_get(Shotgun_Auth *auth, const char *jid)
         eet_data_descriptor_free(edd);
         return NULL;
      }
-   snprintf(buf, sizeof(buf), "%s/%s/img", shotgun_jid_get(auth), jid);
+   snprintf(buf, sizeof(buf), "%s/%s/img", me, jid);
    info->photo.data = eet_read(ef, buf, (int*)&info->photo.size);
    eet_data_descriptor_free(edd);
    INF("Read encrypted userinfo for %s from disk", jid);

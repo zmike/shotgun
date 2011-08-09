@@ -104,7 +104,7 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
                {
                   c->plist = eina_list_append(c->plist, pres);
                   if (ev->vcard && ((!c->info) || (c->cur && c->info &&
-                      ((c->info->photo.sha1 != c->cur->photo) || (c->cur->photo && c->info->photo.data)))))
+                      ((c->info->photo.sha1 != c->cur->photo) || (c->cur->photo && (!c->info->photo.data))))))
                     shotgun_iq_vcard_get(ev->account, c->base->jid);
                   return EINA_TRUE;
                }
@@ -134,14 +134,14 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
                   c->info = ui_eet_userinfo_get(cl->account, c->base->jid);
                   if (c->info) cl->list_item_update[cl->mode](c->list_item);
                   if ((!c->info) || (c->cur && c->info &&
-                      ((c->info->photo.sha1 != c->cur->photo) || (c->cur->photo && c->info->photo.data))))
+                      ((c->info->photo.sha1 != c->cur->photo) || (c->cur->photo && (!c->info->photo.data)))))
                     shotgun_iq_vcard_get(ev->account, c->base->jid);
                }
           }
         else
           {
              if (ev->vcard && ((!c->info) || (c->cur && c->info &&
-                 ((c->info->photo.sha1 != c->cur->photo) || (c->cur->photo && c->info->photo.data)))))
+                 ((c->info->photo.sha1 != c->cur->photo) || (c->cur->photo && (!c->info->photo.data))))))
                shotgun_iq_vcard_get(ev->account, c->base->jid);
              cl->list_item_update[cl->mode](c->list_item);
           }
