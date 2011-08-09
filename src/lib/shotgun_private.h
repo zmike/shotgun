@@ -70,7 +70,8 @@ struct Shotgun_Auth
    const char *user; /* username */
    const char *resource; /* identifier for "location" of user */
    const char *bind; /* full JID from xmpp:bind */
-   const char *jid; /* bare JID */
+   const char *base_jid; /* bare JID */
+   const char *jid; /* full JID */
    char *desc; /* current status message */
    Shotgun_User_Status status; /* current status */
    int priority;

@@ -257,6 +257,7 @@ shotgun_new(const char *svr_name, const char *username, const char *domain)
    auth->from = eina_stringshare_add(domain);
    auth->resource = eina_stringshare_add("SHOTGUN!");
    auth->jid = eina_stringshare_printf("%s@%s/%s", auth->user, auth->from, auth->resource);
+   auth->base_jid = eina_stringshare_printf("%s@%s", auth->user, auth->from);
    auth->svr_name = eina_stringshare_add(svr_name);
    return auth;
 }
@@ -274,6 +275,14 @@ shotgun_username_get(Shotgun_Auth *auth)
    EINA_SAFETY_ON_NULL_RETURN_VAL(auth, NULL);
 
    return auth->user;
+}
+
+const char *
+shotgun_resource_get(Shotgun_Auth *auth)
+{
+   EINA_SAFETY_ON_NULL_RETURN_VAL(auth, NULL);
+
+   return auth->resource;
 }
 
 const char *
@@ -302,6 +311,13 @@ shotgun_servername_get(Shotgun_Auth *auth)
 
 const char *
 shotgun_jid_get(Shotgun_Auth *auth)
+{
+   EINA_SAFETY_ON_NULL_RETURN_VAL(auth, NULL);
+   return auth->base_jid;
+}
+
+const char *
+shotgun_jid_full_get(Shotgun_Auth *auth)
 {
    EINA_SAFETY_ON_NULL_RETURN_VAL(auth, NULL);
    return auth->jid;
