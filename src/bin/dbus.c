@@ -93,9 +93,14 @@ _dbus_contact_send_cb(E_DBus_Object *obj, DBusMessage *msg)
    char *name, *s;
    Shotgun_Message_Status st;
    Eina_Bool ret = EINA_FALSE;
+   DBusError error;
 
-   dbus_message_iter_init(msg, &iter);
-   dbus_message_iter_get_basic(&iter, &name);
+   memset(&error, 0, sizeof(DBusError));
+   dbus_message_get_args(msg, &error,
+			 's', &name,
+    's', &s,
+    'u', &st,
+			 DBUS_TYPE_INVALID);
    reply = dbus_message_new_method_return(msg);
    dbus_message_iter_init_append(reply, &iter);
    if ((!name) || (!name[0])) goto error;
@@ -103,9 +108,7 @@ _dbus_contact_send_cb(E_DBus_Object *obj, DBusMessage *msg)
    if (s) name = strndupa(name, s - name);
    c = eina_hash_find(cl->users, name);
    if (!c) goto error;
-   dbus_message_iter_get_basic(&iter, &s);
    if (!s) goto error;
-   dbus_message_iter_get_basic(&iter, &st);
    ret = shotgun_message_send(c->base->account, c->cur ? c->cur->jid : c->base->jid, s, st);
 error:
    dbus_message_iter_append_basic(&iter, DBUS_TYPE_BOOLEAN, &ret);
@@ -122,9 +125,14 @@ _dbus_contact_send_echo_cb(E_DBus_Object *obj, DBusMessage *msg)
    char *name, *s;
    Shotgun_Message_Status st;
    Eina_Bool ret = EINA_FALSE;
+   DBusError error;
 
-   dbus_message_iter_init(msg, &iter);
-   dbus_message_iter_get_basic(&iter, &name);
+   memset(&error, 0, sizeof(DBusError));
+   dbus_message_get_args(msg, &error,
+			 's', &name,
+    's', &s,
+    'u', &st,
+			 DBUS_TYPE_INVALID);
    reply = dbus_message_new_method_return(msg);
    dbus_message_iter_init_append(reply, &iter);
    if ((!name) || (!name[0])) goto error;
@@ -132,9 +140,7 @@ _dbus_contact_send_echo_cb(E_DBus_Object *obj, DBusMessage *msg)
    if (s) name = strndupa(name, s - name);
    c = eina_hash_find(cl->users, name);
    if (!c) goto error;
-   dbus_message_iter_get_basic(&iter, &s);
    if (!s) goto error;
-   dbus_message_iter_get_basic(&iter, &st);
 
    ret = shotgun_message_send(c->base->account, name, s, st);
    chat_message_insert(c, "me", s, EINA_TRUE);
