@@ -24,7 +24,11 @@ event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev)
                 break;
              }
            shotgun_user_info_free(c->info);
-           if (c->cur && c->cur->photo) info->photo.sha1 = eina_stringshare_ref(c->cur->photo);
+           if (c->cur && c->cur->photo)
+             {
+                INF("Found contact photo sha1: %s", c->cur->photo);
+                info->photo.sha1 = eina_stringshare_ref(c->cur->photo);
+             }
            c->info = info;
            ev->ev = NULL;
            if (c->list_item && (info->photo.data || info->full_name)) cl->list_item_update[cl->mode](c->list_item);
@@ -73,6 +77,9 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
              ev->description = NULL;
              pres->priority = ev->priority;
              pres->status = ev->status;
+             pres->photo = ev->photo;
+             ev->photo = NULL;
+             pres->vcard = ev->vcard;
              break;
           }
         if ((!pres) || (pres->jid != ev->jid))
@@ -84,12 +91,21 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
              ev->description = NULL;
              pres->priority = ev->priority;
              pres->status = ev->status;
+             pres->photo = ev->photo;
+             ev->photo = NULL;
+             pres->vcard = ev->vcard;
           }
         if (c->cur)
           {
+             if (pres->photo && (!c->cur->photo))
+               c->cur->photo = eina_stringshare_ref(pres->photo);
+             c->cur->vcard |= pres->vcard;
              if (ev->priority < c->cur->priority)
                {
                   c->plist = eina_list_append(c->plist, pres);
+                  if (ev->vcard && ((!c->info) || (c->cur && c->info &&
+                      ((c->info->photo.sha1 != c->cur->photo) || (c->cur->photo && c->info->photo.data)))))
+                    shotgun_iq_vcard_get(ev->account, c->base->jid);
                   return EINA_TRUE;
                }
              c->plist = eina_list_remove(c->plist, pres);
@@ -117,12 +133,18 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
                {
                   c->info = ui_eet_userinfo_get(cl->account, c->base->jid);
                   if (c->info) cl->list_item_update[cl->mode](c->list_item);
-                  if ((!c->info) || (c->cur && c->info && (c->info->photo.sha1 != c->cur->photo)))
+                  if ((!c->info) || (c->cur && c->info &&
+                      ((c->info->photo.sha1 != c->cur->photo) || (c->cur->photo && c->info->photo.data))))
                     shotgun_iq_vcard_get(ev->account, c->base->jid);
                }
           }
         else
-          cl->list_item_update[cl->mode](c->list_item);
+          {
+             if (ev->vcard && ((!c->info) || (c->cur && c->info &&
+                 ((c->info->photo.sha1 != c->cur->photo) || (c->cur->photo && c->info->photo.data)))))
+               shotgun_iq_vcard_get(ev->account, c->base->jid);
+             cl->list_item_update[cl->mode](c->list_item);
+          }
      }
    if (c->plist) c->plist = eina_list_sort(c->plist, 0, (Eina_Compare_Cb)_list_sort_cb);
    return EINA_TRUE;
