@@ -64,11 +64,11 @@ shotgun_data_detect(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
              DBG("Creating event buffer");
              auth->buf = eina_strbuf_new();
           }
-        if ((len >= 38) &&
-                 (!memcmp(data, "<?xml version=\"1.0", sizeof("<?xml version=\"1.0") - 1)))
+        if ((len >= 21) &&
+                 (!memcmp(data, "<?xml version=", sizeof("<?xml version=") - 1)))
           {
              DBG("Received xml version tag");
-             data += 38, len -= 38;
+             data += 21, len -= 21;
           }
         DBG("Appending %i to buffer", len);
         eina_strbuf_append_length(auth->buf, data, len);
@@ -85,11 +85,11 @@ shotgun_data_detect(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
    data = auth->buf ? (char*)eina_strbuf_string_get(auth->buf) : (char*)ev->data;
    len = auth->buf ? eina_strbuf_length_get(auth->buf) : (size_t)ev->size;
 
-   if ((len >= 38) &&
-            (!memcmp(data, "<?xml version=\"1.0", sizeof("<?xml version=\"1.0") - 1)))
+   if ((len >= 21) &&
+            (!memcmp(data, "<?xml version=", sizeof("<?xml version=") - 1)))
      {
         DBG("Received xml version tag");
-        data += 38, len -= 38;
+        data += 21, len -= 21;
      }
 
    tag = data + 1, len--;;
