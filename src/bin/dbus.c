@@ -90,7 +90,7 @@ _dbus_contact_send_cb(E_DBus_Object *obj, DBusMessage *msg)
    DBusMessageIter iter;
    DBusMessage *reply;
    Contact *c;
-   char *name, *s;
+   char *p, *name, *s;
    Shotgun_Message_Status st;
    Eina_Bool ret = EINA_FALSE;
    DBusError error;
@@ -104,8 +104,8 @@ _dbus_contact_send_cb(E_DBus_Object *obj, DBusMessage *msg)
    reply = dbus_message_new_method_return(msg);
    dbus_message_iter_init_append(reply, &iter);
    if ((!name) || (!name[0]) || (!s)) goto error;
-   s = strchr(name, '/');
-   if (s) name = strndupa(name, s - name);
+   p = strchr(name, '/');
+   if (p) name = strndupa(name, p - name);
    c = eina_hash_find(cl->users, name);
    if (!c) goto error;
    ret = shotgun_message_send(c->base->account, c->cur ? c->cur->jid : c->base->jid, s, st);
@@ -121,7 +121,7 @@ _dbus_contact_send_echo_cb(E_DBus_Object *obj, DBusMessage *msg)
    DBusMessageIter iter;
    DBusMessage *reply;
    Contact *c;
-   char *name, *s;
+   char *p, *name, *s;
    Shotgun_Message_Status st;
    Eina_Bool ret = EINA_FALSE;
    DBusError error;
@@ -135,8 +135,8 @@ _dbus_contact_send_echo_cb(E_DBus_Object *obj, DBusMessage *msg)
    reply = dbus_message_new_method_return(msg);
    dbus_message_iter_init_append(reply, &iter);
    if ((!name) || (!name[0]) || (!s)) goto error;
-   s = strchr(name, '/');
-   if (s) name = strndupa(name, s - name);
+   p = strchr(name, '/');
+   if (p) name = strndupa(name, p - name);
    c = eina_hash_find(cl->users, name);
    if (!c) goto error;
 
