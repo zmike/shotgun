@@ -786,8 +786,12 @@ xml_presence_read(Shotgun_Auth *auth, char *xml, size_t size)
                   node = it.child("photo");
                   if (!node.empty())
                     {
-                       DBG("Photo sha1: %s", node.child_value());
-                       ret->photo = eina_stringshare_add(node.child_value());
+                       ns = node.child_value();
+                       if (ns && *ns)
+                         {
+                            DBG("Photo sha1: %s", node.child_value());
+                            ret->photo = eina_stringshare_add(node.child_value());
+                         }
                     }
                }
           }
