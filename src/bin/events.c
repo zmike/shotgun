@@ -165,11 +165,14 @@ event_message_cb(void *data, int type __UNUSED__, void *event)
    if (!c) return EINA_TRUE;
 
    if (!c->chat_window)
-     chat_window_new(c);
+     {
+        if (msg->msg /*|| (msg->status && cl->open window on status)*/)
+          chat_window_new(c);
+     }
 
    if (msg->msg)
      chat_message_insert(c, contact_name_get(c), msg->msg, EINA_FALSE);
-   if (msg->status)
+   if (c->chat_window && msg->status)
      chat_message_status(c, msg);
 
    return EINA_TRUE;
