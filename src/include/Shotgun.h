@@ -27,6 +27,14 @@
  * @param priority The contact's priority on return
  * String org.shotgun.contact.status(String JID, Shotgun_User_Status *st, int *priority)
  *
+ * @brief Retrieve the display name, icon, and full status of a contact's current presence (based on priority)
+ * @return The contact's display name
+ * @param JID The contact's JID
+ * @param icon The contact's user avatar (if set) on return
+ * @param st The contact's status on return
+ * @param priority The contact's priority on return
+ * String org.shotgun.contact.info(String JID, const char **icon, Shotgun_User_Status *st, int *priority)
+ *
  * @brief Retrieve the contact's icon's eet key
  * @return The key to use for retrieving the eet key of the icon belonging to contact represented
  * by @p JID
@@ -47,8 +55,24 @@
  * @param msg The message to send
  * @param st The (optional) #Shotgun_Message_Status to set along with the message
  * Bool org.shotgun.contact.send_echo(String JID, String msg, Shotgun_Message_Status st)
+ * ---------------------------------------------------------------------------------------------
+ * SIGNALS
+ *
+ * @brief Signal for new message
+ * @param msg The message on return
+ * @return The jid of the message's sender
+ * String org.shotgun.core.new_msg(const char **msg)
+ *
+ * @brief Signal for when the user changes his own status
+ * @param st The message on return
+ * @param priority The user's priority on return
+ * @return The status message (if set)
+ * String org.shotgun.core.status_self(Shotgun_User_Status *st, int *priority)
 */
-
+   iface = e_dbus_interface_new("org.shotgun.core");
+   e_dbus_object_interface_attach(cl->dbus_object, iface);
+   e_dbus_interface_signal_add(iface, "new_msg", "ss");
+   e_dbus_interface_signal_add(iface, "status_self", "sui");
 extern int SHOTGUN_EVENT_CONNECT; /* Shotgun_Auth */
 extern int SHOTGUN_EVENT_CONNECTION_STATE;
 extern int SHOTGUN_EVENT_DISCONNECT; /* Shotgun_Auth */
