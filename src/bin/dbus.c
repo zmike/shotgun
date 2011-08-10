@@ -169,7 +169,7 @@ _dbus_contact_info_cb(E_DBus_Object *obj, DBusMessage *msg)
    c = eina_hash_find(cl->users, name);
    if (!c) goto error;
    reply = dbus_message_new_method_return(msg);
-   if (c->cur->photo)
+   if (c->cur && c->cur->photo)
      {
         size_t size = sizeof(char) * (strlen(shotgun_jid_get(cl->account)) + strlen(c->base->jid) + 6);
         s = alloca(size);
@@ -208,7 +208,7 @@ _dbus_contact_icon_cb(E_DBus_Object *obj, DBusMessage *msg)
    c = eina_hash_find(cl->users, name);
    if (!c) goto error;
    reply = dbus_message_new_method_return(msg);
-   if (c->cur->photo)
+   if (c->cur && c->cur->photo)
      {
         size_t size = sizeof(char) * (strlen(shotgun_jid_get(cl->account)) + strlen(c->base->jid) + 6);
         s = alloca(size);
