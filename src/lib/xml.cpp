@@ -759,7 +759,7 @@ xml_presence_read(Shotgun_Auth *auth, char *xml, size_t size)
         if (!strcmp(it.name(), "status"))
           {
              desc = it.child_value();
-             if (desc && desc[0]) ret->description = strdup(desc);
+             if (desc && desc[0]) ret->description = eina_stringshare_add(desc);
           }
         else if (!strcmp(it.name(), "show"))
           {

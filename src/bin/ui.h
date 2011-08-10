@@ -102,7 +102,7 @@ struct Contact
    Eina_List *imgs;
    Shotgun_User_Status status;
    int priority;
-   char *description;
+   const char *description;
    const char *force_resource;
    const char *last_conv;
    const char *tooltip_label;

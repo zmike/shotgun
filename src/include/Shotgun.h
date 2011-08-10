@@ -69,10 +69,7 @@
  * @return The status message (if set)
  * String org.shotgun.core.status_self(Shotgun_User_Status *st, int *priority)
 */
-   iface = e_dbus_interface_new("org.shotgun.core");
-   e_dbus_object_interface_attach(cl->dbus_object, iface);
-   e_dbus_interface_signal_add(iface, "new_msg", "ss");
-   e_dbus_interface_signal_add(iface, "status_self", "sui");
+
 extern int SHOTGUN_EVENT_CONNECT; /* Shotgun_Auth */
 extern int SHOTGUN_EVENT_CONNECTION_STATE;
 extern int SHOTGUN_EVENT_DISCONNECT; /* Shotgun_Auth */
@@ -168,7 +165,7 @@ typedef struct
 {
    const char *jid;
    const char *photo;
-   char *description;
+   const char *description;
    int priority;
    Shotgun_User_Status status;
    Eina_Bool vcard : 1;
@@ -214,7 +211,7 @@ int shotgun_presence_priority_get(Shotgun_Auth *auth);
 void shotgun_presence_priority_set(Shotgun_Auth *auth, int priority);
 const char *shotgun_presence_desc_get(Shotgun_Auth *auth);
 void shotgun_presence_desc_set(Shotgun_Auth *auth, const char *desc);
-void shotgun_presence_desc_manage(Shotgun_Auth *auth, char *desc);
+void shotgun_presence_desc_manage(Shotgun_Auth *auth, const char *desc);
 void shotgun_presence_set(Shotgun_Auth *auth, Shotgun_User_Status st, const char *desc, int priority);
 const char *shotgun_presence_get(Shotgun_Auth *auth, Shotgun_User_Status *st, int *priority);
 Eina_Bool shotgun_presence_send(Shotgun_Auth *auth);

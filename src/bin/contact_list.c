@@ -391,13 +391,12 @@ contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev)
      {
         EINA_LIST_FOREACH_SAFE(c->plist, l, ll, pres)
           {
-             if (ev->jid == pres->jid)
-               {
-                  if (ev->jid == c->force_resource) c->force_resource = NULL;
-                  shotgun_event_presence_free(pres);
-                  c->plist = eina_list_remove_list(c->plist, l);
-                  break;
-               }
+             if (ev->jid != pres->jid) continue;
+
+             if (ev->jid == c->force_resource) c->force_resource = NULL;
+             shotgun_event_presence_free(pres);
+             c->plist = eina_list_remove_list(c->plist, l);
+             break;
           }
      }
    contact_jids_menu_del(c, ev->jid);

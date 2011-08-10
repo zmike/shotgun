@@ -7,7 +7,7 @@ shotgun_presence_free(void *d __UNUSED__, Shotgun_Event_Presence *pres)
 {
    eina_stringshare_del(pres->jid);
    eina_stringshare_del(pres->photo);
-   free(pres->description);
+   eina_stringshare_del(pres->description);
    free(pres);
 }
 
@@ -66,12 +66,7 @@ void
 shotgun_presence_set(Shotgun_Auth *auth, Shotgun_User_Status st, const char *desc, int priority)
 {
    auth->priority = priority;
-   if (desc) auth->desc = strdup(desc);
-   else
-     {
-        free(auth->desc);
-        auth->desc = NULL;
-     }
+   eina_stringshare_replace(&auth->desc, desc);
    auth->status = st;
 }
 
@@ -114,16 +109,14 @@ void
 shotgun_presence_desc_set(Shotgun_Auth *auth, const char *desc)
 {
    EINA_SAFETY_ON_NULL_RETURN(auth);
-   free(auth->desc);
-   if (desc) auth->desc = strdup(desc);
-   else auth->desc = NULL;
+   eina_stringshare_replace(&auth->desc, desc);
 }
 
 void
-shotgun_presence_desc_manage(Shotgun_Auth *auth, char *desc)
+shotgun_presence_desc_manage(Shotgun_Auth *auth, const char *desc)
 {
    EINA_SAFETY_ON_NULL_RETURN(auth);
-   free(auth->desc);
+   eina_stringshare_del(auth->desc);
    auth->desc = desc;
 }
 

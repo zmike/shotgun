@@ -252,7 +252,7 @@ shotgun_free(Shotgun_Auth *auth)
    eina_stringshare_del(auth->jid);
    eina_stringshare_del(auth->svr_name);
    eina_stringshare_del(auth->bind);
-   free(auth->desc);
+   eina_stringshare_del(auth->desc);
    if (auth->buf) eina_strbuf_free(auth->buf);
    free(auth);
 }

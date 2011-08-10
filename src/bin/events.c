@@ -72,8 +72,9 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
           {
              if (ev->jid != pres->jid) continue;
 
-             free(pres->description);
-             pres->description = ev->description;
+             eina_stringshare_del(pres->description);
+             if (ev->description && ev->description[0])
+               pres->description = ev->description;
              ev->description = NULL;
              pres->priority = ev->priority;
              pres->status = ev->status;
