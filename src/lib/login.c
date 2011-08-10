@@ -70,9 +70,11 @@ shotgun_login(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
           {
              auth->state = SHOTGUN_CONNECTION_STATE_TLS;
              shotgun_write(ev->server, XML_STARTTLS, sizeof(XML_STARTTLS) - 1);
+             break;
           }
-        else /* who cares */
-          shotgun_disconnect(auth);
+        /* who cares */
+        ERR("STARTTLS support not detected in stream!");
+        shotgun_disconnect(auth);
         break;
       case SHOTGUN_CONNECTION_STATE_TLS:
         if (xml_starttls_read(data, size))
