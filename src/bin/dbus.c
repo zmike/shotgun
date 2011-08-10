@@ -176,7 +176,7 @@ _dbus_contact_icon_cb(E_DBus_Object *obj, DBusMessage *msg)
      }
    else s = "";
    dbus_message_append_args(reply,
-     's', s,
+     's', &s,
      DBUS_TYPE_INVALID);
    return reply; /* get icon name from eet file */
 error:
@@ -191,8 +191,8 @@ ui_dbus_signal_message(Contact_List *cl, Shotgun_Event_Message *msg)
 
    sig = dbus_message_new_signal("/org/shotgun/remote", "org.shotgun.core", "new_msg");
    dbus_message_append_args(sig,
-     's', msg->jid,
-     's', msg->msg,
+     's', &msg->jid,
+     's', &msg->msg,
      DBUS_TYPE_INVALID);
    e_dbus_message_send(cl->dbus, sig, NULL, -1, NULL);
    dbus_message_unref(sig);
@@ -202,12 +202,16 @@ void
 ui_dbus_signal_status_self(Contact_List *cl)
 {
    DBusMessage *sig;
+   const char *desc;
+   Shotgun_User_Status st;
+   int priority;
+   desc = shotgun_presence_get(cl->account, &st, &priority);
 
    sig = dbus_message_new_signal("/org/shotgun/remote", "org.shotgun.core", "status_self");
    dbus_message_append_args(sig,
-     's', shotgun_presence_desc_get(cl->account),
-     'u', shotgun_presence_status_get(cl->account),
-     'i', shotgun_presence_priority_get(cl->account),
+     's', &desc,
+     'u', &st,
+     'i', &priority,
      DBUS_TYPE_INVALID);
    e_dbus_message_send(cl->dbus, sig, NULL, -1, NULL);
    dbus_message_unref(sig);
