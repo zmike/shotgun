@@ -28,6 +28,12 @@ chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me)
 #endif
    elm_entry_entry_append(e, buf);
    elm_entry_cursor_end_set(e);
+/* FIXME:
+   if (cl->raise windows on event)
+     elm_win_activate(c->chat_window);
+   if (cl->list_promote on event)
+     cl->item_promote[cl->mode](c->list_item);
+*/
 }
 
 void
