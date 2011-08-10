@@ -39,6 +39,28 @@ _contact_list_click_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, void *ev)
    chat_window_new(c);
 }
 
+static void
+_contact_list_rightclick_menu_hide_cb(void *data __UNUSED__, Evas *e __UNUSED__, Evas_Object *obj, void *event_info __UNUSED__)
+{
+   evas_object_del(obj);
+}
+
+static void
+_contact_list_rightclick_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj, Evas_Event_Mouse_Down *ev)
+{
+   Evas_Object *menu;
+   void *it;
+   if (ev->button != 3) return;
+
+   it = cl->list_selected_item_get[cl->mode](obj); /* FIXME: uses selected item, not clicked item */
+   menu = elm_menu_add(elm_object_top_widget_get(obj));
+   elm_menu_item_add(menu, NULL, "menu/delete", "Remove", NULL, NULL);
+   evas_object_event_callback_add(menu, EVAS_CALLBACK_HIDE,
+                                  (Evas_Object_Event_Cb)_contact_list_rightclick_menu_hide_cb, NULL);
+   elm_menu_move(menu, ev->output.x, ev->output.y);
+   evas_object_show(menu);
+}
+
 static char *
 _it_label_get_grid(Contact *c, Evas_Object *obj __UNUSED__, const char *part __UNUSED__)
 {
@@ -133,6 +155,8 @@ _contact_list_list_add(Contact_List *cl)
    evas_object_show(list);
    evas_object_smart_callback_add(list, "activated",
                                   (Evas_Smart_Cb)_contact_list_click_cb, cl);
+   evas_object_event_callback_add(list, EVAS_CALLBACK_MOUSE_DOWN,
+                                  (Evas_Object_Event_Cb)_contact_list_rightclick_cb, cl);
 }
 
 static void
@@ -153,6 +177,8 @@ _contact_list_grid_add(Contact_List *cl)
    evas_object_show(grid);
    evas_object_smart_callback_add(grid, "activated",
                                   (Evas_Smart_Cb)_contact_list_click_cb, cl);
+   evas_object_event_callback_add(grid, EVAS_CALLBACK_MOUSE_DOWN,
+                                  (Evas_Object_Event_Cb)_contact_list_rightclick_cb, cl);
 }
 
 static void
@@ -467,6 +493,8 @@ contact_list_new(Shotgun_Auth *auth)
 
    cl->list_item_contact_get[0] = (Ecore_Data_Cb)elm_genlist_item_data_get;
    cl->list_item_contact_get[1] = (Ecore_Data_Cb)elm_gengrid_item_data_get;
+   cl->list_selected_item_get[0] = (Ecore_Data_Cb)elm_genlist_selected_item_get;
+   cl->list_selected_item_get[1] = (Ecore_Data_Cb)elm_gengrid_selected_item_get;
    cl->list_item_parent_get[0] = (Ecore_Data_Cb)elm_genlist_item_genlist_get;
    cl->list_item_parent_get[1] = (Ecore_Data_Cb)elm_gengrid_item_gengrid_get;
    cl->list_item_del[0] = (Ecore_Cb)elm_genlist_item_del;

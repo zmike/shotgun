@@ -79,6 +79,7 @@ struct Contact_List
    void *itc;
    Ecore_Data_Cb list_item_contact_get[2];
    Ecore_Data_Cb list_item_parent_get[2];
+   Ecore_Data_Cb list_selected_item_get[2];
    Ecore_Cb list_item_del[2];
    Ecore_Cb list_item_update[2];
    Contact_List_Item_Tooltip_Cb list_item_tooltip_add[2];
