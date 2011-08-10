@@ -298,19 +298,19 @@ contact_list_user_add(Contact_List *cl, Contact *c)
    static Elm_Genlist_Item_Class glit = {
         .item_style = "double_label",
         .func = {
-             .label_get = (GenlistItemLabelGetFunc)_it_label_get_list,
-             .icon_get = (GenlistItemIconGetFunc)_it_icon_get,
-             .state_get = (GenlistItemStateGetFunc)_it_state_get,
-             .del = (GenlistItemDelFunc)_it_del
+             .label_get = (Elm_Genlist_Item_Label_Get_Cb)_it_label_get_list,
+             .icon_get = (Elm_Genlist_Item_Icon_Get_Cb)_it_icon_get,
+             .state_get = (Elm_Genlist_Item_State_Get_Cb)_it_state_get,
+             .del = (Elm_Genlist_Item_Del_Cb)_it_del
         }
    };
    static Elm_Gengrid_Item_Class ggit = {
         .item_style = "default",
         .func = {
-             .label_get = (GridItemLabelGetFunc)_it_label_get_grid,
-             .icon_get = (GridItemIconGetFunc)_it_icon_get,
-             .state_get = (GridItemStateGetFunc)_it_state_get,
-             .del = (GridItemDelFunc)_it_del
+             .label_get = (Elm_Gengrid_Item_Label_Get_Cb)_it_label_get_grid,
+             .icon_get = (Elm_Gengrid_Item_Icon_Get_Cb)_it_icon_get,
+             .state_get = (Elm_Gengrid_Item_State_Get_Cb)_it_state_get,
+             .del = (Elm_Gengrid_Item_Del_Cb)_it_del
         }
    };
    if (cl->mode)
