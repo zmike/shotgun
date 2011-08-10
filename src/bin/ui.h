@@ -156,6 +156,8 @@ void ui_eet_userinfo_add(Shotgun_Auth *auth, Shotgun_User_Info *info);
 Shotgun_User_Info *ui_eet_userinfo_get(Shotgun_Auth *auth, const char *jid);
 
 #ifdef HAVE_DBUS
+void ui_dbus_signal_message(Contact_List *cl, Shotgun_Event_Message *msg);
+void ui_dbus_signal_status_self(Contact_List *cl);
 void ui_dbus_init(Contact_List *cl);
 # ifdef HAVE_NOTIFY
 void ui_dbus_notify(const char *from, const char *msg);
@@ -163,7 +165,7 @@ void ui_dbus_notify(const char *from, const char *msg);
 #endif
 Eina_Bool event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev);
 Eina_Bool event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence *ev);
-Eina_Bool event_message_cb(void *data, int type __UNUSED__, void *event);
+Eina_Bool event_message_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Message *msg);
 
 const char *util_configdir_get(void);
 Eina_Bool util_configdir_create(void);

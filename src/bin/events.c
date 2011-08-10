@@ -151,10 +151,8 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
 }
 
 Eina_Bool
-event_message_cb(void *data, int type __UNUSED__, void *event)
+event_message_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Message *msg)
 {
-   Shotgun_Event_Message *msg = event;
-   Contact_List *cl = data;
    Contact *c;
    char *jid, *p;
 
@@ -171,7 +169,12 @@ event_message_cb(void *data, int type __UNUSED__, void *event)
      }
 
    if (msg->msg)
-     chat_message_insert(c, contact_name_get(c), msg->msg, EINA_FALSE);
+     {
+        chat_message_insert(c, contact_name_get(c), msg->msg, EINA_FALSE);
+#ifdef HAVE_DBUS
+        ui_dbus_signal_message(cl, msg);
+#endif
+     }
    if (c->chat_window && msg->status)
      chat_message_status(c, msg);
 

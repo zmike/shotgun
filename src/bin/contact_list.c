@@ -227,6 +227,9 @@ static Eina_Bool
 _contact_list_status_send(Contact_List *cl)
 {
    shotgun_presence_send(cl->account);
+#ifdef HAVE_DBUS
+   ui_dbus_signal_status_self(cl);
+#endif
 
    cl->status_timer = NULL;
    evas_object_smart_callback_del(cl->status_entry, "changed", (Evas_Smart_Cb)_contact_list_status_changed);

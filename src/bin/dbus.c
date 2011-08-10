@@ -59,24 +59,26 @@ static DBusMessage *
 _dbus_contact_status_cb(E_DBus_Object *obj, DBusMessage *msg)
 {
    Contact_List *cl = e_dbus_object_data_get(obj);
-   DBusMessageIter iter;
    DBusMessage *reply;
    Contact *c;
    char *name, *s;
+   DBusError error;
 
-   dbus_message_iter_init(msg, &iter);
-   dbus_message_iter_get_basic(&iter, &name);
+   memset(&error, 0, sizeof(DBusError));
+   dbus_message_get_args(msg, &error,
+     's', &name,
+     DBUS_TYPE_INVALID);
    if ((!name) || (!name[0])) goto error;
    s = strchr(name, '/');
    if (s) name = strndupa(name, s - name);
    c = eina_hash_find(cl->users, name);
    if (!c) goto error;
    reply = dbus_message_new_method_return(msg);
-   dbus_message_iter_init_append(reply, &iter);
-
-   dbus_message_iter_append_basic(&iter, 's', &c->description);
-   dbus_message_iter_append_basic(&iter, 'u', (uintptr_t*)&c->status);
-   dbus_message_iter_append_basic(&iter, 'i', (intptr_t*)&c->priority);
+   dbus_message_append_args(reply,
+     's', &c->description,
+     'u', (uintptr_t*)&c->status,
+     'i', (intptr_t*)&c->priority,
+     DBUS_TYPE_INVALID);
    return reply;
 error:
    reply = dbus_message_new_error(msg, "org.shotgun.contact.invalid", "Contact specified was invalid or not found!");
@@ -151,10 +153,64 @@ static DBusMessage *
 _dbus_contact_icon_cb(E_DBus_Object *obj, DBusMessage *msg)
 {
    Contact_List *cl = e_dbus_object_data_get(obj);
+   char *name, *s;
+   Contact *c;
    DBusMessage *reply;
+   DBusError error;
 
+   memset(&error, 0, sizeof(DBusError));
+   dbus_message_get_args(msg, &error,
+     's', &name,
+     DBUS_TYPE_INVALID);
+   if ((!name) || (!name[0])) goto error;
+   s = strchr(name, '/');
+   if (s) name = strndupa(name, s - name);
+   c = eina_hash_find(cl->users, name);
+   if (!c) goto error;
    reply = dbus_message_new_method_return(msg);
+   if (c->cur->photo)
+     {
+        size_t size = sizeof(char) * (strlen(shotgun_jid_get(cl->account)) + strlen(c->base->jid) + 6);
+        s = alloca(size);
+        snprintf(s, size, "%s/%s/img", shotgun_jid_get(cl->account), c->base->jid);
+     }
+   else s = "";
+   dbus_message_append_args(reply,
+     's', s,
+     DBUS_TYPE_INVALID);
    return reply; /* get icon name from eet file */
+error:
+   reply = dbus_message_new_error(msg, "org.shotgun.contact.invalid", "Contact specified was invalid or not found!");
+   return reply;
+}
+
+void
+ui_dbus_signal_message(Contact_List *cl, Shotgun_Event_Message *msg)
+{
+   DBusMessage *sig;
+
+   sig = dbus_message_new_signal("/org/shotgun/remote", "org.shotgun.core", "new_msg");
+   dbus_message_append_args(sig,
+     's', msg->jid,
+     's', msg->msg,
+     DBUS_TYPE_INVALID);
+   e_dbus_message_send(cl->dbus, sig, NULL, -1, NULL);
+   dbus_message_unref(sig);
+}
+
+void
+ui_dbus_signal_status_self(Contact_List *cl)
+{
+   DBusMessage *sig;
+
+   sig = dbus_message_new_signal("/org/shotgun/remote", "org.shotgun.core", "status_self");
+   dbus_message_append_args(sig,
+     's', shotgun_presence_desc_get(cl->account),
+     'u', shotgun_presence_status_get(cl->account),
+     'i', shotgun_presence_priority_get(cl->account),
+     DBUS_TYPE_INVALID);
+   e_dbus_message_send(cl->dbus, sig, NULL, -1, NULL);
+   dbus_message_unref(sig);
 }
 
 void
@@ -171,6 +227,8 @@ ui_dbus_init(Contact_List *cl)
    cl->dbus_object = e_dbus_object_add(cl->dbus, "/org/shotgun/remote", cl);
    iface = e_dbus_interface_new("org.shotgun.core");
    e_dbus_object_interface_attach(cl->dbus_object, iface);
+   e_dbus_interface_signal_add(iface, "new_msg", "ss");
+   e_dbus_interface_signal_add(iface, "status_self", "sui");
    e_dbus_interface_unref(iface);
 
    e_dbus_interface_method_add(iface, "quit", "", "", _dbus_quit_cb);
