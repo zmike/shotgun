@@ -61,6 +61,14 @@ shotgun_login(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
    data = auth->buf ? (char*)eina_strbuf_string_get(auth->buf) : (char*)ev->data;
    size = auth->buf ? eina_strbuf_length_get(auth->buf) : (size_t)ev->size;
 
+   if ((size > sizeof("<stream:error")) &&
+       (!memcmp(data, "<stream:error", sizeof("<stream:error") - 1)))
+     {
+        ERR("Error in login!");
+        shotgun_disconnect(auth);
+        return;
+     }
+
    switch (auth->state)
      {
       case SHOTGUN_CONNECTION_STATE_NONE:
