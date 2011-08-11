@@ -50,11 +50,22 @@ _contact_list_rightclick_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *o
 {
    Evas_Object *menu;
    void *it;
+   const char *name;
+   char buf[128];
    if (ev->button != 3) return;
 
-   it = cl->list_selected_item_get[cl->mode](obj); /* FIXME: uses selected item, not clicked item */
+/* FIXME: HACKS!! */
+   if (cl->mode)
+     it = elm_gengrid_selected_item_get(obj);
+   else
+     it = cl->list_at_xy_item_get[cl->mode](obj, ev->output.x, ev->output.y, NULL);
    menu = elm_menu_add(elm_object_top_widget_get(obj));
-   elm_menu_item_add(menu, NULL, "menu/delete", "Remove", NULL, NULL);
+   if (cl->mode)
+     name = elm_object_item_text_part_get(it, NULL);
+   else
+     name = elm_object_item_text_part_get(it, "elm.text");
+   snprintf(buf, sizeof(buf), "Remove %s", name);
+   elm_menu_item_add(menu, NULL, "menu/delete", buf, NULL, NULL);
    evas_object_event_callback_add(menu, EVAS_CALLBACK_HIDE,
                                   (Evas_Object_Event_Cb)_contact_list_rightclick_menu_hide_cb, NULL);
    elm_menu_move(menu, ev->output.x, ev->output.y);
@@ -495,6 +506,9 @@ contact_list_new(Shotgun_Auth *auth)
 
    cl->list_item_contact_get[0] = (Ecore_Data_Cb)elm_genlist_item_data_get;
    cl->list_item_contact_get[1] = (Ecore_Data_Cb)elm_gengrid_item_data_get;
+   cl->list_at_xy_item_get[0] = (Contact_List_At_XY_Item_Get)elm_genlist_at_xy_item_get;
+   cl->list_at_xy_item_get[1] = NULL;
+   //cl->list_at_xy_item_get[1] = (Ecore_Data_Cb)elm_gengrid_at_xy_item_get;
    cl->list_selected_item_get[0] = (Ecore_Data_Cb)elm_genlist_selected_item_get;
    cl->list_selected_item_get[1] = (Ecore_Data_Cb)elm_gengrid_selected_item_get;
    cl->list_item_parent_get[0] = (Ecore_Data_Cb)elm_genlist_item_genlist_get;
