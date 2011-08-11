@@ -173,7 +173,7 @@ event_message_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Message *m
      {
         chat_message_insert(c, contact_name_get(c), msg->msg, EINA_FALSE);
 #ifdef HAVE_DBUS
-        ui_dbus_signal_message(cl, msg);
+        ui_dbus_signal_message(cl, c, msg);
 #endif
      }
    if (c->chat_window && msg->status)

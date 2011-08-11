@@ -225,13 +225,13 @@ error:
 }
 
 void
-ui_dbus_signal_message(Contact_List *cl, Shotgun_Event_Message *msg)
+ui_dbus_signal_message(Contact_List *cl, Contact *c, Shotgun_Event_Message *msg)
 {
    DBusMessage *sig;
 
    sig = dbus_message_new_signal("/org/shotgun/remote", "org.shotgun.core", "new_msg");
    dbus_message_append_args(sig,
-     's', &msg->jid,
+     's', &c->base->jid,
      's', &msg->msg,
      DBUS_TYPE_INVALID);
    e_dbus_message_send(cl->dbus, sig, NULL, -1, NULL);

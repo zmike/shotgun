@@ -161,7 +161,7 @@ void ui_eet_userinfo_add(Shotgun_Auth *auth, Shotgun_User_Info *info);
 Shotgun_User_Info *ui_eet_userinfo_get(Shotgun_Auth *auth, const char *jid);
 
 #ifdef HAVE_DBUS
-void ui_dbus_signal_message(Contact_List *cl, Shotgun_Event_Message *msg);
+void ui_dbus_signal_message(Contact_List *cl, Contact *c, Shotgun_Event_Message *msg);
 void ui_dbus_signal_status_self(Contact_List *cl);
 void ui_dbus_init(Contact_List *cl);
 # ifdef HAVE_NOTIFY
