@@ -57,18 +57,20 @@ typedef struct Contact Contact;
 
 typedef void (*Contact_List_Item_Tooltip_Cb)(void *item, Elm_Tooltip_Item_Content_Cb func, const void *data, Evas_Smart_Cb del_cb);
 typedef Eina_Bool (*Contact_List_Item_Tooltip_Resize_Cb)(void *item, Eina_Bool set);
+typedef void *(*Contact_List_At_XY_Item_Get)(void *list, Evas_Coord x, Evas_Coord y, int *ret);
+
 struct Contact_List
 {
-   Evas_Object *win;
-   Evas_Object *box;
-   Evas_Object *list;
-   Evas_Object *status_entry;
+   Evas_Object *win; /* window */
+   Evas_Object *box; /* main box */
+   Evas_Object *list; /* list/grid object */
+   Evas_Object *status_entry; /* entry for user's status */
 
-   Eina_List *users_list;
-   Eina_Hash *users;
-   Eina_Hash *user_convs;
-   Eina_Hash *images;
-   Ecore_Timer *status_timer;
+   Eina_List *users_list; /* list of all contacts */
+   Eina_Hash *users; /* hash of jid<->Contact */
+   Eina_Hash *user_convs; /* hash of jid<->Contact->win */
+   Eina_Hash *images; /* hash of img_url<->Image */
+   Ecore_Timer *status_timer; /* timer for sending text in status_entry */
 
    Eina_Bool mode : 1; /* 0 for list, 1 for grid */
    Eina_Bool view : 1; /* 0 for regular, 1 for offlines */
@@ -76,10 +78,11 @@ struct Contact_List
    E_DBus_Connection *dbus;
    E_DBus_Object *dbus_object;
 
-   void *itc;
+   /* fps for doing stuff to both list and grid views with the same function */
    Ecore_Data_Cb list_item_contact_get[2];
    Ecore_Data_Cb list_item_parent_get[2];
    Ecore_Data_Cb list_selected_item_get[2];
+   Contact_List_At_XY_Item_Get list_at_xy_item_get[2];
    Ecore_Cb list_item_del[2];
    Ecore_Cb list_item_update[2];
    Contact_List_Item_Tooltip_Cb list_item_tooltip_add[2];
@@ -90,31 +93,33 @@ struct Contact_List
         Ecore_Event_Handler *presence;
         Ecore_Event_Handler *message;
    } event_handlers;
-   Shotgun_Auth *account;
+   Shotgun_Auth *account; /* user's account */
 };
 
 struct Contact
 {
    Shotgun_User *base;
    Shotgun_User_Info *info;
-   Shotgun_Event_Presence *cur;
-   Eina_List *plist;
-   Eina_List *imgs;
-   Shotgun_User_Status status;
-   int priority;
-   const char *description;
-   const char *force_resource;
-   const char *last_conv;
-   const char *tooltip_label;
-   void *list_item;
-   Evas_Object *chat_window;
-   Evas_Object *chat_buffer;
-   Evas_Object *chat_input;
-   Evas_Object *chat_jid_menu;
-   Evas_Object *status_line;
-   Contact_List *list;
-   Eina_Bool tooltip_changed : 1;
-   Eina_Bool ignore_resource : 1;
+   Shotgun_Event_Presence *cur; /* the current presence; should NOT be in plist */
+   Eina_List *plist; /* list of presences with lower priority than cur */
+
+   /* the next 3 are just convenience pointers to the user's current X */
+   Shotgun_User_Status status; /* user's current status */
+   int priority; /* user's current priority */
+   const char *description; /* user's current status message */
+
+   const char *force_resource; /* always send to this resource if set */
+   const char *last_conv; /* entire conversation with user to keep conversations fluid when windows are opened/closed */
+   const char *tooltip_label; /* label for contact list item tooltip */
+   void *list_item; /* the grid/list item object */
+   Evas_Object *chat_window; /* the chat window for the contact (if open) */
+   Evas_Object *chat_buffer; /* chat buffer of the conversation */
+   Evas_Object *chat_input; /* input entry for the conversation */
+   Evas_Object *chat_jid_menu; /* menu object for the submenu in the chat window */
+   Evas_Object *status_line; /* status entry inside the frame at top */
+   Contact_List *list; /* the owner list */
+   Eina_Bool tooltip_changed : 1; /* when set, tooltip_label will be re-created */
+   Eina_Bool ignore_resource : 1; /* when set, priority will be ignored and messages will be sent to all resources */
 };
 
 typedef struct
