@@ -63,6 +63,11 @@
  * @return The jid of the message's sender
  * String org.shotgun.core.new_msg(const char **msg)
  *
+ * @brief Signal for new message sent by user (DOES NOT INCLUDE DBUS-SENT MESSAGES)
+ * @param msg The message on return
+ * @return The full jid of the message's recipient
+ * String org.shotgun.core.new_msg_self(const char **msg)
+ *
  * @brief Signal for when the user changes his own status
  * @param st The message on return
  * @param priority The user's priority on return

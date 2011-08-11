@@ -225,6 +225,20 @@ error:
 }
 
 void
+ui_dbus_signal_message_self(Contact_List *cl, const char *jid, const char *s)
+{
+   DBusMessage *sig;
+
+   sig = dbus_message_new_signal("/org/shotgun/remote", "org.shotgun.core", "new_msg_self");
+   dbus_message_append_args(sig,
+     's', &jid,
+     's', &s,
+     DBUS_TYPE_INVALID);
+   e_dbus_message_send(cl->dbus, sig, NULL, -1, NULL);
+   dbus_message_unref(sig);
+}
+
+void
 ui_dbus_signal_message(Contact_List *cl, Contact *c, Shotgun_Event_Message *msg)
 {
    DBusMessage *sig;
@@ -272,6 +286,7 @@ ui_dbus_init(Contact_List *cl)
    iface = e_dbus_interface_new("org.shotgun.core");
    e_dbus_object_interface_attach(cl->dbus_object, iface);
    e_dbus_interface_signal_add(iface, "new_msg", "ss");
+   e_dbus_interface_signal_add(iface, "new_msg_self", "ss");
    e_dbus_interface_signal_add(iface, "status_self", "sui");
    e_dbus_interface_unref(iface);
 

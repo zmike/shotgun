@@ -52,9 +52,8 @@ chat_message_status(Contact *c, Shotgun_Event_Message *msg)
 }
 
 static void
-_chat_window_send_cb(void *data, Evas_Object *obj, void *ev __UNUSED__)
+_chat_window_send_cb(Contact *c, Evas_Object *obj, void *ev __UNUSED__)
 {
-   Contact *c = data;
    char *s;
    const char *jid;
 
@@ -70,6 +69,9 @@ _chat_window_send_cb(void *data, Evas_Object *obj, void *ev __UNUSED__)
      jid = c->base->jid;
    shotgun_message_send(c->base->account, jid, s, 0);
    chat_message_insert(c, "me", s, EINA_TRUE);
+#ifdef HAVE_DBUS
+   ui_dbus_signal_message_self(c->list, jid, s);
+#endif
    elm_entry_entry_set(obj, "");
    elm_entry_cursor_end_set(obj);
 
@@ -370,7 +372,7 @@ chat_window_new(Contact *c)
    evas_object_show(entry);
    elm_object_focus_set(entry, EINA_TRUE);
 
-   evas_object_smart_callback_add(entry, "activated", _chat_window_send_cb, c);
+   evas_object_smart_callback_add(entry, "activated", (Evas_Smart_Cb)_chat_window_send_cb, c);
 
    eina_hash_add(c->list->user_convs, c->base->jid, win);
    evas_object_data_set(win, "contact", c);
