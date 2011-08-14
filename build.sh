@@ -25,22 +25,22 @@ fi
 
 for x in src/lib/*.c src/bin/*.c  ; do
 	[[ $compile == 0 && -f "${x/.c/.o}" && "$x" -ot "${x/.c/.o}" ]] && continue
-#	echo "gcc -c $x -o ${x/.c/.o} $CFLAGS $CF || exit 1"
-	echo "gcc $x"
-	(gcc -c $x -o "${x/.c/.o}" $CFLAGS $CF || exit 1)&
+#	echo "$CC -c $x -o ${x/.c/.o} $CFLAGS $CF || exit 1"
+	echo "$CC $x"
+	($CC -c $x -o "${x/.c/.o}" $CFLAGS $CF || exit 1)&
 	link=1
 done
 
 for x in src/lib/*.cpp ; do
 	[[ $compile == 0 && -f "${x/.cpp/.o}" && "$x" -ot "${x/.cpp/.o}" ]] && continue
-#	echo "gcc -c $x -o ${x/.cpp/.o} $CFLAGS $CF || exit 1"
-	echo "gcc $x"
-	(gcc -c $x -o "${x/.cpp/.o}" $CFLAGS $CF || exit 1)&
+#	echo "$CC -c $x -o ${x/.cpp/.o} $CFLAGS $CF || exit 1"
+	echo "$CC $x"
+	($CC -c $x -o "${x/.cpp/.o}" $CFLAGS $CF || exit 1)&
 	link=1
 done
 
 [[ $link == 0 ]] && exit 1
 wait
-#echo "g++ *.o -o shotgun -L/usr/lib -lc $LIBS" #pugixml.a
-echo "g++ *.o -o shotgun" #pugixml.a
-g++ src/lib/*.o src/bin/*.o -o shotgun -L/usr/lib -lc $LIBS #pugixml.a
+#echo "$CXX *.o -o shotgun -L/usr/lib -lc $LIBS" #pugixml.a
+echo "$CXX *.o -o shotgun" #pugixml.a
+$CXX src/lib/*.o src/bin/*.o -o shotgun -L/usr/lib -lc $LIBS #pugixml.a
