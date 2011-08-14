@@ -9,6 +9,7 @@ _chat_conv_image_provider(Image *i, Evas_Object *obj, Evas_Object *tt)
    DBG("(i=%p,win=%p)", i, win);
    if ((!i) || (!i->buf)) goto error;
 
+   w = h = cw = ch = 0;
    ret = elm_icon_add(tt);
    if (!elm_icon_memfile_set(ret, eina_binbuf_string_get(i->buf), eina_binbuf_length_get(i->buf), NULL, NULL))
      {
@@ -21,11 +22,8 @@ _chat_conv_image_provider(Image *i, Evas_Object *obj, Evas_Object *tt)
 #ifdef HAVE_ECORE_X
    Ecore_X_Window xwin;
    xwin = elm_win_xwindow_get(elm_object_top_widget_get(obj));
-   if (xwin)
-     {
-        xwin = ecore_x_window_root_get(xwin);
-        ecore_x_randr_screen_current_size_get(xwin, &cw, &ch, NULL, NULL);
-     }
+   xwin = ecore_x_window_root_get(xwin);
+   ecore_x_randr_screen_current_size_get(xwin, &cw, &ch, NULL, NULL);
 #else
    evas_object_geometry_get(elm_object_top_widget_get(obj), NULL, NULL, &cw, &ch);
 #endif
