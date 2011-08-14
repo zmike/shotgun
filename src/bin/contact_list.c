@@ -412,12 +412,14 @@ contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev)
      }
    contact_jids_menu_del(c, ev->jid);
    if (!c->cur) return;
+#if 0
    EINA_LIST_FOREACH_SAFE(c->plist, l, ll, pres)
      {
         if (pres->jid) continue;
         c->plist = eina_list_remove_list(c->plist, l);
         shotgun_event_presence_free(pres);
      }
+#endif
    c->status = c->cur->status;
    c->description = c->cur->description;
    c->list->list_item_update[c->list->mode](c->list_item);
