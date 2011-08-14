@@ -320,7 +320,7 @@ _contact_list_item_tooltip_cb(Contact *c, Evas_Object *obj __UNUSED__, Evas_Obje
 out:
    label = elm_label_add(tt);
    elm_label_line_wrap_set(label, ELM_WRAP_NONE);
-   elm_object_text_set(label, text);
+   elm_object_text_set(label, c->tooltip_label);
    WEIGHT(label, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    ALIGN(label, EVAS_HINT_FILL, EVAS_HINT_FILL);
    return label;
