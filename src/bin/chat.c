@@ -264,8 +264,6 @@ chat_window_new(Contact *c)
    Shotgun_Event_Presence *pres;
 
    if (c->chat_window) return;
-   parent_win = elm_object_top_widget_get(
-      c->list->list_item_parent_get[c->list->mode](c->list_item));
 
    win = elm_win_add(NULL, "chat-window", ELM_WIN_BASIC);
    elm_object_focus_allow_set(win, 0);
