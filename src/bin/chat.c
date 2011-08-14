@@ -315,7 +315,7 @@ chat_window_new(Contact *c)
         int i = 1;
 
         s = strchr(pres->jid, '/');
-        if (s) s++;
+        s = s ? s + 1 : pres->jid;
         len = strlen(s);
         buf = alloca(len + 20);
         snprintf(buf, len, "%s (%i)", s ?: c->base->jid, pres->priority);
