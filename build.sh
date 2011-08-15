@@ -1,7 +1,8 @@
 #!/bin/bash
 
 CF="-I$(readlink -f .) -D_GNU_SOURCE=1 -O0 -pipe -Wall -Wextra -g -I$(readlink -f src/include) -DHAVE_ECORE_X -DHAVE_DBUS -DHAVE_NOTIFY"
-
+[[ -z "$CC" ]] && CC=gcc
+[[ -z "$CXX" ]] && CXX=g++
 #DEPS=($(pkg-config --print-requires-private ecore-con edbus ecore-x elementary enotify))
 #echo "DEPENDENCIES: ${DEPS[@]}"
 CFLAGS="$(pkg-config --cflags ${DEPS[@]} ecore-con edbus ecore-x elementary enotify)"
