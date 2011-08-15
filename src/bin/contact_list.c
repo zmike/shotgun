@@ -246,6 +246,7 @@ _contact_list_status_send(Contact_List *cl)
 
    cl->status_timer = NULL;
    evas_object_smart_callback_del(cl->status_entry, "changed", (Evas_Smart_Cb)_contact_list_status_changed);
+   elm_entry_select_none(cl->status_entry);
    return EINA_FALSE;
 }
 
