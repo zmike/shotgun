@@ -37,7 +37,7 @@ chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me)
 }
 
 void
-chat_message_status(Contact *c, Shotgun_Event_Message *msg)
+chat_message_status(Contact *c __UNUSED__, Shotgun_Event_Message *msg)
 {
    switch (msg->status)
      {
@@ -257,7 +257,7 @@ _chat_window_key(Evas_Object *win, Evas *e __UNUSED__, Evas_Object *obj __UNUSED
 void
 chat_window_new(Contact *c)
 {
-   Evas_Object *parent_win, *win, *bg, *box, *convo, *entry, *radio, *obj;
+   Evas_Object *win, *bg, *box, *convo, *entry, *radio, *obj;
    Evas_Object *frame, *status, *menu;
    void *it;
    Eina_List *l;

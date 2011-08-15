@@ -81,6 +81,7 @@ _it_label_get_grid(Contact *c, Evas_Object *obj __UNUSED__, const char *part __U
 static char *
 _it_label_get_list(Contact *c, Evas_Object *obj __UNUSED__, const char *part)
 {
+   int ret;
    if (!strcmp(part, "elm.text"))
      return strdup(contact_name_get(c));
    if (!strcmp(part, "elm.text.sub"))
@@ -114,8 +115,9 @@ _it_label_get_list(Contact *c, Evas_Object *obj __UNUSED__, const char *part)
 
         if (!c->description)
           return strdup(status);
-        asprintf(&buf, "%s: %s", status, c->description);
-        return buf;
+        ret = asprintf(&buf, "%s: %s", status, c->description);
+        if (ret > 0) return buf;
+        else return NULL;
      }
 
    return NULL;
