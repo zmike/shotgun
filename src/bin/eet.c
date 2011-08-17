@@ -229,11 +229,12 @@ ui_eet_userinfo_add(Shotgun_Auth *auth, Shotgun_User_Info *info)
         eet_data_descriptor_free(edd);
         return;
      }
+   INF("Wrote encrypted userinfo for %s to disk", info->jid);
+   if (!info->photo.data) return;
    snprintf(buf, sizeof(buf), "%s/%s/img", jid, info->jid);
    eet_write(ef, buf, info->photo.data, info->photo.size, 1);
    eet_sync(ef);
    eet_data_descriptor_free(edd);
-   INF("Wrote encrypted userinfo for %s to disk", info->jid);
 }
 
 Shotgun_User_Info *
