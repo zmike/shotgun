@@ -193,10 +193,6 @@ error(Shotgun_Auth *auth, int type __UNUSED__, Ecore_Con_Event_Server_Error *ev)
 int
 shotgun_init(void)
 {
-   eina_init();
-   ecore_init();
-   ecore_con_init();
-
    /* real men don't accept failure as a possibility */
    shotgun_log_dom = eina_log_domain_register("shotgun", EINA_COLOR_RED);
 

@@ -48,7 +48,7 @@ _setup_extension(void)
 #endif
 
 int
-main(int argc, char *argv[])
+elm_main(int argc, char *argv[])
 {
    char *pass;
    Shotgun_Auth *auth;
@@ -62,10 +62,7 @@ main(int argc, char *argv[])
         return 1;
      }
 
-   eina_init();
-   ecore_con_url_init();
    shotgun_init();
-   elm_init(argc, argv);
 
    ui_log_dom = eina_log_domain_register("shotgun_ui", EINA_COLOR_LIGHTRED);
    eina_log_domain_level_set("shotgun_ui", EINA_LOG_LEVEL_DBG);
@@ -110,10 +107,10 @@ main(int argc, char *argv[])
         return 1;
      }
    shotgun_connect(auth);
-   ecore_main_loop_begin();
-
+   elm_run();
    elm_shutdown();
    ui_eet_shutdown(auth);
 
    return 0;
 }
+ELM_MAIN()
