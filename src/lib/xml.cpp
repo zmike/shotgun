@@ -775,16 +775,19 @@ xml_presence_read(Shotgun_Auth *auth, char *xml, size_t size)
           }
         else if (!strcmp(it.name(), "priority"))
           ret->priority = strtol(it.child_value(), NULL, 10);
-        else if (!strcmp(it.name(), "x"))
+        else if ((!strcmp(it.name(), "x")) || (!strcmp(it.name(), "upd:x"))) /* FUCK YOU GOOGLE */
           {
              const char *ns;
 
              ns = it.attribute("xmlns").value();
-             if (!ns) continue;
+             if ((!ns) || (!ns[0]))
+               ns = it.attribute("xmlns:upd").value();
+             if ((!ns) || (!ns[0])) continue;
              if (!strncmp(ns, "vcard-temp", sizeof("vcard-temp") - 1))
                {
                   ret->vcard = EINA_TRUE;
                   node = it.child("photo");
+                  if (node.empty()) node = it.child("upd:photo");
                   if (!node.empty())
                     {
                        ns = node.child_value();
