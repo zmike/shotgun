@@ -29,6 +29,11 @@ _chat_conv_image_provider(Image *i, Evas_Object *obj, Evas_Object *tt)
 #endif
    elm_icon_size_get(ret, &w, &h);
    elm_icon_scale_set(ret, 0, 0);
+   if (elm_icon_animated_available_get(ret))
+     {
+        elm_icon_animated_set(ret, EINA_TRUE);
+        elm_icon_animated_play_set(ret, EINA_TRUE);
+     }
    {
       float sc = 0;
       if ((float)w / (float)cw >= 0.6)
