@@ -529,6 +529,7 @@ xml_iq_read(Shotgun_Auth *auth, char *xml, size_t size)
    type = xml_iq_type_get(doc.first_child());
    node = doc.first_child().first_child();
    str = node.attribute("xmlns").value();
+   if ((!str) || (!str[0])) str = node.attribute("xmlns:ros").value(); /* FUCK YOU GOOGLE */
    switch (type)
      {
       case SHOTGUN_IQ_TYPE_RESULT:
