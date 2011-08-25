@@ -69,7 +69,7 @@ chat_conv_image_show(Evas_Object *convo, Evas_Object *obj, Elm_Entry_Anchor_Info
 void
 chat_conv_image_hide(Evas_Object *convo __UNUSED__, Evas_Object *obj, Elm_Entry_Anchor_Info *ev)
 {
-   elm_object_tooltip_hide(obj);
+   elm_object_tooltip_unset(obj);
    DBG("anchor out: '%s' (%i, %i)", ev->name, ev->x, ev->y);
 }
 
