@@ -1,0 +1,18 @@
+BUGS:
+	multiple tooltip links in chat window
+	shutdown crashes
+	ejabberd support
+	contact list right click menu in grid view
+
+FEATURES:
+	chat text color themable in edc
+	hook for checking 'latest' revision from github
+	login window
+	config panels
+	add/remove contact
+	message status handling
+	user avatars
+	contact list sort options
+	file transfers
+	chat text styles (bold, italic, underline, etc)
+	OTR support
