@@ -58,7 +58,8 @@ chat_conv_image_show(Evas_Object *convo, Evas_Object *obj, Elm_Entry_Anchor_Info
    Image *i = NULL;
    Contact *c = evas_object_data_get(win, "contact");
 
-   if (c) i = eina_hash_find(c->list->images, ev->name);
+   if (!c) return;
+   i = eina_hash_find(c->list->images, ev->name);
    if (!i) return;
    elm_object_tooltip_content_cb_set(convo, (Elm_Tooltip_Content_Cb)_chat_conv_image_provider, i, NULL);
    elm_tooltip_size_restrict_disable(obj, EINA_TRUE);
@@ -68,8 +69,15 @@ chat_conv_image_show(Evas_Object *convo, Evas_Object *obj, Elm_Entry_Anchor_Info
 }
 
 void
-chat_conv_image_hide(Evas_Object *convo __UNUSED__, Evas_Object *obj, Elm_Entry_Anchor_Info *ev)
+chat_conv_image_hide(Evas_Object *convo, Evas_Object *obj, Elm_Entry_Anchor_Info *ev)
 {
+   Evas_Object *win = elm_object_top_widget_get(convo);
+   Image *i = NULL;
+   Contact *c = evas_object_data_get(win, "contact");
+
+   if (!c) return;
+   i = eina_hash_find(c->list->images, ev->name);
+   if (!i) return;
    elm_object_tooltip_unset(obj);
    DBG("anchor out: '%s' (%i, %i)", ev->name, ev->x, ev->y);
 }
@@ -81,6 +89,7 @@ char_image_add(Contact_List *cl, const char *url)
 
    i = eina_hash_find(cl->images, url);
    if (i) return;
+   if (ui_eet_dummy_check(url)) return;
    i = calloc(1, sizeof(Image));
    i->buf = ui_eet_image_get(url);
    if (!i->buf)
@@ -119,9 +128,22 @@ Eina_Bool
 chat_image_complete(void *d __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Url_Complete *ev)
 {
    Image *i = ecore_con_url_data_get(ev->url_con);
+   const Eina_List *headers, *l;
+   const char *h;
    DBG("%i code for image: %s", ev->status, ecore_con_url_url_get(ev->url_con));
+   headers = ecore_con_url_response_headers_get(ev->url_con);
+   EINA_LIST_FOREACH(headers, l, h)
+     {
+        if (strncasecmp(h, "content-type: ", sizeof("content-type: ") - 1)) continue;
+        h += sizeof("content-type: ") - 1;
+
+        if (!strncasecmp(h, "image/", 6)) break;
+        ui_eet_dummy_add(ecore_con_url_url_get(ev->url_con));
+        eina_hash_del_by_key(i->cl->images, ecore_con_url_url_get(ev->url_con));
+        return ECORE_CALLBACK_RENEW;
+     }
    if (ev->status != 200)
-     { /* FIXME: update tooltips too */
+     {
         eina_hash_del_by_key(i->cl->images, ecore_con_url_url_get(ev->url_con));
         return ECORE_CALLBACK_RENEW;
      }

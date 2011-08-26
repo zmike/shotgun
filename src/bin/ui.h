@@ -152,6 +152,8 @@ void contact_free(Contact *c);
 void do_something_with_user(Contact_List *cl, Shotgun_User *user);
 
 Eina_Bool ui_eet_init(Shotgun_Auth *auth);
+void ui_eet_dummy_add(const char *url);
+Eina_Bool ui_eet_dummy_check(const char *url);
 void ui_eet_image_add(const char *url, Eina_Binbuf *buf);
 Eina_Binbuf *ui_eet_image_get(const char *url);
 void ui_eet_shutdown(Shotgun_Auth *auth);

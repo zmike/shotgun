@@ -12,6 +12,7 @@
 const char *sha1_buffer(const unsigned char *data, size_t len);
 
 static Eet_File *images = NULL;
+static Eet_File *dummies = NULL;
 
 typedef struct UI_Eet_Auth
 {
@@ -71,6 +72,12 @@ ui_eet_init(Shotgun_Auth *auth)
         images = eet_open(buf, EET_FILE_MODE_READ_WRITE);
         if (!images) ERR("Could not open image cache file!");
      }
+   if (!dummies)
+     {
+        snprintf(buf, sizeof(buf), "%s/dummies.eet", home);
+        dummies = eet_open(buf, EET_FILE_MODE_READ_WRITE);
+        if (!dummies) ERR("Could not open dummy cache file!");
+     }
 
    if (shotgun_data_get(auth))
      {
@@ -82,12 +89,13 @@ ui_eet_init(Shotgun_Auth *auth)
    if (!ef) goto error;
    shotgun_data_set(auth, ef);
 out:
-   if (images) INF("All files loaded successfully!");
+   if (images && dummies) INF("All files loaded successfully!");
    else WRN("Some files failed to open!");
    return EINA_TRUE;
 error:
    ERR("Could not open account info file!");
    if (images) eet_close(images);
+   if (dummies) eet_close(dummies);
    eet_shutdown();
    return EINA_FALSE;
 }
@@ -97,6 +105,7 @@ ui_eet_shutdown(Shotgun_Auth *auth)
 {
    if (!auth) return;
    if (images) eet_close(images);
+   if (dummies) eet_close(dummies);
    eet_close(shotgun_data_get(auth));
    eet_shutdown();
 }
@@ -261,6 +270,30 @@ ui_eet_userinfo_get(Shotgun_Auth *auth, const char *jid)
    eet_data_descriptor_free(edd);
    INF("Read encrypted userinfo for %s from disk", jid);
    return info;
+}
+
+void
+ui_eet_dummy_add(const char *url)
+{
+   if (!dummies) return;
+   eet_write(dummies, url, "0", 1, 0);
+   INF("Added new dummy for url %s", url);
+}
+
+Eina_Bool
+ui_eet_dummy_check(const char *url)
+{
+   char **list;
+   int lsize;
+
+   if (!dummies) return EINA_FALSE;
+   list = eet_list(dummies, url, &lsize);
+   if (lsize)
+     {
+        free(list);
+        return EINA_TRUE;
+     }
+   return EINA_FALSE;
 }
 
 void
