@@ -1,5 +1,34 @@
 #include "ui.h"
 
+static void
+_chat_conv_anchor_click(Evas_Object *entry, Evas_Object *obj __UNUSED__, Elm_Entry_Anchor_Info *ev)
+{
+   DBG("anchor click: '%s' (%i, %i)", ev->name, ev->x, ev->y);
+   switch (ev->button)
+     {
+      case 1:
+        {
+           const char *browser;
+           char *cmd;
+           size_t size;
+
+           browser = getenv("BROWSER");
+           if (!browser) return;
+           size = sizeof(char) * (strlen(ev->name) + strlen(browser) + 1) + 1;
+           cmd = alloca(size);
+           snprintf(cmd, size, "%s %s", browser, ev->name);
+           ecore_exe_run(cmd, NULL);
+           return;
+        }
+      case 3:
+#ifdef HAVE_ECORE_X
+        ecore_x_selection_clipboard_set(elm_win_xwindow_get(elm_object_top_widget_get(entry)), ev->name, strlen(ev->name));
+#endif
+      default:
+        break;
+     }
+}
+
 void
 chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me)
 {
@@ -335,6 +364,7 @@ chat_window_new(Contact *c)
    evas_object_show(frame);
 
    status = elm_entry_add(win);
+   elm_entry_cnp_textonly_set(status, 1);
    elm_entry_single_line_set(status, 1);
    elm_entry_editable_set(status, 0);
    elm_object_focus_allow_set(status, 0);
@@ -343,10 +373,14 @@ chat_window_new(Contact *c)
    elm_entry_text_filter_append(status, (Elm_Entry_Filter_Cb)_chat_conv_filter, c->list);
    evas_object_smart_callback_add(status, "anchor,in", (Evas_Smart_Cb)chat_conv_image_show, status);
    evas_object_smart_callback_add(status, "anchor,out", (Evas_Smart_Cb)chat_conv_image_hide, status);
+   evas_object_smart_callback_add(status, "anchor,clicked", (Evas_Smart_Cb)_chat_conv_anchor_click, status);
+
    elm_frame_content_set(frame, status);
    evas_object_show(status);
 
    convo = elm_entry_add(win);
+   elm_entry_cnp_textonly_set(convo, 1);
+   elm_entry_scrollbar_policy_set(convo, ELM_SCROLLER_POLICY_OFF, ELM_SCROLLER_POLICY_AUTO);
    elm_entry_editable_set(convo, 0);
    elm_entry_single_line_set(convo, 0);
    elm_entry_scrollable_set(convo, 1);
@@ -355,6 +389,7 @@ chat_window_new(Contact *c)
    elm_entry_text_filter_append(convo, (Elm_Entry_Filter_Cb)_chat_conv_filter, c->list);
    evas_object_smart_callback_add(convo, "anchor,in", (Evas_Smart_Cb)chat_conv_image_show, convo);
    evas_object_smart_callback_add(convo, "anchor,out", (Evas_Smart_Cb)chat_conv_image_hide, convo);
+   evas_object_smart_callback_add(convo, "anchor,clicked", (Evas_Smart_Cb)_chat_conv_anchor_click, convo);
    WEIGHT(convo, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    ALIGN(convo, EVAS_HINT_FILL, EVAS_HINT_FILL);
    elm_box_pack_end(box, convo);
