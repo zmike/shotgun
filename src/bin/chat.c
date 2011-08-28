@@ -22,7 +22,12 @@ _chat_conv_anchor_click(Evas_Object *entry, Evas_Object *obj __UNUSED__, Elm_Ent
         }
       case 3:
 #ifdef HAVE_ECORE_X
-        ecore_x_selection_clipboard_set(elm_win_xwindow_get(elm_object_top_widget_get(entry)), ev->name, strlen(ev->name));
+        {
+           size_t len;
+           len = strlen(ev->name);
+           if (len == sizeof(int)) len++; /* workaround for stupid elm cnp bug which breaks the universe */
+           ecore_x_selection_clipboard_set(elm_win_xwindow_get(elm_object_top_widget_get(entry)), ev->name, len);
+        }
 #endif
       default:
         break;
