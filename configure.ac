@@ -143,6 +143,9 @@ fi
 # write output
 AC_CONFIG_FILES([
   Makefile
+  data/Makefile
+  data/desktop/Makefile
+  data/theme/Makefile
   src/Makefile
   src/lib/Makefile
   src/bin/Makefile

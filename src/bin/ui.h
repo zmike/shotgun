@@ -72,6 +72,9 @@ struct Contact_List
    Eina_Hash *images; /* hash of img_url<->Image */
    Ecore_Timer *status_timer; /* timer for sending text in status_entry */
 
+   char *color_me; /* HEX color string for "me" header in chat */
+   char *color_them; /* HEX color string for contact header in chat */
+
    Eina_Bool mode : 1; /* 0 for list, 1 for grid */
    Eina_Bool view : 1; /* 0 for regular, 1 for offlines */
 

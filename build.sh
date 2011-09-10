@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CF="-I$(readlink -f .) -D_GNU_SOURCE=1 -O0 -pipe -Wall -Wextra -g -I$(readlink -f src/include) -DHAVE_ECORE_X -DHAVE_DBUS -DHAVE_NOTIFY"
+CF="-I$(readlink -f .) -D_GNU_SOURCE=1 -O0 -pipe -Wall -Wextra -g -I$(readlink -f src/include) -DHAVE_ECORE_X -DHAVE_DBUS -DHAVE_NOTIFY -DPACKAGE_DATA_DIR=\".\""
 [[ -z "$CC" ]] && CC=gcc
 [[ -z "$CXX" ]] && CXX=g++
 #DEPS=($(pkg-config --print-requires-private ecore-con edbus ecore-x elementary enotify))
@@ -14,6 +14,8 @@ LIBS="$(pkg-config --libs ${DEPS[@]} ecore-con edbus ecore-x elementary enotify)
 
 link=0
 compile=0
+
+edje_cc -id data/theme data/theme/default.edc default.edj || exit 1
 
 if [[ -f ./shotgun ]] ; then
 	for x in *.h src/{bin,include,lib}/*.h ; do
