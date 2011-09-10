@@ -1,9 +1,16 @@
-data
+color_classes
   {
-     item: "color_me" "00FF01";
-     item: "color_them" "0001FF";
+     color_class
+       {
+          name: "shotgun_color_me";
+          color: 0 255 1 255;
+       }
+     color_class
+       {
+          name: "shotgun_color_you";
+          color: 0 1 255 255;
+       }
   }
-
 
 collections
   {

@@ -15,8 +15,6 @@ _contact_list_free_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj __U
      contact_free(c);
 
    shotgun_disconnect(cl->account);
-   free(cl->color_me);
-   free(cl->color_them);
 
    free(cl);
 }
@@ -597,20 +595,6 @@ contact_list_new(Shotgun_Auth *auth)
                               cl);
 
    evas_object_data_set(win, "contact-list", cl);
-   cl->color_me = edje_file_data_get(PACKAGE_DATA_DIR "/default.edj", "color_me");
-   cl->color_them = edje_file_data_get(PACKAGE_DATA_DIR "/default.edj", "color_them");
-   if (strlen(cl->color_me) != 6)
-     {
-        ERR("color_me incorrectly set in theme! %s is not a valid hex color string!", cl->color_me);
-        free(cl->color_me);
-        cl->color_me = NULL;
-     }
-   if (strlen(cl->color_them) != 6)
-     {
-        ERR("color_them incorrectly set in thethem! %s is not a valid hex color string!", cl->color_them);
-        free(cl->color_them);
-        cl->color_them = NULL;
-     }
 
    evas_object_resize(win, 300, 700);
    evas_object_show(win);

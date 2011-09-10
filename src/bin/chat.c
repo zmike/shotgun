@@ -40,18 +40,26 @@ chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me)
    size_t len;
    char timebuf[11];
    char *buf, *s;
-   const char *color_me, *color_them;
    Evas_Object *e = c->chat_buffer;
+   int r, g, b;
 
    len = strftime(timebuf, sizeof(timebuf), "[%H:%M:%S]",
             localtime((time_t[]){ time(NULL) }));
 
    s = elm_entry_utf8_to_markup(msg);
-   color_me = c->list->color_me ?: "00FF01";
-   color_them = c->list->color_them ?: "0001FF";
-   len += strlen(from) + strlen(s) + sizeof("<color=#%s>%s <b>%s:</b></color> %s<ps>") + 5;
+   if (me)
+     {
+        if (!edje_color_class_get("shotgun_color_me", &r, &g, &b, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+          r = 0, g = 255, b = 1;
+     }
+   else
+     {
+        if (!edje_color_class_get("shotgun_color_you", &r, &g, &b, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+          r = 0, g = 1, b = 255;
+     }
+   len += strlen(from) + strlen(s) + sizeof("<color=#%2x%2x%2x>%s <b>%s:</b></color> %s<ps>") + 5;
    buf = alloca(len);
-   snprintf(buf, len, "<color=#%s>%s <b>%s:</b></color> %s<ps>", me ? color_me : color_them, timebuf, from, s);
+   snprintf(buf, len, "<color=#%02X%02X%02X>%s <b>%s:</b></color> %s<ps>", r, g, b, timebuf, from, s);
    free(s);
 
 #ifdef HAVE_NOTIFY
