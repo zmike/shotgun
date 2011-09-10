@@ -1,2 +1,2 @@
 rm -f src/*/*.{o,a}
-rm -f shotgun
+rm -f shotgun default.edj
