@@ -323,15 +323,15 @@ _contact_list_item_tooltip_cb(Contact *c, Evas_Object *obj __UNUSED__, Evas_Obje
    if (!c->tooltip_changed) goto out;
    buf = eina_strbuf_new();
    eina_strbuf_append_printf(buf, "<b><title>%s</title></b><ps>"
-                                  "<b><subtitle><u>%s (%i)%c</u></subtitle></b><ps>"
+                                  "<b><subtitle><u>%s (%i)%s</u></subtitle></b><ps>"
                                   "%s%s",
                                   c->base->jid,
-                                  c->cur->jid + strlen(c->base->jid) + 1, c->priority, c->description ? ':' : 0,
+                                  c->cur->jid + strlen(c->base->jid) + 1, c->priority, c->description ? ":" : "",
                                   c->description ?: "", c->description ? "<ps>" : "");
    EINA_LIST_FOREACH(c->plist, l, p)
-     eina_strbuf_append_printf(buf, "<b>%s (%i)%c</b><ps>"
+     eina_strbuf_append_printf(buf, "<ps><b>%s (%i)%s</b><ps>"
                                     "%s%s",
-                                    p->jid + strlen(c->base->jid) + 1, c->priority, c->description ? ':' : 0,
+                                    p->jid + strlen(c->base->jid) + 1, c->priority, c->description ? ":" : "",
                                     p->description ?: "", p->description ? "<ps>" : "");
    text = eina_stringshare_add(eina_strbuf_string_get(buf));
    eina_strbuf_free(buf);
