@@ -59,6 +59,7 @@ _contact_list_rightclick_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *o
      it = elm_gengrid_selected_item_get(obj);
    else
      it = cl->list_at_xy_item_get[cl->mode](obj, ev->output.x, ev->output.y, NULL);
+   if (!it) return;
    menu = elm_menu_add(elm_object_top_widget_get(obj));
    if (cl->mode)
      name = elm_object_item_text_part_get(it, NULL);
