@@ -4,11 +4,10 @@ BUGS:
 	contact list right click menu in grid view
 
 FEATURES:
-	chat text color themable in edc
 	hook for checking 'latest' revision from github
 	login window
 	config panels
-	add/remove contact
+	add contact
 	message status handling
 	user avatars
 	contact list sort options
