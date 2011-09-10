@@ -1,5 +1,4 @@
 #include "ui.h"
-#include <sys/stat.h>
 
 const char *
 contact_name_get(Contact *c)
@@ -23,8 +22,6 @@ contact_free(Contact *c)
      shotgun_event_presence_free(pres);
    if (c->list_item)
      c->list->list_item_del[c->list->mode](c->list_item);
-   if (c->chat_window)
-     evas_object_del(c->chat_window);
    shotgun_user_free(c->base);
    shotgun_user_info_free(c->info);
    eina_stringshare_del(c->last_conv);
@@ -75,7 +72,8 @@ do_something_with_user(Contact_List *cl, Shotgun_User *user)
 
    if (c)
      {
-        shotgun_user_free(user);
+        shotgun_user_free(c->base);
+        c->base = user;
         return;
      }
 

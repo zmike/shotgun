@@ -46,6 +46,19 @@ _contact_list_rightclick_menu_hide_cb(void *data __UNUSED__, Evas *e __UNUSED__,
 }
 
 static void
+_contact_list_remove_cb(Elm_Object_Item *it, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
+{
+   Contact *c;
+
+   c = elm_object_item_data_get(it);
+
+   shotgun_iq_contact_del(c->list->account, c->base->jid);
+   eina_hash_del_by_data(c->list->users, c);
+   c->list->users_list = eina_list_remove(c->list->users_list, c);
+   contact_free(c);
+}
+
+static void
 _contact_list_rightclick_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj, Evas_Event_Mouse_Down *ev)
 {
    Evas_Object *menu;
@@ -66,7 +79,8 @@ _contact_list_rightclick_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *o
    else
      name = elm_object_item_text_part_get(it, "elm.text");
    snprintf(buf, sizeof(buf), "Remove %s", name);
-   elm_menu_item_add(menu, NULL, "menu/delete", buf, NULL, NULL);
+   elm_menu_item_separator_add(menu, NULL);
+   elm_menu_item_add(menu, NULL, "menu/delete", buf, (Evas_Smart_Cb)_contact_list_remove_cb, it);
    evas_object_event_callback_add(menu, EVAS_CALLBACK_HIDE,
                                   (Evas_Object_Event_Cb)_contact_list_rightclick_menu_hide_cb, NULL);
    elm_menu_move(menu, ev->output.x, ev->output.y);
