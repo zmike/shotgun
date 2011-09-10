@@ -21,9 +21,12 @@ o  wait -- retry after waiting (the error is temporary)
 void
 shotgun_user_free(Shotgun_User *user)
 {
+   const char *g;
    if (!user) return;
    eina_stringshare_del(user->jid);
    eina_stringshare_del(user->name);
+   EINA_LIST_FREE(user->groups, g)
+     eina_stringshare_del(g);
    free(user);
 }
 
@@ -91,6 +94,36 @@ shotgun_iq_feed(Shotgun_Auth *auth, char *data, size_t size)
         break;
      }
    ecore_event_add(SHOTGUN_EVENT_IQ, iq, (Ecore_End_Cb)shotgun_iq_event_free, NULL);
+}
+
+Eina_Bool
+shotgun_iq_contact_add(Shotgun_Auth *auth, const char *user, const char *alias, Eina_List *groups)
+{
+   size_t len;
+   char *xml;
+
+   EINA_SAFETY_ON_NULL_RETURN_VAL(auth, EINA_FALSE);
+   EINA_SAFETY_ON_NULL_RETURN_VAL(user, EINA_FALSE);
+
+   xml = xml_iq_write_contact_add(user, alias, groups, &len);
+   shotgun_write(auth->svr, xml, len);
+   free(xml);
+   return EINA_TRUE;
+}
+
+Eina_Bool
+shotgun_iq_contact_del(Shotgun_Auth *auth, const char *user)
+{
+   size_t len;
+   char *xml;
+
+   EINA_SAFETY_ON_NULL_RETURN_VAL(auth, EINA_FALSE);
+   EINA_SAFETY_ON_NULL_RETURN_VAL(user, EINA_FALSE);
+
+   xml = xml_iq_write_contact_del(user, &len);
+   shotgun_write(auth->svr, xml, len);
+   free(xml);
+   return EINA_TRUE;
 }
 
 Eina_Bool

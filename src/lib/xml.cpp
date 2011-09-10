@@ -261,6 +261,61 @@ S: <failure xmlns="urn:ietf:params:xml:ns:xmpp-sasl"><not-authorized/></failure
 }
 
 char *
+xml_iq_write_contact_add(const char *jid, const char *alias, Eina_List *groups, size_t *len)
+{
+   xml_document doc;
+   xml_node iq, node;
+   Eina_List *l;
+   void *group;
+
+   iq = doc.append_child("iq");
+/*
+<iq from='juliet@example.com/balcony' type='set' id='roster_2'>
+  <query xmlns='jabber:iq:roster'>
+    <item jid='nurse@example.com'
+          name='Nurse'>
+      <group>Servants</group>
+    </item>
+  </query>
+</iq>
+*/
+   iq.append_attribute("type").set_value("set");
+   iq.append_attribute("id").set_value("contactadd");
+   node = iq.append_child("query");
+   node.append_attribute("xmlns").set_value(XML_NS_ROSTER);
+   node = node.append_child("item");
+   node.append_attribute("jid").set_value(jid);
+   if (alias && alias[0]) node.append_attribute("name").set_value(alias);
+   EINA_LIST_FOREACH(groups, l, group)
+     node.append_child("group").append_child(node_pcdata).set_value((const char *)group);
+   return xmlnode_to_buf(doc, len, EINA_FALSE);
+}
+
+char *
+xml_iq_write_contact_del(const char *user, size_t *len)
+{
+   xml_document doc;
+   xml_node iq, node;
+
+   iq = doc.append_child("iq");
+/*
+<iq from='juliet@example.com/balcony' type='set' id='roster_4'>
+  <query xmlns='jabber:iq:roster'>
+    <item jid='nurse@example.com' subscription='remove'/>
+  </query>
+</iq>
+*/
+   iq.append_attribute("type").set_value("set");
+   iq.append_attribute("id").set_value("contactdel");
+   node = iq.append_child("query");
+   node.append_attribute("xmlns").set_value(XML_NS_ROSTER);
+   node = node.append_child("item");
+   node.append_attribute("jid").set_value(user);
+   node.append_attribute("subscription").set_value("remove");
+   return xmlnode_to_buf(doc, len, EINA_FALSE);
+}
+
+char *
 xml_iq_write_preset(Shotgun_Auth *auth, Shotgun_Iq_Preset p, size_t *len)
 {
    xml_document doc;
@@ -404,11 +459,19 @@ xml_iq_roster_read(Shotgun_Auth *auth, xml_node node)
 
         user = static_cast<Shotgun_User*>(calloc(1, sizeof(Shotgun_User)));
         user->account = auth;
+        if (!it.attribute("ask").empty())
+          user->subscription_pending = EINA_TRUE;
         name = it.attribute("name").value();
         if (name && name[0])
           user->name = eina_stringshare_add(name);
         user->jid = eina_stringshare_add(it.attribute("jid").value());
         user->subscription = xml_iq_user_subscription_get(it);
+        for (xml_node g = it.first_child(); g; g = g.next_sibling())
+          {
+             if (strcmp(g.name(), "group")) continue;
+             user->groups = eina_list_append(user->groups, eina_stringshare_add(g.child_value()));
+          }
+
         ret->ev = eina_list_append((Eina_List*)ret->ev, (void*)user);
      }
    return ret;

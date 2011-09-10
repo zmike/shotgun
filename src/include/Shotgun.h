@@ -134,7 +134,9 @@ typedef struct
 {
    const char *jid;
    const char *name; /* nickname (alias) */
+   Eina_List *groups;
    Shotgun_User_Subscription subscription;
+   Eina_Bool subscription_pending : 1;
    Shotgun_Auth *account;
 } Shotgun_User;
 
@@ -206,6 +208,8 @@ void shotgun_password_set(Shotgun_Auth *auth, const char *password);
 void shotgun_password_del(Shotgun_Auth *auth);
 
 Eina_Bool shotgun_iq_roster_get(Shotgun_Auth *auth);
+Eina_Bool shotgun_iq_contact_add(Shotgun_Auth *auth, const char *user, const char *alias, Eina_List */* const char * */groups);
+Eina_Bool shotgun_iq_contact_del(Shotgun_Auth *auth, const char *user);
 Eina_Bool shotgun_iq_vcard_get(Shotgun_Auth *auth, const char *user);
 
 Eina_Bool shotgun_message_send(Shotgun_Auth *auth, const char *to, const char *msg, Shotgun_Message_Status status);
