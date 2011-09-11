@@ -23,4 +23,5 @@ collections
 
      ICON("shotgun/icon/useradd", "useradd.png", 16, 0);
      ICON("shotgun/icon/userdel", "userdel.png", 16, 0);
+     ICON("shotgun/icon/dialog_ok", "dialog_ok.png", 16, 0);
   }
