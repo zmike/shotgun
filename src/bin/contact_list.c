@@ -395,6 +395,25 @@ _it_icon_get(Contact *c, Evas_Object *obj, const char *part)
           }
      }
    elm_icon_standard_set(ic, str);
+   switch (c->status)
+     {
+        case SHOTGUN_USER_STATUS_NORMAL:
+          evas_object_color_set(ic, 0, 200, 0, 255);
+          break;
+        case SHOTGUN_USER_STATUS_AWAY:
+          evas_object_color_set(ic, 255, 204, 51, 255);
+          break;
+        case SHOTGUN_USER_STATUS_CHAT:
+          evas_object_color_set(ic, 0, 255, 0, 255);
+          break;
+        case SHOTGUN_USER_STATUS_DND:
+          evas_object_color_set(ic, 0, 0, 255, 255);
+          break;
+        case SHOTGUN_USER_STATUS_XA:
+          evas_object_color_set(ic, 255, 0, 0, 255);
+        default:
+          break;
+     }
    evas_object_show(ic);
 
    return ic;
