@@ -3,18 +3,26 @@
 Eina_Bool
 event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev)
 {
+   Contact *c;
    switch(ev->type)
      {
       case SHOTGUN_IQ_EVENT_TYPE_ROSTER:
         {
            Shotgun_User *user;
            EINA_LIST_FREE(ev->ev, user)
-             do_something_with_user(cl, user);
+             {
+                if (user->subscription == SHOTGUN_USER_SUBSCRIPTION_REMOVE)
+                  {
+                     shotgun_user_free(user);
+                     continue;
+                  }
+                c = do_something_with_user(cl, user);
+                contact_list_user_add(cl, c);
+             }
            break;
         }
       case SHOTGUN_IQ_EVENT_TYPE_INFO:
         {
-           Contact *c;
            Shotgun_User_Info *info = ev->ev;
 
            c = eina_hash_find(cl->users, info->jid);
@@ -32,6 +40,7 @@ event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev)
            c->info = info;
            ev->ev = NULL;
            if (c->list_item && (info->photo.data || info->full_name)) cl->list_item_update[cl->mode](c->list_item);
+
            ui_eet_userinfo_add(cl->account, info);
            break;
         }

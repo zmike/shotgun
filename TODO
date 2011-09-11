@@ -1,3 +1,5 @@
+PROTOCOL:
+	should probably wait for server return instead of assuming things just work
 BUGS:
 	shutdown crashes
 	ejabberd support
@@ -7,7 +9,6 @@ FEATURES:
 	hook for checking 'latest' revision from github
 	login window
 	config panels
-	add contact
 	message status handling
 	user avatars
 	contact list sort options

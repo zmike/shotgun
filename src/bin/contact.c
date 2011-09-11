@@ -59,7 +59,7 @@ contact_jids_menu_del(Contact *c, const char *jid)
      }
 }
 
-void
+Contact *
 do_something_with_user(Contact_List *cl, Shotgun_User *user)
 {
    Contact *c;
@@ -74,7 +74,7 @@ do_something_with_user(Contact_List *cl, Shotgun_User *user)
      {
         shotgun_user_free(c->base);
         c->base = user;
-        return;
+        return c;
      }
 
    c = calloc(1, sizeof(Contact));
@@ -82,6 +82,7 @@ do_something_with_user(Contact_List *cl, Shotgun_User *user)
    c->list = cl;
    eina_hash_add(cl->users, jid, c);
    cl->users_list = eina_list_append(cl->users_list, c);
+   return c;
 }
 
 

@@ -20,17 +20,26 @@ _contact_list_free_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj __U
 }
 
 static void
+_contact_list_user_del(Contact *c)
+{
+   shotgun_iq_contact_del(c->list->account, c->base->jid);
+   eina_hash_del_by_data(c->list->users, c);
+   c->list->users_list = eina_list_remove(c->list->users_list, c);
+   contact_free(c);
+}
+
+static void
 _contact_list_close(Contact_List *cl, Evas_Object *obj __UNUSED__, void *ev  __UNUSED__)
 {
    evas_object_del(cl->win);
 }
 
 static void
-_contact_list_click_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, void *ev)
+_contact_list_click_cb(Contact_List *cl __UNUSED__, Evas_Object *obj __UNUSED__, void *ev)
 {
    Contact *c;
 
-   c = cl->list_item_contact_get[cl->mode](ev);
+   c = elm_object_item_data_get(ev);
    if (c->chat_window)
      {
         elm_win_activate(c->chat_window);
@@ -48,14 +57,175 @@ _contact_list_rightclick_menu_hide_cb(void *data __UNUSED__, Evas *e __UNUSED__,
 static void
 _contact_list_remove_cb(Elm_Object_Item *it, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
 {
+   _contact_list_user_del(elm_object_item_data_get(it));
+}
+
+static void
+_contact_list_add_pager_cb_next(Contact_List *cl, Evas_Object *obj __UNUSED__, void *ev __UNUSED__)
+{
+   const char *text;
+   Evas_Object *o;
+
+   cl->pager_state++;
+   if (cl->pager_state)
+     {
+        elm_pager_content_promote(cl->pager, elm_pager_content_bottom_get(cl->pager));
+        elm_object_focus_set(cl->pager_entries->next->data, 1);
+        elm_entry_cursor_end_set(cl->pager_entries->next->data);
+        return;
+     }
+   o = cl->pager_entries->data;
+   text = elm_entry_entry_get(o);
+   if ((!text) || (!strchr(text, '@'))) /* FIXME */
+     {
+        ERR("Invalid contact jid");
+        cl->pager_state--;
+        return;
+     }
+   o = cl->pager_entries->next->data;
+   shotgun_iq_contact_add(cl->account, text, elm_entry_entry_get(o), NULL);
+   evas_object_del(cl->pager);
+   cl->pager_entries = eina_list_free(cl->pager_entries);
+   cl->pager = NULL;
+}
+
+static void
+_contact_list_add_pager_cb_prev(Contact_List *cl, Evas_Object *obj __UNUSED__, void *ev __UNUSED__)
+{
+   cl->pager_state = 0;
+   elm_pager_content_promote(cl->pager, elm_pager_content_bottom_get(cl->pager));
+   elm_object_focus_set(cl->pager_entries->data, 1);
+   elm_entry_cursor_end_set(cl->pager_entries->data);
+}
+
+static void
+_contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_Item *ev)
+{
+   Evas_Object *p, *b, *o, *i;
+
+   elm_toolbar_item_selected_set(ev, EINA_FALSE);
+   if (cl->pager) return;
+   cl->pager = p = elm_pager_add(cl->win);
+   ALIGN(p, EVAS_HINT_FILL, 0);
+   elm_box_pack_after(cl->box, p, cl->list);
+   elm_object_style_set(p, "slide");
+
+   {
+      b = elm_box_add(cl->win);
+      ALIGN(b, EVAS_HINT_FILL, EVAS_HINT_FILL);
+      elm_box_horizontal_set(b, 1);
+
+      i = elm_icon_add(cl->win);
+      elm_icon_standard_set(i, "elm/icon/arrow_left/default");
+      evas_object_show(i);
+      o = elm_button_add(cl->win);
+      elm_button_icon_set(o, i);
+      elm_box_pack_end(b, o);
+      evas_object_smart_callback_add(o, "clicked", (Evas_Smart_Cb)_contact_list_add_pager_cb_prev, cl);
+      evas_object_show(o);
+
+      o = elm_label_add(cl->win);
+      ALIGN(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
+      elm_object_text_set(o, "Contact's Name (Alias):");
+      elm_box_pack_end(b, o);
+      evas_object_show(o);
+
+      i = elm_icon_add(cl->win);
+      elm_icon_standard_set(i, "shotgun/icon/dialog_ok");
+      evas_object_show(i);
+      o = elm_button_add(cl->win);
+      elm_button_icon_set(o, i);
+      elm_box_pack_end(b, o);
+      evas_object_smart_callback_add(o, "clicked", (Evas_Smart_Cb)_contact_list_add_pager_cb_next, cl);
+      evas_object_show(o);
+
+      evas_object_show(b);
+
+      o = elm_box_add(cl->win);
+      ALIGN(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
+      elm_box_pack_end(o, b);
+      b = o;
+
+      o = elm_entry_add(cl->win);
+      WEIGHT(o, EVAS_HINT_EXPAND, 0);
+      ALIGN(o, EVAS_HINT_FILL, 0.5);
+      cl->pager_entries = eina_list_append(cl->pager_entries, o);
+      elm_entry_entry_append(o, "Example Name");
+      elm_entry_line_wrap_set(o, ELM_WRAP_MIXED);
+      elm_entry_single_line_set(o, 1);
+      elm_entry_editable_set(o, 1);
+      elm_entry_scrollable_set(o, 1);
+      elm_entry_scrollbar_policy_set(o, ELM_SCROLLER_POLICY_AUTO, ELM_SCROLLER_POLICY_OFF);
+      elm_box_pack_end(b, o);
+      evas_object_smart_callback_add(o, "activated", (Evas_Smart_Cb)_contact_list_add_pager_cb_next, cl);
+      evas_object_show(o);
+      elm_entry_cursor_begin_set(o);
+      elm_entry_select_all(o);
+      elm_object_focus_set(o, 1);
+
+      evas_object_show(b);
+      elm_pager_content_push(p, b);
+   }
+
+   {
+      b = elm_box_add(cl->win);
+      ALIGN(b, EVAS_HINT_FILL, EVAS_HINT_FILL);
+      elm_box_horizontal_set(b, 1);
+
+      o = elm_label_add(cl->win);
+      ALIGN(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
+      elm_object_text_set(o, "Contact's Address:");
+      elm_box_pack_end(b, o);
+      evas_object_show(o);
+
+      i = elm_icon_add(cl->win);
+      elm_icon_standard_set(i, "elm/icon/arrow_right/default");
+      evas_object_show(i);
+      o = elm_button_add(cl->win);
+      elm_button_icon_set(o, i);
+      elm_box_pack_end(b, o);
+      evas_object_smart_callback_add(o, "clicked", (Evas_Smart_Cb)_contact_list_add_pager_cb_next, cl);
+      evas_object_show(o);
+
+      evas_object_show(b);
+
+      o = elm_box_add(cl->win);
+      ALIGN(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
+      elm_box_pack_end(o, b);
+      b = o;
+
+      o = elm_entry_add(cl->win);
+      WEIGHT(o, EVAS_HINT_EXPAND, 0);
+      ALIGN(o, EVAS_HINT_FILL, 0.5);
+      cl->pager_entries = eina_list_prepend(cl->pager_entries, o);
+      elm_entry_entry_append(o, "contact@example.com");
+      elm_entry_line_wrap_set(o, ELM_WRAP_MIXED);
+      elm_entry_single_line_set(o, 1);
+      elm_entry_editable_set(o, 1);
+      elm_entry_scrollable_set(o, 1);
+      elm_entry_scrollbar_policy_set(o, ELM_SCROLLER_POLICY_AUTO, ELM_SCROLLER_POLICY_OFF);
+      elm_box_pack_end(b, o);
+      evas_object_smart_callback_add(o, "activated", (Evas_Smart_Cb)_contact_list_add_pager_cb_next, cl);
+      evas_object_show(o);
+      elm_entry_cursor_begin_set(o);
+      elm_entry_select_all(o);
+      elm_object_focus_set(o, 1);
+
+      evas_object_show(b);
+      elm_pager_content_push(p, b);
+   }
+
+   evas_object_show(p);
+}
+
+static void
+_contact_list_del_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_Item *ev)
+{
    Contact *c;
 
-   c = elm_object_item_data_get(it);
-
-   shotgun_iq_contact_del(c->list->account, c->base->jid);
-   eina_hash_del_by_data(c->list->users, c);
-   c->list->users_list = eina_list_remove(c->list->users_list, c);
-   contact_free(c);
+   c = elm_object_item_data_get(cl->list_selected_item_get[cl->mode](cl->list));
+   _contact_list_user_del(c);
+   elm_toolbar_item_selected_set(ev, EINA_FALSE);
 }
 
 static void
@@ -318,6 +488,7 @@ _contact_list_item_tooltip_cb(Contact *c, Evas_Object *obj __UNUSED__, Evas_Obje
    Eina_List *l;
    Shotgun_Event_Presence *p;
 
+   if (!c->status) return NULL;
    if (!c->tooltip_changed) goto out;
    buf = eina_strbuf_new();
    eina_strbuf_append_printf(buf, "<b><title>%s</title></b><ps>"
@@ -371,6 +542,8 @@ contact_list_user_add(Contact_List *cl, Contact *c)
              .del = (Elm_Gengrid_Item_Del_Cb)_it_del
         }
    };
+   if ((!c) || c->list_item) return;
+   if ((!cl->view) && (!c->status)) return;
    if (cl->mode)
      c->list_item = elm_gengrid_item_append(cl->list, &ggit, c, NULL, NULL);
    else
@@ -524,8 +697,6 @@ contact_list_new(Shotgun_Auth *auth)
    elm_menu_item_add_object(menu, NULL, obj, (Evas_Smart_Cb)_contact_list_status_menu, cl);
    elm_radio_value_set(radio, SHOTGUN_USER_STATUS_NORMAL);
 
-   cl->list_item_contact_get[0] = (Ecore_Data_Cb)elm_genlist_item_data_get;
-   cl->list_item_contact_get[1] = (Ecore_Data_Cb)elm_gengrid_item_data_get;
    cl->list_at_xy_item_get[0] = (Contact_List_At_XY_Item_Get)elm_genlist_at_xy_item_get;
    cl->list_at_xy_item_get[1] = NULL;
    //cl->list_at_xy_item_get[1] = (Ecore_Data_Cb)elm_gengrid_at_xy_item_get;
@@ -543,6 +714,14 @@ contact_list_new(Shotgun_Auth *auth)
    cl->list_item_tooltip_resize[1] = (Contact_List_Item_Tooltip_Resize_Cb)elm_gengrid_item_tooltip_size_restrict_disable;
 
    _contact_list_list_add(cl);
+
+   tb = elm_toolbar_add(win);
+   ALIGN(tb, EVAS_HINT_FILL, EVAS_HINT_FILL);
+   elm_toolbar_align_set(tb, 0);
+   it = elm_toolbar_item_append(tb, "shotgun/icon/useradd", "Add Contact", (Evas_Smart_Cb)_contact_list_add_cb, cl);
+   it = elm_toolbar_item_append(tb, "shotgun/icon/userdel", "Remove Contact", (Evas_Smart_Cb)_contact_list_del_cb, cl);
+   elm_box_pack_end(box, tb);
+   evas_object_show(tb);
 
    obj = elm_separator_add(win);
    elm_separator_horizontal_set(obj, EINA_TRUE);
@@ -565,6 +744,7 @@ contact_list_new(Shotgun_Auth *auth)
    elm_box_pack_end(box, entry);
    evas_object_smart_callback_add(entry, "activated", (Evas_Smart_Cb)_contact_list_status_message, cl);
    elm_entry_entry_set(entry, shotgun_presence_desc_get(cl->account));
+   elm_entry_scrollbar_policy_set(entry, ELM_SCROLLER_POLICY_AUTO, ELM_SCROLLER_POLICY_OFF);
    evas_object_show(entry);
 
    obj = elm_spinner_add(win);

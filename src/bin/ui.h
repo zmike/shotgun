@@ -66,6 +66,10 @@ struct Contact_List
    Evas_Object *list; /* list/grid object */
    Evas_Object *status_entry; /* entry for user's status */
 
+   Evas_Object *pager; /* pager for user add wizard */
+   Eina_List *pager_entries; /* entry in pager */
+   Eina_Bool pager_state : 1; /* 0 for first page, 1 for second */
+
    Eina_List *users_list; /* list of all contacts */
    Eina_Hash *users; /* hash of jid<->Contact */
    Eina_Hash *user_convs; /* hash of jid<->Contact->win */
@@ -79,7 +83,6 @@ struct Contact_List
    E_DBus_Object *dbus_object;
 
    /* fps for doing stuff to both list and grid views with the same function */
-   Ecore_Data_Cb list_item_contact_get[2];
    Ecore_Data_Cb list_item_parent_get[2];
    Ecore_Data_Cb list_selected_item_get[2];
    Contact_List_At_XY_Item_Get list_at_xy_item_get[2];
@@ -149,7 +152,7 @@ Eina_Bool chat_image_complete(void *d __UNUSED__, int type __UNUSED__, Ecore_Con
 const char *contact_name_get(Contact *c);
 void contact_jids_menu_del(Contact *c, const char *jid);
 void contact_free(Contact *c);
-void do_something_with_user(Contact_List *cl, Shotgun_User *user);
+Contact *do_something_with_user(Contact_List *cl, Shotgun_User *user);
 
 Eina_Bool ui_eet_init(Shotgun_Auth *auth);
 void ui_eet_dummy_add(const char *url);
