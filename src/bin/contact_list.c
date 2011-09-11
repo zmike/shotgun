@@ -49,15 +49,20 @@ _contact_list_click_cb(Contact_List *cl __UNUSED__, Evas_Object *obj __UNUSED__,
 }
 
 static void
-_contact_list_rightclick_menu_hide_cb(void *data __UNUSED__, Evas *e __UNUSED__, Evas_Object *obj, void *event_info __UNUSED__)
-{
-   evas_object_del(obj);
-}
-
-static void
 _contact_list_remove_cb(Elm_Object_Item *it, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
 {
    _contact_list_user_del(elm_object_item_data_get(it));
+}
+
+static void
+_contact_list_subscribe_cb(Elm_Object_Item *it, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
+{
+   Contact *c;
+   Eina_Bool s;
+
+   c = elm_object_item_data_get(it);
+   s = (c->base->subscription == SHOTGUN_USER_SUBSCRIPTION_FROM) ? EINA_TRUE : EINA_FALSE;
+   shotgun_presence_subscription_set(c->list->account, c->base->jid, s);
 }
 
 static void
@@ -83,7 +88,8 @@ _contact_list_add_pager_cb_next(Contact_List *cl, Evas_Object *obj __UNUSED__, v
         return;
      }
    o = cl->pager_entries->next->data;
-   shotgun_iq_contact_add(cl->account, text, elm_entry_entry_get(o), NULL);
+   shotgun_iq_contact_add(cl->account, text, elm_entry_entry_get(o), NULL); /* add contact */
+   shotgun_presence_subscription_set(cl->account, text, EINA_TRUE); /* subscribe */
    evas_object_del(cl->pager);
    cl->pager_entries = eina_list_free(cl->pager_entries);
    cl->pager = NULL;
@@ -235,7 +241,9 @@ static void
 _contact_list_rightclick_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj, Evas_Event_Mouse_Down *ev)
 {
    Evas_Object *menu;
+   Elm_Menu_Item *mi;
    void *it;
+   Contact *c;
    const char *name;
    char buf[128];
    if (ev->button != 3) return;
@@ -251,11 +259,32 @@ _contact_list_rightclick_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *o
      name = elm_object_item_text_part_get(it, NULL);
    else
      name = elm_object_item_text_part_get(it, "elm.text");
+   c = elm_object_item_data_get(it);
+   switch (c->base->subscription)
+     {
+      case SHOTGUN_USER_SUBSCRIPTION_TO:
+      case SHOTGUN_USER_SUBSCRIPTION_BOTH:
+        snprintf(buf, sizeof(buf), "Unsubscribe from %s", name);
+        elm_menu_item_add(menu, NULL, "shotgun/arrow_pending_right", buf, (Evas_Smart_Cb)_contact_list_subscribe_cb, it);
+        break;
+      case SHOTGUN_USER_SUBSCRIPTION_FROM:
+        if (c->base->subscription_pending)
+          {
+             mi = elm_menu_item_add(menu, NULL, "shotgun/arrow_pending_left", "Subscription request sent", NULL, NULL);
+             elm_menu_item_disabled_set(mi, EINA_TRUE);
+          }
+        else
+          {
+             snprintf(buf, sizeof(buf), "Subscribe to %s", name);
+             elm_menu_item_add(menu, NULL, "shotgun/arrow_pending_left", buf, (Evas_Smart_Cb)_contact_list_subscribe_cb, it);
+          }
+        break;
+      default:
+        break;
+     }
    snprintf(buf, sizeof(buf), "Remove %s", name);
    elm_menu_item_separator_add(menu, NULL);
    elm_menu_item_add(menu, NULL, "menu/delete", buf, (Evas_Smart_Cb)_contact_list_remove_cb, it);
-   evas_object_event_callback_add(menu, EVAS_CALLBACK_HIDE,
-                                  (Evas_Object_Event_Cb)_contact_list_rightclick_menu_hide_cb, NULL);
    elm_menu_move(menu, ev->output.x, ev->output.y);
    evas_object_show(menu);
 }
@@ -305,7 +334,6 @@ _it_label_get_list(Contact *c, Evas_Object *obj __UNUSED__, const char *part)
           return strdup(status);
         ret = asprintf(&buf, "%s: %s", status, c->description);
         if (ret > 0) return buf;
-        else return NULL;
      }
 
    return NULL;
@@ -334,7 +362,7 @@ _it_icon_get(Contact *c, Evas_Object *obj, const char *part)
         switch (c->cur->type)
           {
            case SHOTGUN_PRESENCE_TYPE_SUBSCRIBE:
-             str = "shotgun/arrows_pending";
+             str = "shotgun/arrows_pending_right";
              break;
            case SHOTGUN_PRESENCE_TYPE_UNSUBSCRIBE:
              str = "shotgun/arrows_rejected";
@@ -342,20 +370,23 @@ _it_icon_get(Contact *c, Evas_Object *obj, const char *part)
              break;
           }
      }
-   else
+   else if (c->base->subscription_pending)
+     str = "shotgun/arrows_pending_left";
+   else if (!c->base->subscription)
      str = "shotgun/x";
    if (!str)
      {
         switch (c->base->subscription)
           {
            case SHOTGUN_USER_SUBSCRIPTION_NONE:
-             str = "shotgun/x";
-             break;
-           case SHOTGUN_USER_SUBSCRIPTION_FROM:
-             str = "shotgun/arrows_pending";
+           case SHOTGUN_USER_SUBSCRIPTION_REMOVE:
+             str = "close";
              break;
            case SHOTGUN_USER_SUBSCRIPTION_TO:
-             str = "shotgun/arrows_pending";
+             str = "shotgun/arrows_pending_left";
+             break;
+           case SHOTGUN_USER_SUBSCRIPTION_FROM:
+             str = "shotgun/arrows_pending_right";
              break;
            case SHOTGUN_USER_SUBSCRIPTION_BOTH:
              str = "shotgun/arrows_both";
@@ -535,7 +566,7 @@ _contact_list_item_tooltip_cb(Contact *c, Evas_Object *obj __UNUSED__, Evas_Obje
    Eina_List *l;
    Shotgun_Event_Presence *p;
 
-   if (!c->status) return NULL;
+   if ((!c->status) || (!c->cur)) return NULL;
    if (!c->tooltip_changed) goto out;
    buf = eina_strbuf_new();
    eina_strbuf_append_printf(buf, "<b><title>%s</title></b><ps>"
@@ -590,7 +621,7 @@ contact_list_user_add(Contact_List *cl, Contact *c)
         }
    };
    if ((!c) || c->list_item) return;
-   if ((!cl->view) && (!c->status)) return;
+   if ((!cl->view) && (!c->status) && (c->base->subscription == SHOTGUN_USER_SUBSCRIPTION_BOTH)) return;
    if (cl->mode)
      c->list_item = elm_gengrid_item_append(cl->list, &ggit, c, NULL, NULL);
    else
@@ -649,7 +680,13 @@ contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev)
           }
      }
    contact_jids_menu_del(c, ev->jid);
-   if (!c->cur) return;
+   if (!c->cur)
+     {
+        c->status = 0;
+        c->description = NULL;
+        c->priority = 0;
+        return;
+     }
 #if 0
    EINA_LIST_FOREACH_SAFE(c->plist, l, ll, pres)
      {

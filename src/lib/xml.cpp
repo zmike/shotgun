@@ -765,7 +765,7 @@ xml_presence_write_subscription(const char *jid, Eina_Bool subscribe, size_t *le
    if (subscribe)
      attr.set_value("subscribe");
    else
-     attr.set_value("unsubscribed");
+     attr.set_value("unsubscribe");
    return xmlnode_to_buf(doc, len, EINA_FALSE);
 }
 

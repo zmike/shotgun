@@ -85,4 +85,18 @@ do_something_with_user(Contact_List *cl, Shotgun_User *user)
    return c;
 }
 
+void
+contact_subscription_set(Contact *c, Shotgun_Presence_Type type, Shotgun_User_Subscription sub)
+{
+   Shotgun_Event_Presence *pres;
+   Eina_List *l;
 
+   if (!c) return;
+   if (c->cur)
+     {
+        c->cur->type = type;
+        EINA_LIST_FOREACH(c->plist, l, pres)
+          pres->type = type;
+     }
+   c->base->subscription = sub;
+}

@@ -11,13 +11,34 @@ event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev)
            Shotgun_User *user;
            EINA_LIST_FREE(ev->ev, user)
              {
+                c = do_something_with_user(cl, user);
+                contact_subscription_set(c, 0, user->subscription);
                 if (user->subscription == SHOTGUN_USER_SUBSCRIPTION_REMOVE)
                   {
+                     Shotgun_Event_Presence *pres;
+
+                     EINA_LIST_FREE(c->plist, pres)
+                       shotgun_event_presence_free(pres);
+                     contact_list_user_del(c, c->cur);
+                     if (c->base == user) c->base = NULL;
                      shotgun_user_free(user);
+                     eina_hash_del_by_data(cl->users, c);
+                     cl->users_list = eina_list_remove(cl->users_list, c);
+                     contact_free(c);
                      continue;
                   }
-                c = do_something_with_user(cl, user);
-                contact_list_user_add(cl, c);
+                if (c->list_item)
+                  {
+                     if ((!cl->view) && (!c->status) && (c->base->subscription == SHOTGUN_USER_SUBSCRIPTION_BOTH))
+                       contact_list_user_del(c, NULL);
+                     else
+                       cl->list_item_update[cl->mode](c->list_item);
+                  }
+                else
+                  {
+                     if (cl->view || (user->subscription != SHOTGUN_USER_SUBSCRIPTION_BOTH) || user->subscription_pending)
+                       contact_list_user_add(cl, c);
+                  }
              }
            break;
         }
@@ -81,9 +102,7 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
           {
            case SHOTGUN_PRESENCE_TYPE_SUBSCRIBE:
            case SHOTGUN_PRESENCE_TYPE_UNSUBSCRIBE:
-             c->cur->type = ev->type;
-             EINA_LIST_FOREACH(c->plist, l, pres)
-               pres->type = ev->type;
+             contact_subscription_set(c, ev->type, c->base->subscription);
              if (c->list_item)
                cl->list_item_update[cl->mode](c->list_item);
              else

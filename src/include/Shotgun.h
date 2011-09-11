@@ -94,8 +94,8 @@ typedef enum
 typedef enum
 {
    SHOTGUN_USER_SUBSCRIPTION_NONE,
-   SHOTGUN_USER_SUBSCRIPTION_FROM,
-   SHOTGUN_USER_SUBSCRIPTION_TO,
+   SHOTGUN_USER_SUBSCRIPTION_FROM, /* user receives events from you */
+   SHOTGUN_USER_SUBSCRIPTION_TO, /* you receive events from user */
    SHOTGUN_USER_SUBSCRIPTION_BOTH,
    SHOTGUN_USER_SUBSCRIPTION_REMOVE
 } Shotgun_User_Subscription;

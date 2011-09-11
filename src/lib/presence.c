@@ -29,26 +29,27 @@ shotgun_presence_feed(Shotgun_Auth *auth, char *data, size_t size)
    pres = xml_presence_read(auth, data, size);
    EINA_SAFETY_ON_NULL_GOTO(pres, error);
 
-   switch (pres->status)
-     {
-      case SHOTGUN_USER_STATUS_NORMAL:
-        INF("Presence 'normal' from %s: %s", pres->jid, pres->description ? pres->description : "");
-        break;
-      case SHOTGUN_USER_STATUS_AWAY:
-        INF("Presence 'away' from %s: %s", pres->jid, pres->description ? pres->description : "");
-        break;
-      case SHOTGUN_USER_STATUS_CHAT:
-        INF("Presence 'chat' from %s: %s", pres->jid, pres->description ? pres->description : "");
-        break;
-      case SHOTGUN_USER_STATUS_DND:
-        INF("Presence 'dnd' from %s: %s", pres->jid, pres->description ? pres->description : "");
-        break;
-      case SHOTGUN_USER_STATUS_XA:
-        INF("Presence 'xa' from %s: %s", pres->jid, pres->description ? pres->description : "");
-        break;
-      default:
-        INF("Presence 'unavailable' from %s: %s", pres->jid, pres->description ? pres->description : "");
-     }
+   if (!pres->type)
+     switch (pres->status)
+       {
+        case SHOTGUN_USER_STATUS_NORMAL:
+          INF("Presence 'normal' from %s: %s", pres->jid, pres->description ? pres->description : "");
+          break;
+        case SHOTGUN_USER_STATUS_AWAY:
+          INF("Presence 'away' from %s: %s", pres->jid, pres->description ? pres->description : "");
+          break;
+        case SHOTGUN_USER_STATUS_CHAT:
+          INF("Presence 'chat' from %s: %s", pres->jid, pres->description ? pres->description : "");
+          break;
+        case SHOTGUN_USER_STATUS_DND:
+          INF("Presence 'dnd' from %s: %s", pres->jid, pres->description ? pres->description : "");
+          break;
+        case SHOTGUN_USER_STATUS_XA:
+          INF("Presence 'xa' from %s: %s", pres->jid, pres->description ? pres->description : "");
+          break;
+        default:
+          INF("Presence 'unavailable' from %s: %s", pres->jid, pres->description ? pres->description : "");
+       }
    ecore_event_add(SHOTGUN_EVENT_PRESENCE, pres, (Ecore_End_Cb)shotgun_presence_free, NULL);
    return;
 error:
