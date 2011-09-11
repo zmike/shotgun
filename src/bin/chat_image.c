@@ -4,20 +4,25 @@
 static Evas_Object *
 _chat_conv_image_provider(Image *i, Evas_Object *obj, Evas_Object *tt)
 {
-   Evas_Object *ret, *win = elm_object_top_widget_get(obj);
+   Evas_Object *ret, *ic, *win = elm_object_top_widget_get(obj);
    int w, h, cw, ch;
    DBG("(i=%p,win=%p)", i, win);
    if ((!i) || (!i->buf)) goto error;
 
    w = h = cw = ch = 0;
-   ret = elm_icon_add(tt);
-   if (!elm_icon_memfile_set(ret, eina_binbuf_string_get(i->buf), eina_binbuf_length_get(i->buf), NULL, NULL))
+   ic = elm_icon_add(tt);
+   if (!elm_icon_memfile_set(ic, eina_binbuf_string_get(i->buf), eina_binbuf_length_get(i->buf), NULL, NULL))
      {
         /* an unloadable image is a useless image! */
         eina_hash_del_by_key(i->cl->images, ecore_con_url_url_get(i->url));
-        evas_object_del(ret);
+        evas_object_del(ic);
         goto error;
      }
+   evas_object_show(ic);
+   ret = elm_box_add(tt);
+   WEIGHT(ret, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+   ALIGN(ret, EVAS_HINT_FILL, EVAS_HINT_FILL);
+   elm_box_pack_end(ret, ic);
 
 #ifdef HAVE_ECORE_X
    Ecore_X_Window xwin;
@@ -27,12 +32,12 @@ _chat_conv_image_provider(Image *i, Evas_Object *obj, Evas_Object *tt)
 #else
    evas_object_geometry_get(elm_object_top_widget_get(obj), NULL, NULL, &cw, &ch);
 #endif
-   elm_icon_size_get(ret, &w, &h);
-   elm_icon_scale_set(ret, 0, 0);
-   if (elm_icon_animated_available_get(ret))
+   elm_icon_size_get(ic, &w, &h);
+   elm_icon_scale_set(ic, 0, 0);
+   if (elm_icon_animated_available_get(ic))
      {
-        elm_icon_animated_set(ret, EINA_TRUE);
-        elm_icon_animated_play_set(ret, EINA_TRUE);
+        elm_icon_animated_set(ic, EINA_TRUE);
+        elm_icon_animated_play_set(ic, EINA_TRUE);
      }
    {
       float sc = 0;
@@ -40,8 +45,13 @@ _chat_conv_image_provider(Image *i, Evas_Object *obj, Evas_Object *tt)
         sc = ((float)cw * 0.6) / (float)w;
       else if ((float)h / (float)ch >= 0.6)
         sc = ((float)ch * 0.6) / (float)h;
-      if (sc) elm_object_scale_set(ret, sc);
+      if (sc) elm_object_scale_set(ic, sc);
    }
+   ic = elm_label_add(tt);
+   elm_object_text_set(ic, "Left click link to open in BROWSER<ps>"
+                           "Right click link to copy to clipboard");
+   elm_box_pack_end(ret, ic);
+   evas_object_show(ic);
    return ret;
 error:
    ret = elm_bg_add(tt);
