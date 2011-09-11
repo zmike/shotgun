@@ -116,6 +116,7 @@ _contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_
       elm_box_horizontal_set(b, 1);
 
       i = elm_icon_add(cl->win);
+      elm_icon_order_lookup_set(i, ELM_ICON_LOOKUP_THEME);
       elm_icon_standard_set(i, "elm/icon/arrow_left/default");
       evas_object_show(i);
       o = elm_button_add(cl->win);
@@ -131,7 +132,8 @@ _contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_
       evas_object_show(o);
 
       i = elm_icon_add(cl->win);
-      elm_icon_standard_set(i, "shotgun/icon/dialog_ok");
+      elm_icon_order_lookup_set(i, ELM_ICON_LOOKUP_THEME);
+      elm_icon_standard_set(i, "shotgun/dialog_ok");
       evas_object_show(i);
       o = elm_button_add(cl->win);
       elm_button_icon_set(o, i);
@@ -179,6 +181,7 @@ _contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_
       evas_object_show(o);
 
       i = elm_icon_add(cl->win);
+      elm_icon_order_lookup_set(i, ELM_ICON_LOOKUP_THEME);
       elm_icon_standard_set(i, "elm/icon/arrow_right/default");
       evas_object_show(i);
       o = elm_button_add(cl->win);
@@ -312,11 +315,55 @@ static Evas_Object *
 _it_icon_get(Contact *c, Evas_Object *obj, const char *part)
 {
    Evas_Object *ic;
+   const char *str = NULL;
 
-   if ((!c->info) || (!c->info->photo.data) || strcmp(part, "elm.swallow.end")) return NULL;
+   if (!strcmp(part, "elm.swallow.end"))
+     {
+        if ((!c->info) || (!c->info->photo.data)) return NULL;
+        ic = elm_icon_add(obj);
+        elm_icon_memfile_set(ic, c->info->photo.data, c->info->photo.size, NULL, NULL);
+        evas_object_size_hint_aspect_set(ic, EVAS_ASPECT_CONTROL_VERTICAL, 1, 1);
+        evas_object_show(ic);
+        return ic;
+     }
    ic = elm_icon_add(obj);
-   elm_icon_memfile_set(ic, c->info->photo.data, c->info->photo.size, NULL, NULL);
+   elm_icon_order_lookup_set(ic, ELM_ICON_LOOKUP_THEME);
    evas_object_size_hint_aspect_set(ic, EVAS_ASPECT_CONTROL_VERTICAL, 1, 1);
+   if (c->cur)
+     {
+        switch (c->cur->type)
+          {
+           case SHOTGUN_PRESENCE_TYPE_SUBSCRIBE:
+             str = "shotgun/arrows_pending";
+             break;
+           case SHOTGUN_PRESENCE_TYPE_UNSUBSCRIBE:
+             str = "shotgun/arrows_rejected";
+           default:
+             break;
+          }
+     }
+   else
+     str = "shotgun/x";
+   if (!str)
+     {
+        switch (c->base->subscription)
+          {
+           case SHOTGUN_USER_SUBSCRIPTION_NONE:
+             str = "shotgun/x";
+             break;
+           case SHOTGUN_USER_SUBSCRIPTION_FROM:
+             str = "shotgun/arrows_pending";
+             break;
+           case SHOTGUN_USER_SUBSCRIPTION_TO:
+             str = "shotgun/arrows_pending";
+             break;
+           case SHOTGUN_USER_SUBSCRIPTION_BOTH:
+             str = "shotgun/arrows_both";
+           default:
+             break;
+          }
+     }
+   elm_icon_standard_set(ic, str);
    evas_object_show(ic);
 
    return ic;
@@ -718,8 +765,8 @@ contact_list_new(Shotgun_Auth *auth)
    tb = elm_toolbar_add(win);
    ALIGN(tb, EVAS_HINT_FILL, EVAS_HINT_FILL);
    elm_toolbar_align_set(tb, 0);
-   it = elm_toolbar_item_append(tb, "shotgun/icon/useradd", "Add Contact", (Evas_Smart_Cb)_contact_list_add_cb, cl);
-   it = elm_toolbar_item_append(tb, "shotgun/icon/userdel", "Remove Contact", (Evas_Smart_Cb)_contact_list_del_cb, cl);
+   it = elm_toolbar_item_append(tb, "shotgun/useradd", "Add Contact", (Evas_Smart_Cb)_contact_list_add_cb, cl);
+   it = elm_toolbar_item_append(tb, "shotgun/userdel", "Remove Contact", (Evas_Smart_Cb)_contact_list_del_cb, cl);
    elm_box_pack_end(box, tb);
    evas_object_show(tb);
 

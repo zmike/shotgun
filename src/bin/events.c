@@ -75,6 +75,24 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
         contact_list_user_del(c, ev);
         return EINA_TRUE;
      }
+   if (c->cur)
+     {
+        switch (ev->type)
+          {
+           case SHOTGUN_PRESENCE_TYPE_SUBSCRIBE:
+           case SHOTGUN_PRESENCE_TYPE_UNSUBSCRIBE:
+             c->cur->type = ev->type;
+             EINA_LIST_FOREACH(c->plist, l, pres)
+               pres->type = ev->type;
+             if (c->list_item)
+               cl->list_item_update[cl->mode](c->list_item);
+             else
+               contact_list_user_add(cl, c);
+             return ECORE_CALLBACK_RENEW;
+           default:
+             break;
+          }
+     }
    if ((!c->cur) || (ev->jid != c->cur->jid))
      {
         EINA_LIST_FOREACH(c->plist, l, pres)
