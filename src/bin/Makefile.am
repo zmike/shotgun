@@ -3,8 +3,11 @@ AM_CFLAGS = \
   @ECORE_X_CFLAGS@ \
   @edbus_CFLAGS@ \
   @enotify_CFLAGS@ \
+ -DPACKAGE_DATA_DIR=\"$(datadir)/$(PACKAGE)\" \
+ -DPACKAGE_LIB_DIR=\"$(libdir)\" \
  -I@top_builddir@ \
  -I@top_srcdir@/src/include
+
 AM_CXXFLAGS = $(AM_CFLAGS)
 
 bin_PROGRAMS = shotgun

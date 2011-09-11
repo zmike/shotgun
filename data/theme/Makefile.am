@@ -19,10 +19,10 @@ x.png
 EXTRA_DIST = default.edc $(images)
 
 default.edj: Makefile $(images) default.edc
-        $(EDJE_CC) $(EDJE_FLAGS) \
-        $(top_srcdir)/data/themes/default.edc \
-        $(top_builddir)/data/themes/default.edj
+	$(EDJE_CC) $(EDJE_FLAGS) \
+	$(top_srcdir)/data/theme/default.edc \
+	$(top_builddir)/data/theme/default.edj
 
 clean-local:
-        rm -f default.edj
+	rm -f default.edj
 

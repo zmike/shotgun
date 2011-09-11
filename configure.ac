@@ -72,6 +72,13 @@ AC_SUBST([CXX_PIC])
 ##PKG_CHECK_MODULES([ELM], [$requirement_elm]))
 PKG_CHECK_MODULES([ELM], [eina >= 1.0.999 eet >= 1.4.0 evas >= 1.0.999 ecore >= 1.0.999 ecore-evas >= 1.0.999 ecore-file >= 1.0.999 ecore-imf >= 1.0.999 ecore-con >= 1.0.999 edje >= 1.0.999 elementary])
 
+AC_ARG_WITH([edje-cc],
+   [AC_HELP_STRING([--with-edje-cc=PATH],
+                   [specify a specific path to edje_cc])],
+   [edje_cc=$withval;
+    AC_MSG_NOTICE([edje_cc explicitly set to $edje_cc])
+   ],[edje_cc=$(pkg-config --variable=prefix edje)/bin/edje_cc])
+AC_SUBST(edje_cc)
 
 have_ecore_x="no"                                                                                                                                                                                                                         
 want_ecore_x="auto"
