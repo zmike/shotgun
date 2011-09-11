@@ -141,3 +141,15 @@ shotgun_presence_get(Shotgun_Auth *auth, Shotgun_User_Status *st, int *priority)
    if (priority) *priority = auth->priority;
    return auth->desc;
 }
+
+Eina_Bool
+shotgun_presence_subscription_set(Shotgun_Auth *auth, const char *jid, Eina_Bool subscribe)
+{
+   size_t len;
+   char *xml;
+
+   xml = xml_presence_write_subscription(jid, subscribe, &len);
+   shotgun_write(auth->svr, xml, len);
+   free(xml);
+   return EINA_TRUE;
+}

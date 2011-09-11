@@ -749,6 +749,28 @@ E: <message from='romeo@example.net/orchard'
 }
 
 char *
+xml_presence_write_subscription(const char *jid, Eina_Bool subscribe, size_t *len)
+{
+/*
+<presence to='contact@example.org' type='unsubscribed'/>
+<presence to='user@example.com' type='subscribe'/>
+*/
+   xml_document doc;
+   xml_node node;
+   xml_attribute attr;
+
+   node = doc.append_child("presence");
+   node.append_attribute("to").set_value(jid);
+   attr = node.append_attribute("type");
+   if (subscribe)
+     attr.set_value("subscribe");
+   else
+     attr.set_value("unsubscribed");
+   return xmlnode_to_buf(doc, len, EINA_FALSE);
+}
+
+
+char *
 xml_presence_write(Shotgun_Auth *auth, size_t *len)
 {
 /*
@@ -834,8 +856,15 @@ xml_presence_read(Shotgun_Auth *auth, char *xml, size_t size)
           eina_stringshare_replace(&ret->jid, attr.value());
         else if (!strcmp(attr.name(), "type"))
           {
-             DBG("presence type: %s", attr.value());
+             const char *t;
+
+             t = attr.value();
+             DBG("presence type: %s", t);
              ret->status = SHOTGUN_USER_STATUS_NONE;
+             if (t[0] == 's')
+               ret->type = SHOTGUN_PRESENCE_TYPE_SUBSCRIBE;
+             else
+               ret->type = SHOTGUN_PRESENCE_TYPE_UNSUBSCRIBE;
           }
      }
    for (xml_node it = node.first_child(); it; it = it.next_sibling())

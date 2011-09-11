@@ -131,6 +131,13 @@ typedef enum
    SHOTGUN_CONNECTION_STATE_CONNECTED
 } Shotgun_Connection_State;
 
+typedef enum
+{
+   SHOTGUN_PRESENCE_TYPE_NONE,
+   SHOTGUN_PRESENCE_TYPE_SUBSCRIBE,
+   SHOTGUN_PRESENCE_TYPE_UNSUBSCRIBE,
+} Shotgun_Presence_Type;
+
 typedef struct
 {
    const char *jid;
@@ -176,6 +183,7 @@ typedef struct
    const char *description;
    int priority;
    Shotgun_User_Status status;
+   Shotgun_Presence_Type type;
    Eina_Bool vcard : 1;
 
    Shotgun_Auth *account;
@@ -225,6 +233,7 @@ void shotgun_presence_desc_manage(Shotgun_Auth *auth, const char *desc);
 void shotgun_presence_set(Shotgun_Auth *auth, Shotgun_User_Status st, const char *desc, int priority);
 const char *shotgun_presence_get(Shotgun_Auth *auth, Shotgun_User_Status *st, int *priority);
 Eina_Bool shotgun_presence_send(Shotgun_Auth *auth);
+Eina_Bool shotgun_presence_subscription_set(Shotgun_Auth *auth, const char *jid, Eina_Bool subscribe);
 
 void shotgun_event_message_free(Shotgun_Event_Message *msg);
 void shotgun_event_presence_free(Shotgun_Event_Presence *pres);

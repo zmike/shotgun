@@ -26,6 +26,7 @@ Shotgun_Event_Message *xml_message_read(Shotgun_Auth *auth, char *xml, size_t si
 
 
 char *xml_presence_write(Shotgun_Auth *auth, size_t *len);
+char *xml_presence_write_subscription(const char *jid, Eina_Bool subscribe, size_t *len);
 Shotgun_Event_Presence *xml_presence_read(Shotgun_Auth *auth, char *xml, size_t size);
 
 #ifdef __cplusplus
