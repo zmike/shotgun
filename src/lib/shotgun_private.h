@@ -61,7 +61,8 @@ typedef enum
 typedef enum
 {
    SHOTGUN_IQ_PRESET_BIND,
-   SHOTGUN_IQ_PRESET_ROSTER
+   SHOTGUN_IQ_PRESET_ROSTER,
+   SHOTGUN_IQ_PRESET_RESULT,
 } Shotgun_Iq_Preset;
 
 struct Shotgun_Auth

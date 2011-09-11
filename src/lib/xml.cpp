@@ -354,6 +354,17 @@ xml_iq_write_preset(Shotgun_Auth *auth, Shotgun_Iq_Preset p, size_t *len)
 
         node = iq.append_child("query");
         node.append_attribute("xmlns").set_value(XML_NS_ROSTER);
+        break;
+      case SHOTGUN_IQ_PRESET_RESULT:
+/*
+<iq from='juliet@example.com/balcony'
+    to='example.com'
+    type='result'
+    id='a78b4q6ha463'/>
+*/
+        iq.append_attribute("to").set_value(auth->from);
+        iq.append_attribute("type").set_value("result");
+        iq.append_attribute("id").set_value("resultvalue");
       default:
         break;
      }
@@ -416,6 +427,8 @@ xml_iq_user_subscription_get(xml_node node)
         return SHOTGUN_USER_SUBSCRIPTION_FROM;
       case 'b':
         return SHOTGUN_USER_SUBSCRIPTION_BOTH;
+      case 'r':
+        return SHOTGUN_USER_SUBSCRIPTION_REMOVE;
       default:
         break;
      }
@@ -447,6 +460,8 @@ xml_iq_roster_read(Shotgun_Auth *auth, xml_node node)
 </iq>
 */
    Shotgun_Event_Iq *ret;
+   char *xml;
+   size_t len;
 
    ret = static_cast<Shotgun_Event_Iq*>(calloc(1, sizeof(Shotgun_Event_Iq)));
    ret->type = SHOTGUN_IQ_EVENT_TYPE_ROSTER;
@@ -474,6 +489,9 @@ xml_iq_roster_read(Shotgun_Auth *auth, xml_node node)
 
         ret->ev = eina_list_append((Eina_List*)ret->ev, (void*)user);
      }
+   xml = xml_iq_write_preset(auth, SHOTGUN_IQ_PRESET_RESULT, &len);
+   shotgun_write(auth->svr, xml, len);
+   free(xml);
    return ret;
 }
 
@@ -609,6 +627,8 @@ xml_iq_read(Shotgun_Auth *auth, char *xml, size_t size)
           break;
         return (Shotgun_Event_Iq*)1;
       case SHOTGUN_IQ_TYPE_SET:
+        if (!strcmp(str, XML_NS_ROSTER))
+          return xml_iq_roster_read(auth, node);
       default:
         break;
      }
