@@ -566,22 +566,27 @@ _contact_list_item_tooltip_cb(Contact *c, Evas_Object *obj __UNUSED__, Evas_Obje
    Eina_List *l;
    Shotgun_Event_Presence *p;
 
-   if ((!c->status) || (!c->cur)) return NULL;
    if (!c->tooltip_changed) goto out;
-   buf = eina_strbuf_new();
-   eina_strbuf_append_printf(buf, "<b><title>%s</title></b><ps>"
-                                  "<b><subtitle><u>%s (%i)%s</u></subtitle></b><ps>"
-                                  "%s%s",
-                                  c->base->jid,
-                                  c->cur->jid + strlen(c->base->jid) + 1, c->priority, c->description ? ":" : "",
-                                  c->description ?: "", c->description ? "<ps>" : "");
-   EINA_LIST_FOREACH(c->plist, l, p)
-     eina_strbuf_append_printf(buf, "<ps><b>%s (%i)%s</b><ps>"
-                                    "%s%s",
-                                    p->jid + strlen(c->base->jid) + 1, c->priority, c->description ? ":" : "",
-                                    p->description ?: "", p->description ? "<ps>" : "");
-   text = eina_stringshare_add(eina_strbuf_string_get(buf));
-   eina_strbuf_free(buf);
+   if (c->status && c->cur)
+     {
+        buf = eina_strbuf_new();
+        eina_strbuf_append_printf(buf, "<b><title>%s</title></b><ps>"
+                                       "<b><subtitle><u>%s (%i)%s</u></subtitle></b><ps>"
+                                       "%s%s",
+                                       c->base->jid,
+                                       c->cur->jid + strlen(c->base->jid) + 1, c->priority, c->description ? ":" : "",
+                                       c->description ?: "", c->description ? "<ps>" : "");
+        EINA_LIST_FOREACH(c->plist, l, p)
+          eina_strbuf_append_printf(buf, "<ps><b>%s (%i)%s</b><ps>"
+                                         "%s%s",
+                                         p->jid + strlen(c->base->jid) + 1, c->priority, c->description ? ":" : "",
+                                         p->description ?: "", p->description ? "<ps>" : "");
+        text = eina_stringshare_add(eina_strbuf_string_get(buf));
+        eina_strbuf_free(buf);
+     }
+   else
+     text = eina_stringshare_printf("<b><title>%s</title></b><ps>", c->base->jid);
+
    eina_stringshare_del(c->tooltip_label);
    c->tooltip_label = text;
 out:
@@ -622,6 +627,7 @@ contact_list_user_add(Contact_List *cl, Contact *c)
    };
    if ((!c) || c->list_item) return;
    if ((!cl->view) && (!c->status) && (c->base->subscription == SHOTGUN_USER_SUBSCRIPTION_BOTH)) return;
+   c->tooltip_changed = EINA_TRUE;
    if (cl->mode)
      c->list_item = elm_gengrid_item_append(cl->list, &ggit, c, NULL, NULL);
    else
