@@ -50,12 +50,18 @@ chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me)
    if (me)
      {
         if (!edje_color_class_get("shotgun_color_me", &r, &g, &b, 0, 0, 0, 0, 0, 0, 0, 0, 0))
-          r = 0, g = 255, b = 1;
+          {
+             DBG("color_class 'shotgun_color_me' not found in theme, using defaults");
+             r = 0, g = 255, b = 1;
+          }
      }
    else
      {
         if (!edje_color_class_get("shotgun_color_you", &r, &g, &b, 0, 0, 0, 0, 0, 0, 0, 0, 0))
-          r = 0, g = 1, b = 255;
+          {
+             DBG("color_class 'shotgun_color_you' not found in theme, using defaults");
+             r = 0, g = 1, b = 255;
+          }
      }
    len += strlen(from) + strlen(s) + sizeof("<color=#%2x%2x%2x>%s <b>%s:</b></color> %s<ps>") + 5;
    buf = alloca(len);
