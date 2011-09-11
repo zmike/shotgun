@@ -8,11 +8,13 @@ files_DATA = default.edj
 
 images = \
 arrows_both.png \
-arrows_pending.png \
+arrows_pending_left.png \
+arrows_pending_right.png \
 arrows_rejected.png \
 dialog_ok.png \
 useradd.png \
-userdel.png
+userdel.png \
+x.png
 
 EXTRA_DIST = default.edc $(images)
 
