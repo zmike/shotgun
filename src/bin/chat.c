@@ -300,9 +300,9 @@ _chat_resource_force(Contact *c, Evas_Object *obj __UNUSED__, Elm_Menu_Item *ev)
 static void
 _chat_window_key(Evas_Object *win, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, Evas_Event_Key_Down *ev)
 {
-   DBG("%s", ev->keyname);
+   //DBG("%s", ev->keyname);
    if (!strcmp(ev->keyname, "Escape"))
-     evas_object_smart_callback_call(win, "delete,request", NULL);
+     evas_object_del(win);
 }
 
 void
