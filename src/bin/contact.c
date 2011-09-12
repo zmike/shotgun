@@ -37,6 +37,7 @@ contact_jids_menu_del(Contact *c, const char *jid)
    Evas_Object *radio;
    const char *s, *rs;
 
+   if (!c->chat_jid_menu) return;
    it = elm_menu_last_item_get(c->chat_jid_menu);
    if (!it) return;
    l = elm_menu_item_subitems_get(it);
