@@ -17,6 +17,8 @@ contact_free(Contact *c)
    Shotgun_Event_Presence *pres;
 
    if (!c) return;
+   if (c->cur && c->plist)
+     c->plist = eina_list_remove(c->plist, c->cur);
    shotgun_event_presence_free(c->cur);
    EINA_LIST_FREE(c->plist, pres)
      shotgun_event_presence_free(pres);

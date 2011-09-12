@@ -717,6 +717,7 @@ contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev)
      }
    if (ev->jid == c->cur->jid)
      {
+        c->plist = eina_list_remove(c->plist, c->cur);
         shotgun_event_presence_free(c->cur);
         c->cur = NULL;
         EINA_LIST_FOREACH(c->plist, l, pres)
