@@ -461,7 +461,6 @@ _it_icon_get(Contact *c, Evas_Object *obj, const char *part)
         default:
           break;
      }
-   evas_object_show(ic);
 
    return ic;
 }
@@ -881,6 +880,7 @@ contact_list_new(Shotgun_Auth *auth)
    _contact_list_list_add(cl);
 
    tb = elm_toolbar_add(win);
+   elm_toolbar_mode_shrink_set(tb, ELM_TOOLBAR_SHRINK_SCROLL);
    WEIGHT(tb, EVAS_HINT_EXPAND, 0.0);
    ALIGN(tb, EVAS_HINT_FILL, EVAS_HINT_FILL);
    elm_toolbar_align_set(tb, 0);
