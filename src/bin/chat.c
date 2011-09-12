@@ -41,7 +41,7 @@ chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me)
    char timebuf[11];
    char *buf, *s;
    Evas_Object *e = c->chat_buffer;
-   int r, g, b;
+   const char *color;
 
    len = strftime(timebuf, sizeof(timebuf), "[%H:%M:%S]",
             localtime((time_t[]){ time(NULL) }));
@@ -49,23 +49,25 @@ chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me)
    s = elm_entry_utf8_to_markup(msg);
    if (me)
      {
-        if (!edje_color_class_get("shotgun_color_me", &r, &g, &b, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+        color = elm_theme_data_get(NULL, "shotgun/color/me");
+        if (!color)
           {
-             DBG("color_class 'shotgun_color_me' not found in theme, using defaults");
-             r = 0, g = 255, b = 1;
+             DBG("shotgun/color/me data not present in theme!");
+             color = "00FF01";
           }
      }
    else
      {
-        if (!edje_color_class_get("shotgun_color_you", &r, &g, &b, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+        color = elm_theme_data_get(NULL, "shotgun/color/you");
+        if (!color)
           {
-             DBG("color_class 'shotgun_color_you' not found in theme, using defaults");
-             r = 0, g = 1, b = 255;
+             DBG("shotgun/color/you data not present in theme!");
+             color = "0001FF";
           }
      }
-   len += strlen(from) + strlen(s) + sizeof("<color=#%2x%2x%2x>%s <b>%s:</b></color> %s<ps>") + 5;
+   len += strlen(from) + strlen(s) + sizeof("<color=#123456>%s <b>%s:</b></color> %s<ps>") + 5;
    buf = alloca(len);
-   snprintf(buf, len, "<color=#%02X%02X%02X>%s <b>%s:</b></color> %s<ps>", r, g, b, timebuf, from, s);
+   snprintf(buf, len, "<color=#%s>%s <b>%s:</b></color> %s<ps>", color, timebuf, from, s);
    free(s);
 
 #ifdef HAVE_NOTIFY
@@ -387,9 +389,11 @@ chat_window_new(Contact *c)
 
    status = elm_entry_add(win);
    elm_entry_cnp_textonly_set(status, 1);
+   elm_entry_scrollbar_policy_set(status, ELM_SCROLLER_POLICY_AUTO, ELM_SCROLLER_POLICY_OFF);
    elm_entry_single_line_set(status, 1);
    elm_entry_editable_set(status, 0);
    elm_object_focus_allow_set(status, 0);
+   elm_entry_scrollable_set(status, 1);
    elm_entry_line_wrap_set(status, ELM_WRAP_MIXED);
    WEIGHT(status, EVAS_HINT_EXPAND, 0);
    elm_entry_text_filter_append(status, (Elm_Entry_Filter_Cb)_chat_conv_filter, c->list);
