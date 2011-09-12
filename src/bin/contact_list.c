@@ -124,7 +124,16 @@ _contact_list_add_pager_cb_next(Contact_List *cl, Evas_Object *obj __UNUSED__, v
 static void
 _contact_list_add_pager_cb_prev(Contact_List *cl, Evas_Object *obj __UNUSED__, void *ev __UNUSED__)
 {
-   cl->pager_state = 0;
+   cl->pager_state--;
+   if (cl->pager_state)
+     {
+        evas_object_del(cl->pager);
+        cl->pager_entries = eina_list_free(cl->pager_entries);
+        cl->pager = NULL;
+        cl->pager_state = 0;
+        return;
+     }
+
    elm_pager_content_promote(cl->pager, elm_pager_content_bottom_get(cl->pager));
    elm_object_focus_set(cl->pager_entries->data, 1);
    elm_entry_cursor_end_set(cl->pager_entries->data);
@@ -149,7 +158,7 @@ _contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_
 
       i = elm_icon_add(cl->win);
       elm_icon_order_lookup_set(i, ELM_ICON_LOOKUP_THEME);
-      elm_icon_standard_set(i, "elm/icon/arrow_left/default");
+      elm_icon_standard_set(i, "arrow_left");
       evas_object_show(i);
       o = elm_button_add(cl->win);
       elm_button_icon_set(o, i);
@@ -166,6 +175,7 @@ _contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_
       i = elm_icon_add(cl->win);
       elm_icon_order_lookup_set(i, ELM_ICON_LOOKUP_THEME);
       elm_icon_standard_set(i, "shotgun/dialog_ok");
+      evas_object_color_set(i, 0, 255, 0, 255);
       evas_object_show(i);
       o = elm_button_add(cl->win);
       elm_button_icon_set(o, i);
@@ -206,6 +216,17 @@ _contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_
       ALIGN(b, EVAS_HINT_FILL, EVAS_HINT_FILL);
       elm_box_horizontal_set(b, 1);
 
+      i = elm_icon_add(cl->win);
+      elm_icon_order_lookup_set(i, ELM_ICON_LOOKUP_THEME);
+      elm_icon_standard_set(i, "close");
+      evas_object_color_set(i, 255, 0, 0, 255);
+      evas_object_show(i);
+      o = elm_button_add(cl->win);
+      elm_button_icon_set(o, i);
+      elm_box_pack_end(b, o);
+      evas_object_smart_callback_add(o, "clicked", (Evas_Smart_Cb)_contact_list_add_pager_cb_prev, cl);
+      evas_object_show(o);
+
       o = elm_label_add(cl->win);
       ALIGN(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
       elm_object_text_set(o, "Contact's Address:");
@@ -214,7 +235,7 @@ _contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_
 
       i = elm_icon_add(cl->win);
       elm_icon_order_lookup_set(i, ELM_ICON_LOOKUP_THEME);
-      elm_icon_standard_set(i, "elm/icon/arrow_right/default");
+      elm_icon_standard_set(i, "arrow_right");
       evas_object_show(i);
       o = elm_button_add(cl->win);
       elm_button_icon_set(o, i);
@@ -652,14 +673,7 @@ _contact_list_window_key(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj 
    if (!strcmp(ev->keyname, "Escape"))
      {
         if (!cl->pager) return;
-        if (cl->pager_state)
-          _contact_list_add_pager_cb_prev(cl, NULL, NULL);
-        else
-          {
-             evas_object_del(cl->pager);
-             cl->pager_entries = eina_list_free(cl->pager_entries);
-             cl->pager = NULL;
-          }
+        _contact_list_add_pager_cb_prev(cl, NULL, NULL);
      }
 }
 
