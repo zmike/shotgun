@@ -623,6 +623,24 @@ _contact_list_saveinfo_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, void *e
    ui_eet_auth_set(cl->account, EINA_TRUE, EINA_FALSE);
 }
 
+static void
+_contact_list_window_key(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, Evas_Event_Key_Down *ev)
+{
+   //DBG("%s", ev->keyname);
+   if (!strcmp(ev->keyname, "Escape"))
+     {
+        if (!cl->pager) return;
+        if (cl->pager_state)
+          _contact_list_add_pager_cb_prev(cl, NULL, NULL);
+        else
+          {
+             evas_object_del(cl->pager);
+             cl->pager_entries = eina_list_free(cl->pager_entries);
+             cl->pager = NULL;
+          }
+     }
+}
+
 void
 contact_list_user_add(Contact_List *cl, Contact *c)
 {
@@ -740,6 +758,8 @@ contact_list_new(Shotgun_Auth *auth)
    cl->win = win = elm_win_add(NULL, "Contacts", ELM_WIN_BASIC);
    elm_win_title_set(win, "Contacts");
    elm_win_autodel_set(win, 1);
+   evas_object_event_callback_add(win, EVAS_CALLBACK_KEY_DOWN, (Evas_Object_Event_Cb)_contact_list_window_key, cl);
+   1 | evas_object_key_grab(win, "Escape", 0, 0, 1); /* worst warn_unused ever. */
 
    obj = elm_bg_add(win);
    WEIGHT(obj, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
@@ -825,11 +845,13 @@ contact_list_new(Shotgun_Auth *auth)
    _contact_list_list_add(cl);
 
    tb = elm_toolbar_add(win);
+   WEIGHT(tb, EVAS_HINT_EXPAND, 0.0);
    ALIGN(tb, EVAS_HINT_FILL, EVAS_HINT_FILL);
    elm_toolbar_align_set(tb, 0);
    it = elm_toolbar_item_append(tb, "shotgun/useradd", "Add Contact", (Evas_Smart_Cb)_contact_list_add_cb, cl);
    it = elm_toolbar_item_append(tb, "shotgun/userdel", "Remove Contact", (Evas_Smart_Cb)_contact_list_del_cb, cl);
    elm_box_pack_end(box, tb);
+   elm_object_scale_set(tb, 0.75);
    evas_object_show(tb);
 
    obj = elm_separator_add(win);
