@@ -495,16 +495,12 @@ _contact_list_mode_toggle(Contact_List *cl, Evas_Object *obj __UNUSED__, void *e
 }
 
 static void
-_contact_list_show_toggle(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Menu_Item *ev)
+_contact_list_show_toggle(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_Item *ev __UNUSED__)
 {
    Eina_List *l;
    Contact *c;
 
-   cl->view = !cl->view;
-   if (cl->view)
-     elm_menu_item_label_set(ev, "Hide Offline Contacts");
-   else
-     elm_menu_item_label_set(ev, "Show Offline Contacts");
+   cl->view++;
    EINA_LIST_FOREACH(cl->users_list, l, c)
      {
         if (cl->view && (!c->list_item)) contact_list_user_add(cl, c);
@@ -784,7 +780,6 @@ contact_list_new(Shotgun_Auth *auth)
    menu = elm_toolbar_item_menu_get(it);
    elm_menu_item_add(menu, NULL, "menu/folder", "Save Account Info", (Evas_Smart_Cb)_contact_list_saveinfo_cb, cl);
    elm_menu_item_add(menu, NULL, "refresh", "Toggle View Mode", (Evas_Smart_Cb)_contact_list_mode_toggle, cl);
-   elm_menu_item_add(menu, NULL, "chat", "Show Offline Contacts", (Evas_Smart_Cb)_contact_list_show_toggle, cl);
    elm_menu_item_add(menu, NULL, "close", "Quit", (Evas_Smart_Cb)_contact_list_close, cl);
 
    it = elm_toolbar_item_append(tb, NULL, "Status", NULL, NULL);
@@ -851,6 +846,7 @@ contact_list_new(Shotgun_Auth *auth)
    elm_toolbar_align_set(tb, 0);
    it = elm_toolbar_item_append(tb, "shotgun/useradd", "Add Contact", (Evas_Smart_Cb)_contact_list_add_cb, cl);
    it = elm_toolbar_item_append(tb, "shotgun/userdel", "Remove Contact", (Evas_Smart_Cb)_contact_list_del_cb, cl);
+   it = elm_toolbar_item_append(tb, "shotgun/useroffline", "Show Offline", (Evas_Smart_Cb)_contact_list_show_toggle, cl);
    elm_box_pack_end(box, tb);
    elm_object_scale_set(tb, 0.75);
    evas_object_show(tb);

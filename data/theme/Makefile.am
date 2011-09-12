@@ -14,6 +14,7 @@ arrows_rejected.png \
 dialog_ok.png \
 useradd.png \
 userdel.png \
+useroffline.png \
 x.png
 
 EXTRA_DIST = default.edc $(images)

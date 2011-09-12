@@ -15,6 +15,7 @@ collections
      ICON("x", 16, 0);
      ICON("useradd", 16, 0);
      ICON("userdel", 16, 0);
+     ICON("useroffline", 16, 0);
      ICON("dialog_ok", 16, 0);
      ICON("arrows_both", 16, 0);
      ICON("arrows_pending_left", 16, 0);
