@@ -21,12 +21,37 @@ _contact_list_free_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj __U
 }
 
 static void
-_contact_list_user_del(Contact *c)
+_contact_list_user_del_cb(Contact *c, Evas_Object *obj __UNUSED__, void *ev  __UNUSED__)
 {
+   if (!c) return;
    shotgun_iq_contact_del(c->list->account, c->base->jid);
    eina_hash_del_by_data(c->list->users, c);
    c->list->users_list = eina_list_remove(c->list->users_list, c);
    contact_free(c);
+}
+
+static void
+_contact_list_user_del(Contact *c)
+{
+   Evas_Object *menu, *ic;
+   Elm_Menu_Item *mi;
+   char buf[128];
+   int x, y;
+
+   menu = elm_menu_add(c->list->win);
+   snprintf(buf, sizeof(buf), "Really remove %s?", c->base->jid);
+   mi = elm_menu_item_add(menu, NULL, NULL, buf, NULL, NULL);
+   elm_menu_item_disabled_set(mi, 1);
+   elm_menu_item_separator_add(menu, NULL);
+   mi = elm_menu_item_add(menu, NULL, "shotgun/dialog_ok", "Yes", (Evas_Smart_Cb)_contact_list_user_del_cb, c);
+   ic = elm_menu_item_object_content_get(mi);
+   evas_object_color_set(ic, 0, 255, 0, 255);
+   mi = elm_menu_item_add(menu, NULL, "close", "No", (Evas_Smart_Cb)_contact_list_user_del_cb, NULL);
+   ic = elm_menu_item_object_content_get(mi);
+   evas_object_color_set(ic, 255, 0, 0, 255);
+   evas_pointer_canvas_xy_get(evas_object_evas_get(c->list->win), &x, &y);
+   elm_menu_move(menu, x, y);
+   evas_object_show(menu);
 }
 
 static void
