@@ -4,13 +4,14 @@ static void
 _contact_list_free_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, void *ev __UNUSED__)
 {
    Contact *c;
+
    ecore_event_handler_del(cl->event_handlers.iq);
    ecore_event_handler_del(cl->event_handlers.presence);
    ecore_event_handler_del(cl->event_handlers.message);
 
-   eina_hash_free(cl->users);
-   eina_hash_free(cl->images);
-   eina_hash_free(cl->user_convs);
+   if (cl->users) eina_hash_free(cl->users);
+   if (cl->images) eina_hash_free(cl->images);
+   if (cl->user_convs) eina_hash_free(cl->user_convs);
    EINA_LIST_FREE(cl->users_list, c)
      contact_free(c);
 
@@ -758,6 +759,7 @@ contact_list_new(Shotgun_Auth *auth)
    cl->win = win = elm_win_add(NULL, "Contacts", ELM_WIN_BASIC);
    elm_win_title_set(win, "Contacts");
    elm_win_autodel_set(win, 1);
+   evas_object_smart_callback_add(win, "delete,request", (Evas_Smart_Cb)_contact_list_free_cb, cl);
    evas_object_event_callback_add(win, EVAS_CALLBACK_KEY_DOWN, (Evas_Object_Event_Cb)_contact_list_window_key, cl);
    1 | evas_object_key_grab(win, "Escape", 0, 0, 1); /* worst warn_unused ever. */
 
@@ -886,9 +888,6 @@ contact_list_new(Shotgun_Auth *auth)
    elm_box_pack_end(box, obj);
    evas_object_smart_callback_add(obj, "delay,changed", (Evas_Smart_Cb)_contact_list_status_priority, cl);
    evas_object_show(obj);
-
-   evas_object_event_callback_add(win, EVAS_CALLBACK_FREE,
-                                  (Evas_Object_Event_Cb)_contact_list_free_cb, cl);
 
    cl->users = eina_hash_string_superfast_new(NULL);
 //   cl->users = eina_hash_string_superfast_new((Eina_Free_Cb)contact_free);
