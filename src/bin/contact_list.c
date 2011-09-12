@@ -772,7 +772,6 @@ contact_list_new(Shotgun_Auth *auth)
    evas_object_show(box);
 
    tb = elm_toolbar_add(win);
-   elm_toolbar_mode_shrink_set(tb, ELM_TOOLBAR_SHRINK_MENU);
    ALIGN(tb, EVAS_HINT_FILL, 0);
    elm_toolbar_align_set(tb, 0);
    it = elm_toolbar_item_append(tb, NULL, "Shotgun", NULL, NULL);
