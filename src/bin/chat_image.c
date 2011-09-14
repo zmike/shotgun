@@ -56,8 +56,9 @@ _chat_conv_image_provider(Image *i, Evas_Object *obj, Evas_Object *tt)
 error:
    ret = elm_bg_add(tt);
    elm_bg_color_set(ret, 0, 0, 0);
-   ret = elm_label_add(tt); /* FIXME: loading image or something ? */
-   elm_object_text_set(ret, "Image could not be loaded!");
+   ret = elm_label_add(tt);
+   elm_object_text_set(ret, "Left click link to open in BROWSER<ps>"
+                           "Right click link to copy to clipboard");
    return ret;
 }
 
