@@ -78,9 +78,10 @@ struct Contact_List
 
    Eina_Bool mode : 1; /* 0 for list, 1 for grid */
    Eina_Bool view : 1; /* 0 for regular, 1 for offlines */
-
+#ifdef HAVE_DBUS
    E_DBus_Connection *dbus;
    E_DBus_Object *dbus_object;
+#endif
 
    /* fps for doing stuff to both list and grid views with the same function */
    Ecore_Data_Cb list_item_parent_get[2];
