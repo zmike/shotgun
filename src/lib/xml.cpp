@@ -2,7 +2,6 @@
 #include "shotgun_private.h"
 #include "xml.h"
 #include "pugixml.hpp"
-#include <iterator>
 
 #define XML_NS_ROSTER "jabber:iq:roster"
 #define XML_NS_DISCO_INFO "http://jabber.org/protocol/disco#info"
