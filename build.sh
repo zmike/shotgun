@@ -1,14 +1,19 @@
 #!/bin/bash
 
-CF="-I$(readlink -f .) -D_GNU_SOURCE=1 -O0 -pipe -Wall -Wextra -g -I$(readlink -f src/include) -DHAVE_ECORE_X -DHAVE_DBUS -DHAVE_NOTIFY -DPACKAGE_DATA_DIR=\".\""
+VREV="$(git log -n1 --pretty=oneline 2> /dev/null | cut -d' ' -f1 | tr -d '\n')"
+
+CF="-DVREV=\"$VREV\" -I$(readlink -f .) -D_GNU_SOURCE=1 -O0 -pipe -Wall -Wextra -g -I$(readlink -f src/include) -DHAVE_ECORE_X -DHAVE_DBUS -DHAVE_NOTIFY -DPACKAGE_DATA_DIR=\".\""
 [[ -z "$CC" ]] && CC=gcc
 [[ -z "$CXX" ]] && CXX=g++
 #DEPS=($(pkg-config --print-requires-private ecore-con edbus ecore-x elementary enotify))
 #echo "DEPENDENCIES: ${DEPS[@]}"
-CFLAGS="$(pkg-config --cflags ${DEPS[@]} ecore-con edbus ecore-x elementary enotify)"
+CFLAGS="$(pkg-config --cflags ecore-con edbus ecore-x elementary enotify)"
 #echo "DEPENDENCY CFLAGS: $CFLAGS"
-
-LIBS="$(pkg-config --libs ${DEPS[@]} ecore-con edbus ecore-x elementary enotify)"
+LIBS="$(pkg-config --libs ecore-con edbus ecore-x elementary enotify)"
+if pkg-config --exists azy ; then
+	CFLAGS+=" $(pkg-config --cflags azy) -DHAVE_AZY"
+	LIBS+=" $(pkg-config --libs azy)"
+fi
 #echo "DEPENDENCY LIBS: $LIBS"
 #echo
 

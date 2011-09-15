@@ -3,8 +3,7 @@
 m4_define([v_maj], [1])
 m4_define([v_min], [0])
 m4_define([v_mic], [0])
-m4_define([v_rev], m4_esyscmd([(svnversion "${SVN_REPO_PATH:-.}" | grep -v export || echo 0) | awk -F : '{printf("%s\n", $1);}' | tr -d ' :MSP\n']))
-m4_if(v_rev, [0], [m4_define([v_rev], m4_esyscmd([git log 2> /dev/null | (grep -m1 git-svn-id || echo 0) | sed -e 's/.*@\([0-9]*\).*/\1/' | tr -d '\n']))])
+m4_if(v_rev, [0], [m4_define([v_rev], m4_esyscmd([git log -n1 --pretty=oneline 2> /dev/null | cut -d' ' -f1 | tr -d '\n']))])
 ##--   When released, remove the dnl on the below line
 m4_undefine([v_rev])
 ##--   When doing snapshots - change soname. remove dnl on below line
@@ -34,7 +33,7 @@ m4_ifdef([v_rel], , [m4_define([v_rel], [])])
 AC_DEFINE_UNQUOTED(VMAJ, [v_maj], [Major version])
 AC_DEFINE_UNQUOTED(VMIN, [v_min], [Minor version])
 AC_DEFINE_UNQUOTED(VMIC, [v_mic], [Micro version])
-AC_DEFINE_UNQUOTED(VREV, [v_rev], [Revison])
+AC_DEFINE(VREV, [v_rev], [Revison])
 version_info="lt_rev:lt_cur:lt_age"
 release_info="v_rel"
 AC_SUBST(version_info)
@@ -80,7 +79,7 @@ AC_ARG_WITH([edje-cc],
    ],[edje_cc=$(pkg-config --variable=prefix edje)/bin/edje_cc])
 AC_SUBST(edje_cc)
 
-have_ecore_x="no"                                                                                                                                                                                                                         
+have_ecore_x="no"
 want_ecore_x="auto"
 AC_ARG_ENABLE([ecore-x],
    [AC_HELP_STRING([--disable-ecore-x], [disable ecore-x support. @<:@default=detect@:>@])],
@@ -102,7 +101,29 @@ if test "x$want_ecore_x" = "xyes" -a "x$have_ecore_x" = "xno"; then
     AC_MSG_ERROR([ecore-x support requested, but not found by pkg-config.])
 fi
 
-have_edbus="no"                                                                                                                                                                                                                         
+have_azy="no"
+want_azy="auto"
+AC_ARG_ENABLE([azy],
+   [AC_HELP_STRING([--disable-azy], [disable azy support. @<:@default=detect@:>@])],
+   [want_azy=$enableval], [])
+
+if test "x$want_azy" != "xno"; then
+   PKG_CHECK_MODULES([AZY],
+      [azy >= 1.0.0],
+      [
+       AC_DEFINE(HAVE_AZY, 1, [Azy support])
+       have_azy="yes"
+      ],
+      [have_azy="no"]
+   )
+else
+    have_azy="no"
+fi
+if test "x$want_azy" = "xyes" -a "x$have_azy" = "xno"; then
+    AC_MSG_ERROR([azy support requested, but not found by pkg-config.])
+fi
+
+have_edbus="no"
 want_edbus="auto"
 AC_ARG_ENABLE([edbus],
    [AC_HELP_STRING([--disable-edbus], [disable edbus support. @<:@default=detect@:>@])],
@@ -124,7 +145,7 @@ if test "x$want_edbus" = "xyes" -a "x$have_edbus" = "xno"; then
     AC_MSG_ERROR([edbus support requested, but not found by pkg-config.])
 fi
 
-have_enotify="no"                                                                                                                                                                                                                         
+have_enotify="no"
 want_enotify="auto"
 AC_ARG_ENABLE([enotify],
    [AC_HELP_STRING([--disable-enotify], [disable enotify support. @<:@default=detect@:>@])],

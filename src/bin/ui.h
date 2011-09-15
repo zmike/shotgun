@@ -28,6 +28,9 @@ void *alloca (size_t);
 #ifdef HAVE_DBUS
 # include <E_DBus.h>
 #endif
+#ifdef HAVE_AZY
+# include <Azy.h>
+#endif
 
 #ifndef __UNUSED__
 # define __UNUSED__ __attribute__((unused))
@@ -176,6 +179,13 @@ void ui_dbus_init(Contact_List *cl);
 void ui_dbus_notify(const char *from, const char *msg);
 # endif
 #endif
+
+#ifdef HAVE_AZY
+void ui_azy_init(Contact_List *cl);
+void ui_azy_connect(Contact_List *cl);
+void ui_azy_shutdown(Contact_List *cl);
+#endif
+
 Eina_Bool event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev);
 Eina_Bool event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence *ev);
 Eina_Bool event_message_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Message *msg);

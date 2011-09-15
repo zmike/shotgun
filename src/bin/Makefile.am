@@ -21,6 +21,7 @@ shotgun_LDADD = \
   @top_builddir@/src/lib/libshotgun.la
 
 shotgun_SOURCES = \
+azy.c \
 chat.c \
 chat_image.c \
 contact.c \

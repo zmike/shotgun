@@ -30,6 +30,10 @@ con(void *d __UNUSED__, int type __UNUSED__, Shotgun_Auth *auth)
 #ifdef HAVE_DBUS
    ui_dbus_init(cl);
 #endif
+#ifdef HAVE_AZY
+   ui_azy_init(cl);
+   ui_azy_connect(cl);
+#endif
    return ECORE_CALLBACK_RENEW;
 }
 
