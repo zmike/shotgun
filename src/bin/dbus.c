@@ -1,6 +1,5 @@
 #include "ui.h"
 #ifdef HAVE_DBUS
-#include <E_DBus.h>
 
 #ifdef HAVE_NOTIFY
 #include <E_Notify.h>
