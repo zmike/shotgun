@@ -35,7 +35,7 @@ shotgun_stream_init(Shotgun_Auth *auth)
 Eina_Bool
 shotgun_login_con(Shotgun_Auth *auth, int type, Ecore_Con_Event_Server_Add *ev)
 {
-   if (auth != ecore_con_server_data_get(ev->server))
+   if ((auth != ecore_con_server_data_get(ev->server)) || (!auth))
      return ECORE_CALLBACK_PASS_ON;
 
    if (type == ECORE_CON_EVENT_SERVER_ADD)

@@ -18,7 +18,7 @@ int SHOTGUN_EVENT_IQ = 0;
 static Eina_Bool
 disc(Shotgun_Auth *auth, int type __UNUSED__, Ecore_Con_Event_Server_Del *ev)
 {
-   if (auth != ecore_con_server_data_get(ev->server))
+   if ((auth != ecore_con_server_data_get(ev->server)) || (!auth))
      return ECORE_CALLBACK_PASS_ON;
 
    INF("Disconnected");
@@ -127,7 +127,7 @@ data(Shotgun_Auth *auth, int type __UNUSED__, Ecore_Con_Event_Server_Data *ev)
    char *recv, *data, *p;
    size_t size;
 
-   if (auth != ecore_con_server_data_get(ev->server))
+   if ((auth != ecore_con_server_data_get(ev->server)) || (!auth))
      return ECORE_CALLBACK_PASS_ON;
 
    if (ev->size == 1)
@@ -185,6 +185,8 @@ data(Shotgun_Auth *auth, int type __UNUSED__, Ecore_Con_Event_Server_Data *ev)
 static Eina_Bool
 error(Shotgun_Auth *auth, int type __UNUSED__, Ecore_Con_Event_Server_Error *ev)
 {
+   if ((auth != ecore_con_server_data_get(ev->server)) || (!auth))
+     return ECORE_CALLBACK_PASS_ON;
    ERR("%s", ev->error);
    shotgun_disconnect(auth);
    return ECORE_CALLBACK_RENEW;
