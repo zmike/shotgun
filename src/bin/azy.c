@@ -59,7 +59,7 @@ ui_azy_download_status(void *data __UNUSED__, int type __UNUSED__, Azy_Event_Dow
    if (ev->net)
      total = azy_net_message_length_get(ev->net);
    if (total > 0)
-     INF("RSS: %zu bytes (of %i total) transferred for RSS feed %u", ev->size, total);
+     INF("RSS: %zu bytes (of %i total) transferred for RSS feed", ev->size, total);
    else
      INF("RSS: %zu bytes transferred for RSS feed", ev->size);
    return ECORE_CALLBACK_RENEW;
