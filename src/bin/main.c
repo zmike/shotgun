@@ -32,7 +32,8 @@ con(void *d __UNUSED__, int type __UNUSED__, Shotgun_Auth *auth)
 #endif
 #ifdef HAVE_AZY
    ui_azy_init(cl);
-   ui_azy_connect(cl);
+   if (ui_azy_connect(cl))
+     ecore_timer_add(24 * 60 * 60, (Ecore_Task_Cb)ui_azy_connect, cl);
 #endif
    return ECORE_CALLBACK_RENEW;
 }

@@ -2,7 +2,7 @@
 #ifdef HAVE_AZY
 
 static Azy_Client *cli = NULL;
-
+static Eina_Bool notified = EINA_FALSE;
 static Ecore_Event_Handler *ac = NULL;
 static Ecore_Event_Handler *ar = NULL;
 static Ecore_Event_Handler *ad = NULL;
@@ -48,6 +48,7 @@ ui_azy_return(void *data __UNUSED__, int type __UNUSED__, Azy_Content *content)
 #ifdef HAVE_NOTIFY
    ui_dbus_notify("Shotgun!", buf);
 #endif
+   notified = EINA_TRUE;
    return ECORE_CALLBACK_RENEW;
 }
 
@@ -105,15 +106,18 @@ ui_azy_init(Contact_List *cl)
    ads = ecore_event_handler_add(AZY_EVENT_DOWNLOAD_STATUS, (Ecore_Event_Handler_Cb)ui_azy_download_status, NULL);
 }
 
-void
+Eina_Bool
 ui_azy_connect(Contact_List *cl __UNUSED__)
 {
    Azy_Net *net;
+
+   if (notified) return EINA_FALSE;
    azy_client_connect(cli, EINA_TRUE);
    net = azy_client_net_get(cli);
    if (!azy_net_uri_get(net))
      azy_net_uri_set(net, "/zmike/shotgun/commits/master.atom");
    azy_net_version_set(net, 0);
+   return EINA_TRUE;
 }
 
 void

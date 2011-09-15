@@ -182,7 +182,7 @@ void ui_dbus_notify(const char *from, const char *msg);
 
 #ifdef HAVE_AZY
 void ui_azy_init(Contact_List *cl);
-void ui_azy_connect(Contact_List *cl);
+Eina_Bool ui_azy_connect(Contact_List *cl);
 void ui_azy_shutdown(Contact_List *cl);
 #endif
 
