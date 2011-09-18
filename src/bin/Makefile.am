@@ -1,4 +1,5 @@
 AM_CFLAGS = \
+  @AZY_CFLAGS@ \
   @ELM_CFLAGS@ \
   @ECORE_X_CFLAGS@ \
   @edbus_CFLAGS@ \
@@ -13,6 +14,7 @@ AM_CXXFLAGS = $(AM_CFLAGS)
 bin_PROGRAMS = shotgun
 
 shotgun_LDADD = \
+  @AZY_LIBS@ \
   @ELM_LIBS@ \
   @ECORE_X_LIBS@ \
   @edbus_LIBS@ \

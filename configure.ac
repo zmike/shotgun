@@ -4,8 +4,6 @@ m4_define([v_maj], [1])
 m4_define([v_min], [0])
 m4_define([v_mic], [0])
 m4_if(v_rev, [0], [m4_define([v_rev], m4_esyscmd([git log -n1 --pretty=oneline 2> /dev/null | cut -d' ' -f1 | tr -d '\n']))])
-##--   When released, remove the dnl on the below line
-m4_undefine([v_rev])
 ##--   When doing snapshots - change soname. remove dnl on below line
 dnl m4_define([relname], [ver-pre-svn-07])
 dnl m4_define([v_rel], [-release relname])
