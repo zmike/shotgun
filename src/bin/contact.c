@@ -19,9 +19,16 @@ contact_free(Contact *c)
    if (!c) return;
    if (c->cur && c->plist)
      c->plist = eina_list_remove(c->plist, c->cur);
-   shotgun_event_presence_free(c->cur);
    EINA_LIST_FREE(c->plist, pres)
-     shotgun_event_presence_free(pres);
+     {
+        if (pres && (pres == c->cur))
+          {
+             CRI("c->cur is in c->plist!!!!");
+             c->cur = NULL;
+          }
+        shotgun_event_presence_free(pres);
+     }
+   shotgun_event_presence_free(c->cur);
    if (c->list_item)
      c->list->list_item_del[c->list->mode](c->list_item);
    shotgun_user_free(c->base);
