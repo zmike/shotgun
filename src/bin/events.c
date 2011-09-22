@@ -112,10 +112,12 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
              break;
           }
      }
+   /* if current resource is not event resource */
    if ((!c->cur) || (ev->jid != c->cur->jid))
      {
         EINA_LIST_FOREACH(c->plist, l, pres)
           {
+             /* update existing resource if found */
              if (ev->jid != pres->jid) continue;
 
              eina_stringshare_del(pres->description);
@@ -129,6 +131,7 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
              pres->vcard = ev->vcard;
              break;
           }
+        /* if not found, copy */
         if ((!pres) || (pres->jid != ev->jid))
           {
              pres = calloc(1, sizeof(Shotgun_Event_Presence));
@@ -142,14 +145,17 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
              ev->photo = NULL;
              pres->vcard = ev->vcard;
           }
+        /* if not the current resource, update current */
         if (c->cur)
           {
              if (pres->photo && (!c->cur->photo))
                c->cur->photo = eina_stringshare_ref(pres->photo);
              c->cur->vcard |= pres->vcard;
+             /* if lower priority, add to plist */
              if (ev->priority < c->cur->priority)
                {
                   c->plist = eina_list_append(c->plist, pres);
+                  /* if vcard available and (not retrieved || not most recent) */
                   if (ev->vcard && ((!c->info) || (c->cur && c->info &&
                       ((c->info->photo.sha1 != c->cur->photo) || (c->cur->photo && (!c->info->photo.data))))))
                     shotgun_iq_vcard_get(ev->account, c->base->jid);
@@ -162,20 +168,23 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
      }
 
    c->status = c->cur->status;
-   if (c->status_line && (c->description != c->cur->description) &&
-       ((!c->description) || (!c->cur->description) || strcmp(c->description, c->cur->description)))
+   /* if status description exists and isn't the same as current status description */
+   if (c->status_line && (c->description != c->cur->description))
      {
         elm_entry_entry_set(c->status_line, "");
         if (c->cur->description) elm_entry_entry_append(c->status_line, c->cur->description);
      }
    c->description = c->cur->description;
    c->priority = c->cur->priority;
+   /* if offline view or contact has a subscription, create/update list item */
    if (cl->view || (c->base->subscription > SHOTGUN_USER_SUBSCRIPTION_NONE))
      {
         c->tooltip_changed = EINA_TRUE;
+        /* if no list item, create */
         if (!c->list_item)
           {
              contact_list_user_add(cl, c);
+             /* if vcard available, fetch */
              if (ev->vcard)
                {
                   c->info = ui_eet_userinfo_get(cl->account, c->base->jid);
@@ -185,14 +194,17 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
                     shotgun_iq_vcard_get(ev->account, c->base->jid);
                }
           }
+        /* otherwise, update */
         else
           {
+             /* if vcard available and (not retrieved || not most recent) */
              if (ev->vcard && ((!c->info) || (c->cur && c->info &&
                  ((c->info->photo.sha1 != c->cur->photo) || (c->cur->photo && (!c->info->photo.data))))))
                shotgun_iq_vcard_get(ev->account, c->base->jid);
              cl->list_item_update[cl->mode](c->list_item);
           }
      }
+   /* sort plist by priority */
    if (c->plist) c->plist = eina_list_sort(c->plist, 0, (Eina_Compare_Cb)_list_sort_cb);
    return EINA_TRUE;
 }
