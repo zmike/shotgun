@@ -18,11 +18,6 @@ ui_azy_return(void *data __UNUSED__, int type __UNUSED__, Azy_Content *content)
    unsigned int x = 1;
    char buf[256];
 
-   if (!VREV)
-     {
-        CRI("VREV is NULL! THIS IS A BUG WITH YOUR BUILD!");
-        abort();
-     }
    if (azy_content_error_is_set(content))
      {
         printf("Error encountered: %s\n", azy_content_error_message_get(content));

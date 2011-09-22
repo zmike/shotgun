@@ -3,10 +3,7 @@
 m4_define([v_maj], [1])
 m4_define([v_min], [0])
 m4_define([v_mic], [0])
-m4_if(v_rev, [0], [m4_define([v_rev], m4_esyscmd([git log -n1 --pretty=oneline 2> /dev/null | cut -d' ' -f1 | tr -d '\n']))])
-##--   When doing snapshots - change soname. remove dnl on below line
-dnl m4_define([relname], [ver-pre-svn-07])
-dnl m4_define([v_rel], [-release relname])
+m4_define([v_rev], m4_esyscmd_s([git log -n1 --pretty=oneline 2> /dev/null | cut -d' ' -f1 ]))
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 m4_ifdef([v_rev], [m4_define([v_ver], [v_maj.v_min.v_mic.v_rev])], [m4_define([v_ver], [v_maj.v_min.v_mic])])
 m4_define([lt_rev], m4_eval(v_maj + v_min))
@@ -20,10 +17,8 @@ AC_INIT([shotgun],[1.0.v_rev],[mike@zentific.com],[shotgun])
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADER([config.h])
-
 AC_GNU_SOURCE
 AC_ISC_POSIX
-
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 m4_ifdef([v_rev], , [m4_define([v_rev], [0])])
