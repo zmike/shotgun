@@ -144,12 +144,17 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
              pres->description = eina_stringshare_ref(ev->description);
              pres->photo = eina_stringshare_ref(ev->photo);
              pres->vcard = ev->vcard;
+             pres->idle = ev->idle;
+             pres->timestamp = ev->timestamp;
           }
         /* if found, update */
         else if (pres && (pres->jid == ev->jid))
           {
              pres->priority = ev->priority;
              pres->status = ev->status;
+             pres->vcard = ev->vcard;
+             pres->idle = ev->idle;
+             pres->timestamp = ev->timestamp;
              if (pres->description != ev->description)
                {
                   eina_stringshare_del(pres->description);
