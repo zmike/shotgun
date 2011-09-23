@@ -145,17 +145,36 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
              pres->photo = eina_stringshare_ref(ev->photo);
              pres->vcard = ev->vcard;
           }
+        /* if found, update */
+        else if (pres && (pres->jid == ev->jid))
+          {
+             pres->priority = ev->priority;
+             pres->status = ev->status;
+             if (pres->description != ev->description)
+               {
+                  eina_stringshare_del(pres->description);
+                  pres->description = eina_stringshare_ref(ev->description);
+               }
+             if (pres->photo != ev->photo)
+               {
+                  eina_stringshare_del(pres->photo);
+                  pres->photo = eina_stringshare_ref(ev->photo);
+               }             pres->vcard = ev->vcard;
+             /* must sort! */
+             c->plist = eina_list_sort(c->plist, 0, (Eina_Compare_Cb)_list_sort_cb);
+          }
         /* if not the current resource, update current */
         if (c->cur)
           {
+             /* if current resource has no photo, use low priority photo */
              if (pres->photo && (!c->cur->photo))
                c->cur->photo = eina_stringshare_ref(pres->photo);
              c->cur->vcard |= pres->vcard;
              /* if lower priority, add to plist */
              if (ev->priority < c->cur->priority)
                {
-                 if (!eina_list_data_find(c->plist, pres))
-                   c->plist = eina_list_append(c->plist, pres);
+                  if ((!l) || (l->data != pres))
+                    c->plist = eina_list_sorted_insert(c->plist, (Eina_Compare_Cb)_list_sort_cb, pres);
                   /* if vcard available and (not retrieved || not most recent) */
                   if (ev->vcard && ((!c->info) || (c->cur && c->info &&
                       ((c->info->photo.sha1 != c->cur->photo) ||
@@ -164,7 +183,7 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
                   return EINA_TRUE;
                }
              c->plist = eina_list_remove(c->plist, pres);
-             c->plist = eina_list_append(c->plist, c->cur);
+             c->plist = eina_list_sorted_insert(c->plist, (Eina_Compare_Cb)_list_sort_cb, c->cur);
           }
         c->cur = pres;
      }
@@ -206,8 +225,6 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
              cl->list_item_update[cl->mode](c->list_item);
           }
      }
-   /* sort plist by priority */
-   if (c->plist) c->plist = eina_list_sort(c->plist, 0, (Eina_Compare_Cb)_list_sort_cb);
    return EINA_TRUE;
 }
 
