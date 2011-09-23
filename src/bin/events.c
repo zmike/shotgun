@@ -154,10 +154,12 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
              /* if lower priority, add to plist */
              if (ev->priority < c->cur->priority)
                {
-                  c->plist = eina_list_append(c->plist, pres);
+                 if (!eina_list_data_find(c->plist, pres))
+                   c->plist = eina_list_append(c->plist, pres);
                   /* if vcard available and (not retrieved || not most recent) */
                   if (ev->vcard && ((!c->info) || (c->cur && c->info &&
-                      ((c->info->photo.sha1 != c->cur->photo) || (c->cur->photo && (!c->info->photo.data))))))
+                      ((c->info->photo.sha1 != c->cur->photo) ||
+                       (c->cur->photo && (!c->info->photo.data))))))
                     shotgun_iq_vcard_get(ev->account, c->base->jid);
                   return EINA_TRUE;
                }
