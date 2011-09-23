@@ -183,6 +183,7 @@ typedef struct
    const char *description;
    int priority;
    unsigned int idle;
+   double timestamp;
    Shotgun_User_Status status;
    Shotgun_Presence_Type type;
    Eina_Bool vcard : 1;

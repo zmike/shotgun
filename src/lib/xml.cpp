@@ -882,7 +882,7 @@ xml_presence_read(Shotgun_Auth *auth, char *xml, size_t size)
              ns = it.attribute("xmlns").value();
              if ((!ns) || (!ns[0])) continue;
              if (strcmp(ns, XML_NS_IDLE)) continue;
-             ret->idle = strtoul(it.value(), NULL, 10);
+             ret->idle = it.attribute("seconds").as_uint();
           }
         else if (!strcmp(it.name(), "show"))
           {
@@ -922,5 +922,6 @@ xml_presence_read(Shotgun_Auth *auth, char *xml, size_t size)
                }
           }
      }
+   ret->timestamp = ecore_time_unix_get();
    return ret;
 }
