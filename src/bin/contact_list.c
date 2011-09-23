@@ -391,6 +391,7 @@ _it_icon_get(Contact *c, Evas_Object *obj, const char *part)
 {
    Evas_Object *ic;
    const char *str = NULL;
+   int alpha = 255;
 
    if (!strcmp(part, "elm.swallow.end"))
      {
@@ -415,6 +416,12 @@ _it_icon_get(Contact *c, Evas_Object *obj, const char *part)
              str = "shotgun/arrows_rejected";
            default:
              break;
+          }
+        if (c->cur->idle)
+          {
+             unsigned int x;
+             for (x = 10; (x <= c->cur->idle) && (alpha > 64); x += 10)
+               alpha -= 12;
           }
      }
    else if (c->base->subscription_pending)
@@ -445,19 +452,19 @@ _it_icon_get(Contact *c, Evas_Object *obj, const char *part)
    switch (c->status)
      {
         case SHOTGUN_USER_STATUS_NORMAL:
-          evas_object_color_set(ic, 0, 200, 0, 255);
+          evas_object_color_set(ic, 0, 200, 0, alpha);
           break;
         case SHOTGUN_USER_STATUS_AWAY:
-          evas_object_color_set(ic, 255, 204, 51, 255);
+          evas_object_color_set(ic, 255, 204, 51, alpha);
           break;
         case SHOTGUN_USER_STATUS_CHAT:
-          evas_object_color_set(ic, 0, 255, 0, 255);
+          evas_object_color_set(ic, 0, 255, 0, alpha);
           break;
         case SHOTGUN_USER_STATUS_DND:
-          evas_object_color_set(ic, 0, 0, 255, 255);
+          evas_object_color_set(ic, 0, 0, 255, alpha);
           break;
         case SHOTGUN_USER_STATUS_XA:
-          evas_object_color_set(ic, 255, 0, 0, 255);
+          evas_object_color_set(ic, 255, 0, 0, alpha);
         default:
           break;
      }

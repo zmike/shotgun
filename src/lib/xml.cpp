@@ -7,6 +7,7 @@
 #define XML_NS_DISCO_INFO "http://jabber.org/protocol/disco#info"
 #define XML_NS_CHATSTATES "http://jabber.org/protocol/chatstates"
 #define XML_NS_BIND "urn:ietf:params:xml:ns:xmpp-bind"
+#define XML_NS_IDLE "jabber:iq:last"
 
 using namespace pugi;
 
@@ -547,6 +548,7 @@ xml_iq_disco_info_write(Shotgun_Auth *auth, xml_document &query)
    identity.append_attribute("type").set_value("man_I_suck_at_XMPP");
    node.append_child("feature").append_attribute("var").set_value(XML_NS_DISCO_INFO); /* yay recursion */
    node.append_child("feature").append_attribute("var").set_value(XML_NS_CHATSTATES);
+   node.append_child("feature").append_attribute("var").set_value(XML_NS_IDLE);
 
    xml = xmlnode_to_buf(doc, &len, EINA_FALSE);
    shotgun_write(auth->svr, xml, len);
@@ -872,6 +874,15 @@ xml_presence_read(Shotgun_Auth *auth, char *xml, size_t size)
           {
              desc = it.child_value();
              if (desc && desc[0]) ret->description = eina_stringshare_add(desc);
+          }
+        else if (!strcmp(it.name(), "query"))
+          {
+             const char *ns;
+
+             ns = it.attribute("xmlns").value();
+             if ((!ns) || (!ns[0])) continue;
+             if (strcmp(ns, XML_NS_IDLE)) continue;
+             ret->idle = strtoul(it.value(), NULL, 10);
           }
         else if (!strcmp(it.name(), "show"))
           {
