@@ -6,7 +6,6 @@ BUGS:
 	contact list right click menu in grid view
 
 FEATURES:
-	hook for checking 'latest' revision from github
 	login window
 	config panels
 	message status handling

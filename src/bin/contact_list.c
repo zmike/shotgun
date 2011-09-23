@@ -616,8 +616,8 @@ _contact_list_status_message(Contact_List *cl, Evas_Object *obj, void *ev __UNUS
    char *s;
 
    s = elm_entry_markup_to_utf8(elm_entry_entry_get(obj));
-   shotgun_presence_desc_manage(cl->account, s);
-   if (s) free(s);
+   shotgun_presence_desc_set(cl->account, s);
+   free(s);
    shotgun_presence_send(cl->account);
    if (cl->status_timer)
      {

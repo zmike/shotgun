@@ -118,7 +118,7 @@ shotgun_presence_desc_manage(Shotgun_Auth *auth, const char *desc)
 {
    EINA_SAFETY_ON_NULL_RETURN(auth);
    eina_stringshare_del(auth->desc);
-   auth->desc = eina_stringshare_add(desc);
+   auth->desc = desc;
 }
 
 Eina_Bool
