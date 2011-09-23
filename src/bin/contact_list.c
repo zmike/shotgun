@@ -626,6 +626,13 @@ _contact_list_status_message(Contact_List *cl, Evas_Object *obj, void *ev __UNUS
      }
 }
 
+static Eina_Bool
+_contact_list_item_tooltip_update_cb(Contact *c)
+{
+   c->tooltip_changed = EINA_TRUE;
+   return ECORE_CALLBACK_CANCEL;
+}
+
 static Evas_Object *
 _contact_list_item_tooltip_cb(Contact *c, Evas_Object *obj __UNUSED__, Evas_Object *tt, void *it __UNUSED__)
 {
@@ -634,28 +641,70 @@ _contact_list_item_tooltip_cb(Contact *c, Evas_Object *obj __UNUSED__, Evas_Obje
    Eina_Strbuf *buf;
    Eina_List *l;
    Shotgun_Event_Presence *p;
+   unsigned int timer = 0, t2;
 
    if (!c->tooltip_changed) goto out;
    if (c->status && c->cur)
      {
         buf = eina_strbuf_new();
-        eina_strbuf_append_printf(buf, "<b><title>%s</title></b><ps>"
-                                       "<b><subtitle><u>%s (%i)%s</u></subtitle></b><ps>"
-                                       "%s%s",
-                                       c->base->jid,
-                                       c->cur->jid + strlen(c->base->jid) + 1, c->priority, c->description ? ":" : "",
-                                       c->description ?: "", c->description ? "<ps>" : "");
+        if (c->cur->idle)
+          {
+             eina_strbuf_append_printf(buf,
+               "<b><title>%s</title></b><ps>"
+               "<b><subtitle><u>%s (%i)%s</u></subtitle></b><ps>"
+               "%s<ps>"
+               "<i>Idle: %u minutes</i>",
+               c->base->jid,
+               c->cur->jid + strlen(c->base->jid) + 1, c->priority, c->description ? ":" : "",
+               c->description ?: "",
+               (c->cur->idle + (unsigned int)(ecore_time_unix_get() - c->cur->timestamp)) / 60 + (c->cur->idle % 60 > 30));
+             timer = c->cur->idle % 60;
+          }
+        else
+          eina_strbuf_append_printf(buf,
+            "<b><title>%s</title></b><ps>"
+            "<b><subtitle><u>%s (%i)%s</u></subtitle></b><ps>"
+            "%s%s",
+            c->base->jid,
+            c->cur->jid + strlen(c->base->jid) + 1, c->priority, c->description ? ":" : "",
+            c->description ?: "", c->description ? "<ps>" : "");
         EINA_LIST_FOREACH(c->plist, l, p)
-          eina_strbuf_append_printf(buf, "<ps><b>%s (%i)%s</b><ps>"
-                                         "%s%s",
-                                         p->jid + strlen(c->base->jid) + 1, c->priority, c->description ? ":" : "",
-                                         p->description ?: "", p->description ? "<ps>" : "");
+          {
+             if (p->idle)
+               {
+                  eina_strbuf_append_printf(buf,
+                    "<ps><b>%s (%i)%s</b><ps>"
+                    "%s<ps>"
+                    "<i>Idle: %u minutes</i>",
+                    p->jid + strlen(c->base->jid) + 1, p->priority, p->description ? ":" : "",
+                    p->description ?: "",
+                    (p->idle + (unsigned int)(ecore_time_unix_get() - p->timestamp)) / 60 + (p->idle % 60 > 30));
+                  t2 = p->idle % 60;
+                  if (t2 > timer) timer = t2;
+               }
+             else
+               eina_strbuf_append_printf(buf,
+                 "<ps><b>%s (%i)%s</b><ps>"
+                 "%s%s",
+                 p->jid + strlen(c->base->jid) + 1, p->priority, p->description ? ":" : "",
+                 p->description ?: "", p->description ? "<ps>" : "");
+          }
         text = eina_stringshare_add(eina_strbuf_string_get(buf));
         eina_strbuf_free(buf);
      }
    else
      text = eina_stringshare_printf("<b><title>%s</title></b><ps>", c->base->jid);
 
+   if (timer)
+     {
+        if (c->tooltip_timer) ecore_timer_interval_set(c->tooltip_timer, timer);
+        else c->tooltip_timer = ecore_timer_add((double)timer, (Ecore_Task_Cb)_contact_list_item_tooltip_update_cb, c);
+     }
+   else if (c->tooltip_timer)
+     {
+        ecore_timer_del(c->tooltip_timer);
+        c->tooltip_timer = NULL;
+     }
    eina_stringshare_del(c->tooltip_label);
    c->tooltip_label = text;
 out:

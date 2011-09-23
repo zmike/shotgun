@@ -118,6 +118,7 @@ struct Contact
    const char *force_resource; /* always send to this resource if set */
    const char *last_conv; /* entire conversation with user to keep conversations fluid when windows are opened/closed */
    const char *tooltip_label; /* label for contact list item tooltip */
+   Ecore_Timer *tooltip_timer; /* timer for setting tooltip_changed */
    void *list_item; /* the grid/list item object */
    Evas_Object *chat_window; /* the chat window for the contact (if open) */
    Evas_Object *chat_buffer; /* chat buffer of the conversation */

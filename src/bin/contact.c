@@ -31,6 +31,7 @@ contact_free(Contact *c)
    shotgun_event_presence_free(c->cur);
    if (c->list_item)
      c->list->list_item_del[c->list->mode](c->list_item);
+   if (c->tooltip_timer) ecore_timer_del(c->tooltip_timer);
    shotgun_user_free(c->base);
    shotgun_user_info_free(c->info);
    eina_stringshare_del(c->last_conv);
