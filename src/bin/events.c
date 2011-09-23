@@ -123,15 +123,15 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
              pres->priority = ev->priority;
              pres->status = ev->status;
 
-	     eina_stringshare_replace(&pres->description, NULL);
+             eina_stringshare_replace(&pres->description, NULL);
              if (ev->description && ev->description[0])
                pres->description = eina_stringshare_ref(ev->description);
 
-	     eina_stringshare_replace(&pres->photo, NULL);
-	     if (ev->photo && ev->photo[0])
-	       pres->photo = eina_stringshare_ref(ev->photo);
+             eina_stringshare_replace(&pres->photo, NULL);
+             if (ev->photo && ev->photo[0])
+               pres->photo = eina_stringshare_ref(ev->photo);
 
-	     pres->vcard = ev->vcard;
+             pres->vcard = ev->vcard;
              break;
           }
         /* if not found, copy */
