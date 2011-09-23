@@ -120,29 +120,29 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
              /* update existing resource if found */
              if (ev->jid != pres->jid) continue;
 
-             eina_stringshare_del(pres->description);
-             if (ev->description && ev->description[0])
-               pres->description = ev->description;
-             ev->description = NULL;
              pres->priority = ev->priority;
              pres->status = ev->status;
-             pres->photo = ev->photo;
-             ev->photo = NULL;
-             pres->vcard = ev->vcard;
+
+	     eina_stringshare_replace(&pres->description, NULL);
+             if (ev->description && ev->description[0])
+               pres->description = eina_stringshare_ref(ev->description);
+
+	     eina_stringshare_replace(&pres->photo, NULL);
+	     if (ev->photo && ev->photo[0])
+	       pres->photo = eina_stringshare_ref(ev->photo);
+
+	     pres->vcard = ev->vcard;
              break;
           }
         /* if not found, copy */
         if ((!pres) || (pres->jid != ev->jid))
           {
              pres = calloc(1, sizeof(Shotgun_Event_Presence));
-             pres->jid = ev->jid;
-             ev->jid = NULL;
-             pres->description = ev->description;
-             ev->description = NULL;
+             pres->jid = eina_stringshare_ref(ev->jid);
              pres->priority = ev->priority;
              pres->status = ev->status;
-             pres->photo = ev->photo;
-             ev->photo = NULL;
+             pres->description = eina_stringshare_ref(ev->description);
+             pres->photo = eina_stringshare_ref(ev->photo);
              pres->vcard = ev->vcard;
           }
         /* if not the current resource, update current */
