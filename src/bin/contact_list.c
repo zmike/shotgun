@@ -630,6 +630,7 @@ static Eina_Bool
 _contact_list_item_tooltip_update_cb(Contact *c)
 {
    c->tooltip_changed = EINA_TRUE;
+   c->tooltip_timer = NULL;
    return ECORE_CALLBACK_CANCEL;
 }
 
