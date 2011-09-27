@@ -149,6 +149,37 @@ _chat_window_close_cb(void *data, Evas_Object *obj __UNUSED__, const char *ev __
 }
 
 static void
+_chat_conv_filter_helper(Contact_List *cl, int d, Eina_Strbuf **sbuf, const char *http, size_t len)
+{
+   Eina_Strbuf *buf = *sbuf;
+   char fmt[64];
+
+   if (((unsigned int)d != eina_strbuf_length_get(buf)) &&
+       (!memcmp(http + len - 3, "&gt", 3)))
+     len -= 3;
+   else if (!strcmp(http + len - 4, "<ps>"))
+     len -= 4;
+   if (http[len - 1] == '>')
+     {
+        while (--len > 1)
+          if (http[len - 1] == '<') break;
+     }
+   if ((len <= 1) || (http[len - 1] != '<') ||
+       strcmp(http + len, "</a><ps>") || (d < 5) ||
+       memcmp(http - 5, "href=", 5))
+     {
+        snprintf(fmt, sizeof(fmt), "<a href=%%.%is>%%.%is</a><ps>", len, len);
+        eina_strbuf_append_printf(buf, fmt, http, http);
+     }
+   else
+     {
+        eina_strbuf_free(buf);
+        *sbuf = NULL;
+     }
+   char_image_add(cl, eina_stringshare_add_length(http, len));
+}
+
+static void
 _chat_conv_filter(Contact_List *cl, Evas_Object *obj __UNUSED__, char **str)
 {
    char *http;
@@ -163,8 +194,6 @@ _chat_conv_filter(Contact_List *cl, Evas_Object *obj __UNUSED__, char **str)
    while (http)
      {
         int d;
-        size_t len;
-        char fmt[64];
 
         d = http - start;
         if (d > 0)
@@ -177,58 +206,12 @@ _chat_conv_filter(Contact_List *cl, Evas_Object *obj __UNUSED__, char **str)
         start = end = strchr(http, ' ');
         if (!end) /* address goes to end of message */
           {
-             len = strlen(http);
-             if (((unsigned int)d != eina_strbuf_length_get(buf)) &&
-                 (!memcmp(http + len - 3, "&gt", 3)))
-               len -= 3;
-             else if (!strcmp(http + len - 4, "<ps>"))
-               len -= 4;
-             if (http[len - 1] == '>')
-               {
-                  while (--len > 1)
-                    if (http[len - 1] == '<') break;
-               }
-             if ((len <= 1) || (http[len - 1] != '<') ||
-                 strcmp(http + len, "</a><ps>") || (d < 5) ||
-                 memcmp(http - 5, "href=", 5))
-               {
-                  snprintf(fmt, sizeof(fmt), "<a href=%%.%is>%%.%is</a><ps>", len, len);
-                  eina_strbuf_append_printf(buf, fmt, http, http);
-               }
-             else
-               {
-                  eina_strbuf_free(buf);
-                  buf = NULL;
-               }
-             char_image_add(cl, eina_stringshare_add_length(http, len));
+             _chat_conv_filter_helper(cl, d, &buf, http, strlen(http));
              //DBG("ANCHOR: ");
              //DBG(fmt, http);
              break;
           }
-        len = end - http;
-        if (((unsigned int)d != eina_strbuf_length_get(buf)) &&
-            (!memcmp(http + len - 3, "&gt", 3)))
-               len -= 3;
-        else if (!strcmp(http + len - 4, "<ps>"))
-          len -= 4;
-        if (http[len - 1] == '>')
-          {
-             while (--len > 1)
-               if (http[len - 1] == '<') break;
-          }
-        if ((len <= 1) || (http[len - 1] != '<') ||
-            strcmp(http + len, "</a><ps>") || (d < 5) ||
-            memcmp(http - 5, "href=", 5))
-          {
-             snprintf(fmt, sizeof(fmt), "<a href=%%.%is>%%.%is</a><ps>", len, len);
-             eina_strbuf_append_printf(buf, fmt, http, http);
-          }
-        else
-          {
-             eina_strbuf_free(buf);
-             return;
-          }
-        char_image_add(cl, eina_stringshare_add_length(http, len));
+        _chat_conv_filter_helper(cl, d, &buf, http, end - http);
              //DBG("ANCHOR: ");
              //DBG(fmt, http);
         http = strstr(start, "http");
