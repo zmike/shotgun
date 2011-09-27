@@ -149,26 +149,34 @@ _chat_window_close_cb(void *data, Evas_Object *obj __UNUSED__, const char *ev __
 }
 
 static void
-_chat_conv_filter_helper(Contact_List *cl, int d, Eina_Strbuf **sbuf, const char *http, size_t len)
+_chat_conv_filter_helper(Contact_List *cl, int d, Eina_Strbuf **sbuf, const char *http, size_t *len)
 {
    Eina_Strbuf *buf = *sbuf;
+   const char *lt;
    char fmt[64];
+   unsigned int skip = 0;
+
+   lt = memchr(http, '<', *len);
+   if (lt) *len = lt - http;
 
    if (((unsigned int)d != eina_strbuf_length_get(buf)) &&
-       (!memcmp(http + len - 3, "&gt", 3)))
-     len -= 3;
-   else if (!strcmp(http + len - 4, "<ps>"))
-     len -= 4;
-   if (http[len - 1] == '>')
+       (!memcmp(http + *len - 3, "&gt", 3)))
+     *len -= 3, skip = 3;
+   else if (!strcmp(http + *len - 4, "<ps>"))
+     *len -= 4, skip = 4;
+   if (http[*len - 1] == '>')
      {
-        while (--len > 1)
-          if (http[len - 1] == '<') break;
+        while (--*len > 1)
+          {
+             skip++;
+             if (http[*len - 1] == '<') break;
+          }
      }
-   if ((len <= 1) || (http[len - 1] != '<') ||
-       strcmp(http + len, "</a><ps>") || (d < 5) ||
+   if ((*len <= 1) || (http[*len - 1] != '<') ||
+       strcmp(http + *len, "</a><ps>") || (d < 5) ||
        memcmp(http - 5, "href=", 5))
      {
-        snprintf(fmt, sizeof(fmt), "<a href=%%.%is>%%.%is</a><ps>", len, len);
+        snprintf(fmt, sizeof(fmt), "<a href=%%.%is>%%.%is</a><ps>", *len, *len);
         eina_strbuf_append_printf(buf, fmt, http, http);
      }
    else
@@ -176,29 +184,31 @@ _chat_conv_filter_helper(Contact_List *cl, int d, Eina_Strbuf **sbuf, const char
         eina_strbuf_free(buf);
         *sbuf = NULL;
      }
-   char_image_add(cl, eina_stringshare_add_length(http, len));
+   char_image_add(cl, eina_stringshare_add_length(http, *len));
+   *len += skip;
 }
 
 static void
 _chat_conv_filter(Contact_List *cl, Evas_Object *obj __UNUSED__, char **str)
 {
-   char *http;
+   char *http, *last;
    const char *start, *end;
    Eina_Strbuf *buf;
+   size_t len;
 
    start = *str;
    http = strstr(start, "http");
    if (!http) return;
 
    buf = eina_strbuf_new();
-   while (http)
+   while (1)
      {
         int d;
 
         d = http - start;
         if (d > 0)
           {
-             if (d > 3 && (!memcmp(http - 3, "&lt", 3)))
+             if ((d > 3) && (!memcmp(http - 3, "&lt", 3)))
                eina_strbuf_append_length(buf, start, d - 3);
              else
                eina_strbuf_append_length(buf, start, d);
@@ -206,17 +216,22 @@ _chat_conv_filter(Contact_List *cl, Evas_Object *obj __UNUSED__, char **str)
         start = end = strchr(http, ' ');
         if (!end) /* address goes to end of message */
           {
-             _chat_conv_filter_helper(cl, d, &buf, http, strlen(http));
+             len = strlen(http);
+             _chat_conv_filter_helper(cl, d, &buf, http, &len);
              //DBG("ANCHOR: ");
              //DBG(fmt, http);
              break;
           }
-        _chat_conv_filter_helper(cl, d, &buf, http, end - http);
+        len = end - http;
+        _chat_conv_filter_helper(cl, d, &buf, http, &len);
              //DBG("ANCHOR: ");
              //DBG(fmt, http);
-        http = strstr(start, "http");
+        last = strstr(start, "http");
+        if (!last) break;
+        http = last;
      }
    if (!buf) return;
+   if (http[len]) eina_strbuf_append(buf, http + len);
    free(*str);
    *str = eina_strbuf_string_steal(buf);
    eina_strbuf_free(buf);
@@ -287,7 +302,7 @@ _chat_window_key(Evas_Object *win, Evas *e __UNUSED__, Evas_Object *obj __UNUSED
 {
    //DBG("%s", ev->keyname);
    if (!strcmp(ev->keyname, "Escape"))
-     evas_object_del(win);
+     _chat_window_close_cb(win, NULL, NULL);
 }
 
 void
@@ -371,9 +386,9 @@ chat_window_new(Contact *c)
    evas_object_show(frame);
 
    status = elm_entry_add(win);
+   elm_entry_single_line_set(status, 1);
    elm_entry_cnp_textonly_set(status, 1);
    elm_entry_scrollbar_policy_set(status, ELM_SCROLLER_POLICY_AUTO, ELM_SCROLLER_POLICY_OFF);
-   elm_entry_single_line_set(status, 1);
    elm_entry_editable_set(status, 0);
    elm_object_focus_allow_set(status, 0);
    elm_entry_scrollable_set(status, 1);
@@ -425,7 +440,13 @@ chat_window_new(Contact *c)
    c->chat_input = entry;
    c->status_line = status;
    if (c->description)
-     elm_entry_entry_append(status, c->description);
+     {
+        char *s;
+
+        s = elm_entry_utf8_to_markup(c->description);
+        elm_entry_entry_append(status, s);
+        free(s);
+     }
    if (c->last_conv)
      elm_entry_entry_set(convo, c->last_conv);
    elm_entry_cursor_end_set(convo);
