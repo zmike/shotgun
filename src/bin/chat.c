@@ -138,7 +138,14 @@ _chat_window_free(Chat_Window *cw, Evas_Object *obj __UNUSED__, const char *ev _
    cw->cl->chat_wins = eina_list_remove(cw->cl->chat_wins, cw);
    evas_object_del(cw->win);
    EINA_LIST_FREE(cw->contacts, c)
-     memset(&c->chat_window, 0, sizeof(void*) * 7);
+     {
+        if (c->last_conv != elm_entry_entry_get(c->chat_buffer))
+          {
+             eina_stringshare_del(c->last_conv);
+             c->last_conv = eina_stringshare_ref(elm_entry_entry_get(c->chat_buffer));
+          }
+        memset(&c->chat_window, 0, sizeof(void*) * 7);
+     }
    free(cw);
 }
 
@@ -155,13 +162,16 @@ _chat_window_close_cb(Chat_Window *cw, Evas_Object *obj __UNUSED__, const char *
    c = evas_object_data_get(box, "contact");
 
    it = c->chat_tb_item;
-   eina_stringshare_del(c->last_conv);
-   c->last_conv = eina_stringshare_ref(elm_entry_entry_get(c->chat_buffer));
+   if (c->last_conv != elm_entry_entry_get(c->chat_buffer))
+     {
+        eina_stringshare_del(c->last_conv);
+        c->last_conv = eina_stringshare_ref(elm_entry_entry_get(c->chat_buffer));
+     }
    memset(&c->chat_window, 0, sizeof(void*) * 7);
    elm_toolbar_item_del(it);
    evas_object_del(box);
 
-   cw->contacts = eina_list_remove_list(cw->contacts, cw->contacts);
+   cw->contacts = eina_list_remove(cw->contacts, c);
    c = eina_list_data_get(cw->contacts);
    if (c)
      {
@@ -329,11 +339,13 @@ _chat_window_key(Chat_Window *cw, Evas *e __UNUSED__, Evas_Object *obj __UNUSED_
 }
 
 static void
-_chat_window_switch(Contact *c, Evas_Object *obj __UNUSED__, Elm_Toolbar_Item *it __UNUSED__)
+_chat_window_switch(Contact *c, Evas_Object *obj __UNUSED__, Elm_Toolbar_Item *it)
 {
    if (elm_pager_content_top_get(c->chat_window->pager) == c->chat_box) return;
    elm_pager_content_promote(c->chat_window->pager, c->chat_box);
    elm_win_title_set(c->chat_window->win, contact_name_get(c));
+   elm_toolbar_item_selected_set(it, EINA_TRUE);
+   c->chat_window->contacts = eina_list_promote_list(c->chat_window->contacts, eina_list_data_find_list(c->chat_window->contacts, c));
 }
 
 void
@@ -398,6 +410,7 @@ chat_window_chat_new(Contact *c, Chat_Window *cw)
 
    win = cw->win;
    c->chat_window = cw;
+   cw->contacts = eina_list_append(cw->contacts, c);
    c->chat_tb_item = it = elm_toolbar_item_append(cw->toolbar, NULL, contact_name_get(c), (Evas_Smart_Cb)_chat_window_switch, c);
    if (c->info->photo.size) elm_toolbar_item_icon_memfile_set(it, c->info->photo.data, c->info->photo.size, NULL, NULL);
    elm_win_title_set(cw->win, contact_name_get(c));
@@ -521,4 +534,5 @@ chat_window_chat_new(Contact *c, Chat_Window *cw)
 
    elm_pager_content_push(cw->pager, box);
    elm_pager_content_promote(cw->pager, box);
+   elm_toolbar_item_selected_set(c->chat_tb_item, EINA_TRUE);
 }
