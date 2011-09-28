@@ -73,7 +73,7 @@ chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me)
 #ifdef HAVE_NOTIFY
    if (!me)
      {
-        Ecore_X_Window xwin = elm_win_xwindow_get(c->chat_window);
+        Ecore_X_Window xwin = elm_win_xwindow_get(c->chat_window->win);
 
         if (xwin != ecore_x_window_focus_get())
           ui_dbus_notify(from, msg);
@@ -83,7 +83,7 @@ chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me)
    elm_entry_cursor_end_set(e);
 /* FIXME:
    if (cl->raise windows on event)
-     elm_win_activate(c->chat_window);
+     elm_win_activate(c->cw->chat_window);
    if (cl->list_promote on event)
      cl->item_promote[cl->mode](c->list_item);
 */
@@ -132,20 +132,43 @@ _chat_window_send_cb(Contact *c, Evas_Object *obj, void *ev __UNUSED__)
 }
 
 static void
-_chat_window_close_cb(void *data, Evas_Object *obj __UNUSED__, const char *ev __UNUSED__)
+_chat_window_free(Chat_Window *cw, Evas_Object *obj __UNUSED__, const char *ev __UNUSED__)
 {
-   Contact_List *cl;
    Contact *c;
+   cw->cl->chat_wins = eina_list_remove(cw->cl->chat_wins, cw);
+   evas_object_del(cw->win);
+   EINA_LIST_FREE(cw->contacts, c)
+     memset(&c->chat_window, 0, sizeof(void*) * 7);
+   free(cw);
+}
 
-   INF("Closing window for %s", elm_win_title_get(data));
-   cl = evas_object_data_get(data, "list");
-   c = evas_object_data_get(data, "contact");
-   eina_stringshare_replace(&c->last_conv, elm_entry_entry_get(c->chat_buffer));
-   c->chat_window = NULL;
-   c->chat_buffer = NULL;
-   c->chat_input = NULL;
-   c->status_line = NULL;
-   eina_hash_del_by_data(cl->user_convs, data);
+static void
+_chat_window_close_cb(Chat_Window *cw, Evas_Object *obj __UNUSED__, const char *ev __UNUSED__)
+{
+   Contact *c;
+   Evas_Object *box;
+   Elm_Toolbar_Item *it;
+
+   INF("Closing page for %s", elm_win_title_get(cw->win));
+   box = elm_pager_content_top_get(cw->pager);
+   elm_pager_content_pop(cw->pager);
+   c = evas_object_data_get(box, "contact");
+
+   it = c->chat_tb_item;
+   eina_stringshare_del(c->last_conv);
+   c->last_conv = eina_stringshare_ref(elm_entry_entry_get(c->chat_buffer));
+   memset(&c->chat_window, 0, sizeof(void*) * 7);
+   elm_toolbar_item_del(it);
+   evas_object_del(box);
+
+   cw->contacts = eina_list_remove_list(cw->contacts, cw->contacts);
+   c = eina_list_data_get(cw->contacts);
+   if (c)
+     {
+        elm_toolbar_item_selected_set(c->chat_tb_item, EINA_TRUE);
+        elm_win_title_set(c->chat_window->win, contact_name_get(c));
+     }
+   else _chat_window_free(cw, NULL, NULL);
 }
 
 static void
@@ -184,7 +207,7 @@ _chat_conv_filter_helper(Contact_List *cl, int d, Eina_Strbuf **sbuf, const char
         eina_strbuf_free(buf);
         *sbuf = NULL;
      }
-   char_image_add(cl, eina_stringshare_add_length(http, *len));
+   chat_image_add(cl, eina_stringshare_add_length(http, *len));
    *len += skip;
 }
 
@@ -298,31 +321,35 @@ _chat_resource_force(Contact *c, Evas_Object *obj __UNUSED__, Elm_Menu_Item *ev)
 }
 
 static void
-_chat_window_key(Evas_Object *win, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, Evas_Event_Key_Down *ev)
+_chat_window_key(Chat_Window *cw, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, Evas_Event_Key_Down *ev)
 {
    //DBG("%s", ev->keyname);
    if (!strcmp(ev->keyname, "Escape"))
-     _chat_window_close_cb(win, NULL, NULL);
+     _chat_window_close_cb(cw, NULL, NULL);
+}
+
+static void
+_chat_window_switch(Contact *c, Evas_Object *obj __UNUSED__, Elm_Toolbar_Item *it __UNUSED__)
+{
+   if (elm_pager_content_top_get(c->chat_window->pager) == c->chat_box) return;
+   elm_pager_content_promote(c->chat_window->pager, c->chat_box);
+   elm_win_title_set(c->chat_window->win, contact_name_get(c));
 }
 
 void
-chat_window_new(Contact *c)
+chat_window_new(Contact_List *cl)
 {
-   Evas_Object *win, *bg, *box, *convo, *entry, *radio, *obj;
-   Evas_Object *frame, *status, *menu;
-   void *it;
-   Eina_List *l;
-   Shotgun_Event_Presence *pres;
+   Evas_Object *win, *bg, *box, *tb, *pg;
+   Chat_Window *cw;
 
-   if (c->chat_window) return;
+   cw = calloc(1, sizeof(Chat_Window));
 
    win = elm_win_add(NULL, "chat-window", ELM_WIN_BASIC);
    elm_object_focus_allow_set(win, 0);
-   elm_win_title_set(win, contact_name_get(c));
-   evas_object_smart_callback_add(win, "delete,request", (Evas_Smart_Cb)_chat_window_close_cb, win);
-   evas_object_event_callback_add(win, EVAS_CALLBACK_KEY_DOWN, (Evas_Object_Event_Cb)_chat_window_key, win);
+   evas_object_smart_callback_add(win, "delete,request", (Evas_Smart_Cb)_chat_window_free, cw);
+   evas_object_event_callback_add(win, EVAS_CALLBACK_KEY_DOWN, (Evas_Object_Event_Cb)_chat_window_key, cw);
    1 | evas_object_key_grab(win, "Escape", 0, 0, 1); /* worst warn_unused ever. */
-   evas_object_resize(win, 450, 320);
+   evas_object_resize(win, 550, 330);
    evas_object_show(win);
 
    bg = elm_bg_add(win);
@@ -335,6 +362,49 @@ chat_window_new(Contact *c)
    elm_object_focus_allow_set(box, 0);
    WEIGHT(box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    elm_win_resize_object_add(win, box);
+   evas_object_show(box);
+
+   tb = elm_toolbar_add(win);
+   elm_toolbar_mode_shrink_set(tb, ELM_TOOLBAR_SHRINK_SCROLL);
+   ALIGN(tb, EVAS_HINT_FILL, 0.5);
+   elm_toolbar_align_set(tb, 0);
+   elm_box_pack_end(box, tb);
+   evas_object_show(tb);
+
+   pg = elm_pager_add(win);
+   WEIGHT(pg, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+   ALIGN(pg, EVAS_HINT_FILL, EVAS_HINT_FILL);
+   elm_box_pack_end(box, pg);
+   elm_object_style_set(pg, "slide");
+   evas_object_show(pg);
+
+   elm_win_activate(win);
+
+   cw->cl = cl;
+   cw->win = win;
+   cw->toolbar = tb;
+   cw->pager = pg;
+   cl->chat_wins = eina_list_append(cl->chat_wins, cw);
+}
+
+void
+chat_window_chat_new(Contact *c, Chat_Window *cw)
+{
+   Evas_Object *win, *box, *convo, *entry, *radio, *obj;
+   Evas_Object *frame, *status, *menu;
+   void *it;
+   Eina_List *l;
+   Shotgun_Event_Presence *pres;
+
+   win = cw->win;
+   c->chat_window = cw;
+   c->chat_tb_item = it = elm_toolbar_item_append(cw->toolbar, NULL, contact_name_get(c), (Evas_Smart_Cb)_chat_window_switch, c);
+   if (c->info->photo.size) elm_toolbar_item_icon_memfile_set(it, c->info->photo.data, c->info->photo.size, NULL, NULL);
+   elm_win_title_set(cw->win, contact_name_get(c));
+
+   c->chat_box = box = elm_box_add(win);
+   elm_object_focus_allow_set(box, 0);
+   WEIGHT(box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    evas_object_show(box);
 
    obj = elm_toolbar_add(win);
@@ -431,11 +501,9 @@ chat_window_new(Contact *c)
 
    evas_object_smart_callback_add(entry, "activated", (Evas_Smart_Cb)_chat_window_send_cb, c);
 
-   eina_hash_add(c->list->user_convs, c->base->jid, win);
-   evas_object_data_set(win, "contact", c);
-   evas_object_data_set(win, "list", c->list);
+   evas_object_data_set(box, "contact", c);
+   evas_object_data_set(box, "list", c->list);
 
-   c->chat_window = win;
    c->chat_buffer = convo;
    c->chat_input = entry;
    c->status_line = status;
@@ -450,5 +518,7 @@ chat_window_new(Contact *c)
    if (c->last_conv)
      elm_entry_entry_set(convo, c->last_conv);
    elm_entry_cursor_end_set(convo);
-   elm_win_activate(win);
+
+   elm_pager_content_push(cw->pager, box);
+   elm_pager_content_promote(cw->pager, box);
 }

@@ -94,7 +94,7 @@ chat_conv_image_hide(Evas_Object *convo, Evas_Object *obj, Elm_Entry_Anchor_Info
 }
 
 void
-char_image_add(Contact_List *cl, const char *url)
+chat_image_add(Contact_List *cl, const char *url)
 {
    Image *i;
 

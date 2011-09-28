@@ -74,8 +74,8 @@ struct Contact_List
    Eina_Bool pager_state : 1; /* 0 for first page, 1 for second */
 
    Eina_List *users_list; /* list of all contacts */
+   Eina_List *chat_wins; /* list of all chat windows */
    Eina_Hash *users; /* hash of jid<->Contact */
-   Eina_Hash *user_convs; /* hash of jid<->Contact->win */
    Eina_Hash *images; /* hash of img_url<->Image */
    Ecore_Timer *status_timer; /* timer for sending text in status_entry */
 
@@ -103,6 +103,15 @@ struct Contact_List
    Shotgun_Auth *account; /* user's account */
 };
 
+typedef struct
+{
+   Contact_List *cl;
+   Evas_Object *win;
+   Evas_Object *toolbar;
+   Evas_Object *pager;
+   Eina_List *contacts;
+} Chat_Window;
+
 struct Contact
 {
    Shotgun_User *base;
@@ -120,7 +129,9 @@ struct Contact
    const char *tooltip_label; /* label for contact list item tooltip */
    Ecore_Timer *tooltip_timer; /* timer for setting tooltip_changed */
    void *list_item; /* the grid/list item object */
-   Evas_Object *chat_window; /* the chat window for the contact (if open) */
+   Chat_Window *chat_window; /* the chat window for the contact (if open) */
+   Evas_Object *chat_box; /* box in the chat window belonging to contact */
+   Elm_Toolbar_Item *chat_tb_item; /* contact's toolbar item */
    Evas_Object *chat_buffer; /* chat buffer of the conversation */
    Evas_Object *chat_input; /* input entry for the conversation */
    Evas_Object *chat_jid_menu; /* menu object for the submenu in the chat window */
@@ -142,12 +153,12 @@ Contact_List *contact_list_new(Shotgun_Auth *auth);
 void contact_list_user_add(Contact_List *cl, Contact *c);
 void contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev);
 
-void chat_window_new(Contact *c);
+void chat_window_new(Contact_List *cl);
+void chat_window_chat_new(Contact *c, Chat_Window *cw);
 void chat_message_status(Contact *c, Shotgun_Event_Message *msg);
 void chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me);
 
-
-void char_image_add(Contact_List *cl, const char *url);
+void chat_image_add(Contact_List *cl, const char *url);
 void chat_image_free(Image *i);
 void chat_conv_image_show(Evas_Object *convo, Evas_Object *obj, Elm_Entry_Anchor_Info *ev);
 void chat_conv_image_hide(Evas_Object *convo __UNUSED__, Evas_Object *obj, Elm_Entry_Anchor_Info *ev);

@@ -238,6 +238,7 @@ event_message_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Message *m
 {
    Contact *c;
    char *jid, *p;
+   Chat_Window *cw;
 
    jid = strdupa(msg->jid);
    p = strchr(jid, '/');
@@ -245,14 +246,17 @@ event_message_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Message *m
    c = eina_hash_find(cl->users, jid);
    if (!c) return EINA_TRUE;
 
-   if (!c->chat_window)
-     {
-        if (msg->msg /*|| (msg->status && cl->open window on status)*/)
-          chat_window_new(c);
-     }
-
    if (msg->msg)
      {
+
+        if (!c->chat_window)
+          {
+             if (!cl->chat_wins) chat_window_new(cl);
+             c->chat_window = cw = eina_list_data_get(cl->chat_wins);
+             //if (msg->status && cl->open window on status)
+               chat_window_chat_new(c, cw);
+          }
+        
         chat_message_insert(c, contact_name_get(c), msg->msg, EINA_FALSE);
 #ifdef HAVE_DBUS
         ui_dbus_signal_message(cl, c, msg);

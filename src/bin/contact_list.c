@@ -11,7 +11,6 @@ _contact_list_free_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj __U
 
    if (cl->users) eina_hash_free(cl->users);
    if (cl->images) eina_hash_free(cl->images);
-   if (cl->user_convs) eina_hash_free(cl->user_convs);
    EINA_LIST_FREE(cl->users_list, c)
      contact_free(c);
 
@@ -61,17 +60,19 @@ _contact_list_close(Contact_List *cl, Evas_Object *obj __UNUSED__, void *ev  __U
 }
 
 static void
-_contact_list_click_cb(Contact_List *cl __UNUSED__, Evas_Object *obj __UNUSED__, void *ev)
+_contact_list_click_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, void *ev)
 {
    Contact *c;
 
    c = elm_object_item_data_get(ev);
    if (c->chat_window)
      {
-        elm_win_activate(c->chat_window);
+        elm_toolbar_item_selected_set(c->chat_tb_item, EINA_TRUE);
+        elm_win_activate(c->chat_window->win);
         return;
      }
-   chat_window_new(c);
+   if (!cl->chat_wins) chat_window_new(cl);
+   chat_window_chat_new(c, cl->chat_wins->data);
 }
 
 static void
@@ -990,7 +991,6 @@ contact_list_new(Shotgun_Auth *auth)
 
    cl->users = eina_hash_string_superfast_new(NULL);
 //   cl->users = eina_hash_string_superfast_new((Eina_Free_Cb)contact_free);
-   cl->user_convs = eina_hash_string_superfast_new((Eina_Free_Cb)evas_object_del);
    cl->images = eina_hash_string_superfast_new((Eina_Free_Cb)chat_image_free);
 
    cl->event_handlers.iq = ecore_event_handler_add(SHOTGUN_EVENT_IQ,
