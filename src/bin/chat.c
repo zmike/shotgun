@@ -379,7 +379,7 @@ chat_window_new(Contact_List *cl)
    tb = elm_toolbar_add(win);
    elm_toolbar_mode_shrink_set(tb, ELM_TOOLBAR_SHRINK_SCROLL);
    ALIGN(tb, EVAS_HINT_FILL, 0.5);
-   elm_toolbar_align_set(tb, 0);
+   elm_toolbar_align_set(tb, 0.5);
    elm_box_pack_end(box, tb);
    evas_object_show(tb);
 
