@@ -132,24 +132,6 @@ _chat_window_send_cb(Contact *c, Evas_Object *obj, void *ev __UNUSED__)
 }
 
 static void
-_chat_window_free(Chat_Window *cw, Evas_Object *obj __UNUSED__, const char *ev __UNUSED__)
-{
-   Contact *c;
-   cw->cl->chat_wins = eina_list_remove(cw->cl->chat_wins, cw);
-   evas_object_del(cw->win);
-   EINA_LIST_FREE(cw->contacts, c)
-     {
-        if (c->last_conv != elm_entry_entry_get(c->chat_buffer))
-          {
-             eina_stringshare_del(c->last_conv);
-             c->last_conv = eina_stringshare_ref(elm_entry_entry_get(c->chat_buffer));
-          }
-        memset(&c->chat_window, 0, sizeof(void*) * 7);
-     }
-   free(cw);
-}
-
-static void
 _chat_window_close_cb(Chat_Window *cw, Evas_Object *obj __UNUSED__, const char *ev __UNUSED__)
 {
    Contact *c;
@@ -178,7 +160,7 @@ _chat_window_close_cb(Chat_Window *cw, Evas_Object *obj __UNUSED__, const char *
         elm_toolbar_item_selected_set(c->chat_tb_item, EINA_TRUE);
         elm_win_title_set(c->chat_window->win, contact_name_get(c));
      }
-   else _chat_window_free(cw, NULL, NULL);
+   else chat_window_free(cw, NULL, NULL);
 }
 
 static void
@@ -358,7 +340,7 @@ chat_window_new(Contact_List *cl)
 
    win = elm_win_add(NULL, "chat-window", ELM_WIN_BASIC);
    elm_object_focus_allow_set(win, 0);
-   evas_object_smart_callback_add(win, "delete,request", (Evas_Smart_Cb)_chat_window_free, cw);
+   evas_object_smart_callback_add(win, "delete,request", (Evas_Smart_Cb)chat_window_free, cw);
    evas_object_event_callback_add(win, EVAS_CALLBACK_KEY_DOWN, (Evas_Object_Event_Cb)_chat_window_key, cw);
    1 | evas_object_key_grab(win, "Escape", 0, 0, 1); /* worst warn_unused ever. */
    evas_object_resize(win, 550, 330);
@@ -535,4 +517,23 @@ chat_window_chat_new(Contact *c, Chat_Window *cw)
    elm_pager_content_push(cw->pager, box);
    elm_pager_content_promote(cw->pager, box);
    elm_toolbar_item_selected_set(c->chat_tb_item, EINA_TRUE);
+}
+
+
+void
+chat_window_free(Chat_Window *cw, Evas_Object *obj __UNUSED__, const char *ev __UNUSED__)
+{
+   Contact *c;
+   cw->cl->chat_wins = eina_list_remove(cw->cl->chat_wins, cw);
+   evas_object_del(cw->win);
+   EINA_LIST_FREE(cw->contacts, c)
+     {
+        if (c->last_conv != elm_entry_entry_get(c->chat_buffer))
+          {
+             eina_stringshare_del(c->last_conv);
+             c->last_conv = eina_stringshare_ref(elm_entry_entry_get(c->chat_buffer));
+          }
+        memset(&c->chat_window, 0, sizeof(void*) * 7);
+     }
+   free(cw);
 }

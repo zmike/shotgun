@@ -4,10 +4,14 @@ static void
 _contact_list_free_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, void *ev __UNUSED__)
 {
    Contact *c;
+   Chat_Window *cw;
 
    ecore_event_handler_del(cl->event_handlers.iq);
    ecore_event_handler_del(cl->event_handlers.presence);
    ecore_event_handler_del(cl->event_handlers.message);
+
+   EINA_LIST_FREE(cl->chat_wins, cw)
+     chat_window_free(cw, NULL, NULL);
 
    if (cl->users) eina_hash_free(cl->users);
    if (cl->images) eina_hash_free(cl->images);
