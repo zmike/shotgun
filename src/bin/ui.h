@@ -170,6 +170,7 @@ const char *contact_name_get(Contact *c);
 void contact_jids_menu_del(Contact *c, const char *jid);
 void contact_free(Contact *c);
 Contact *do_something_with_user(Contact_List *cl, Shotgun_User *user);
+Eina_Bool contact_chat_window_current(Contact *c);
 void contact_subscription_set(Contact *c, Shotgun_Presence_Type type, Shotgun_User_Subscription sub);
 
 Eina_Bool ui_eet_init(Shotgun_Auth *auth);

@@ -400,9 +400,11 @@ _it_icon_get(Contact *c, Evas_Object *obj, const char *part)
 
    if (!strcmp(part, "elm.swallow.end"))
      {
-        if ((!c->info) || (!c->info->photo.data)) return NULL;
         ic = elm_icon_add(obj);
-        elm_icon_memfile_set(ic, c->info->photo.data, c->info->photo.size, NULL, NULL);
+        if (c->info && c->info->photo.data)
+          elm_icon_memfile_set(ic, c->info->photo.data, c->info->photo.size, NULL, NULL);
+        else
+          elm_icon_standard_set(ic, "shotgun/userunknown");
         evas_object_size_hint_aspect_set(ic, EVAS_ASPECT_CONTROL_VERTICAL, 1, 1);
         evas_object_show(ic);
         return ic;

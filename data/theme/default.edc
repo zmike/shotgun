@@ -18,6 +18,7 @@ collections
      ICON("dialog_ok", 16, 0, 0, 0);
 
      ICON("useroffline", 16, 0, 5, -6);
+     ICON("userunknown", 16, 0, 5, -6);
      ICON("arrows_both", 16, 0, 5, -6);
      ICON("arrows_pending_left", 16, 0, 5, -6);
      ICON("arrows_pending_right", 16, 0, 5, -6);

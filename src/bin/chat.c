@@ -70,17 +70,18 @@ chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me)
    snprintf(buf, len, "<color=#%s>%s <b>%s:</b></color> %s<ps>", color, timebuf, from, s);
    free(s);
 
-#ifdef HAVE_ECORE_X
-# ifdef HAVE_NOTIFY
    if (!me)
      {
+        //if (!contact_chat_window_current(c))
+#ifdef HAVE_ECORE_X
+# ifdef HAVE_NOTIFY
         Ecore_X_Window xwin = elm_win_xwindow_get(c->chat_window->win);
 
         if (xwin != ecore_x_window_focus_get())
           ui_dbus_notify(from, msg);
-     }
 # endif
 #endif
+     }
    elm_entry_entry_append(e, buf);
    elm_entry_cursor_end_set(e);
 /* FIXME:
@@ -393,12 +394,13 @@ chat_window_chat_new(Contact *c, Chat_Window *cw)
    void *it;
    Eina_List *l;
    Shotgun_Event_Presence *pres;
+   const char *icon = (c->info && c->info->photo.size) ? NULL : "shotgun/userunknown";
 
    win = cw->win;
    c->chat_window = cw;
    cw->contacts = eina_list_append(cw->contacts, c);
-   c->chat_tb_item = it = elm_toolbar_item_append(cw->toolbar, NULL, contact_name_get(c), (Evas_Smart_Cb)_chat_window_switch, c);
-   if (c->info && c->info->photo.size) elm_toolbar_item_icon_memfile_set(it, c->info->photo.data, c->info->photo.size, NULL, NULL);
+   c->chat_tb_item = it = elm_toolbar_item_append(cw->toolbar, icon, contact_name_get(c), (Evas_Smart_Cb)_chat_window_switch, c);
+   if (!icon) elm_toolbar_item_icon_memfile_set(it, c->info->photo.data, c->info->photo.size, NULL, NULL);
    elm_win_title_set(cw->win, contact_name_get(c));
 
    c->chat_box = box = elm_box_add(win);
@@ -522,7 +524,6 @@ chat_window_chat_new(Contact *c, Chat_Window *cw)
    elm_pager_content_promote(cw->pager, box);
    elm_toolbar_item_selected_set(c->chat_tb_item, EINA_TRUE);
 }
-
 
 void
 chat_window_free(Chat_Window *cw, Evas_Object *obj __UNUSED__, const char *ev __UNUSED__)

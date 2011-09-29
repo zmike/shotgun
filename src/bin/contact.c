@@ -87,6 +87,14 @@ do_something_with_user(Contact_List *cl, Shotgun_User *user)
    return c;
 }
 
+Eina_Bool
+contact_chat_window_current(Contact *c)
+{
+   if (!c->chat_window) return EINA_FALSE;
+
+   return c->chat_box == elm_pager_content_top_get(c->chat_window->pager);
+}
+
 void
 contact_subscription_set(Contact *c, Shotgun_Presence_Type type, Shotgun_User_Subscription sub)
 {
