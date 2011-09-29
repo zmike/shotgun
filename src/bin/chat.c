@@ -412,7 +412,7 @@ chat_window_chat_new(Contact *c, Chat_Window *cw)
    c->chat_window = cw;
    cw->contacts = eina_list_append(cw->contacts, c);
    c->chat_tb_item = it = elm_toolbar_item_append(cw->toolbar, NULL, contact_name_get(c), (Evas_Smart_Cb)_chat_window_switch, c);
-   if (c->info->photo.size) elm_toolbar_item_icon_memfile_set(it, c->info->photo.data, c->info->photo.size, NULL, NULL);
+   if (c->info && c->info->photo.size) elm_toolbar_item_icon_memfile_set(it, c->info->photo.data, c->info->photo.size, NULL, NULL);
    elm_win_title_set(cw->win, contact_name_get(c));
 
    c->chat_box = box = elm_box_add(win);
