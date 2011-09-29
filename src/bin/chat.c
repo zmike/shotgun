@@ -206,10 +206,10 @@ _chat_conv_filter_helper(Contact_List *cl, int d, Eina_Strbuf **sbuf, const char
           }
      }
    if ((*len <= 1) || (http[*len - 1] != '<') ||
-       strcmp(http + *len, "</a><ps>") || (d < 5) ||
+       strcmp(http + *len, "</a>") || (d < 5) ||
        memcmp(http - 5, "href=", 5))
      {
-        snprintf(fmt, sizeof(fmt), "<a href=%%.%is>%%.%is</a><ps>", *len, *len);
+        snprintf(fmt, sizeof(fmt), "<a href=%%.%is>%%.%is</a>", *len, *len);
         eina_strbuf_append_printf(buf, fmt, http, http);
      }
    else
