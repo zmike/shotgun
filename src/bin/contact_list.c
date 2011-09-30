@@ -744,6 +744,8 @@ _contact_list_window_key(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj 
         if (!cl->pager) return;
         _contact_list_add_pager_cb_prev(cl, NULL, NULL);
      }
+   else if (!strcmp(ev->keyname, "q"))
+     evas_object_del(cl->win);
 }
 
 void
@@ -855,6 +857,8 @@ contact_list_new(Shotgun_Auth *auth)
    Evas_Object *win, *obj, *tb, *radio, *box, *menu, *entry;
    Elm_Toolbar_Item *it;
    Contact_List *cl;
+   Evas *e;
+   Evas_Modifier_Mask ctrl, shift, alt;
 
    elm_policy_set(ELM_POLICY_QUIT, ELM_POLICY_QUIT_LAST_WINDOW_CLOSED);
 
@@ -864,9 +868,14 @@ contact_list_new(Shotgun_Auth *auth)
    cl->win = win = elm_win_add(NULL, "Contacts", ELM_WIN_BASIC);
    elm_win_title_set(win, "Contacts");
    elm_win_autodel_set(win, 1);
+   e = evas_object_evas_get(win);
+   ctrl = evas_key_modifier_mask_get(e, "Control");
+   shift = evas_key_modifier_mask_get(e, "Shift");
+   alt = evas_key_modifier_mask_get(e, "Alt");
    evas_object_smart_callback_add(win, "delete,request", (Evas_Smart_Cb)_contact_list_free_cb, cl);
    evas_object_event_callback_add(win, EVAS_CALLBACK_KEY_DOWN, (Evas_Object_Event_Cb)_contact_list_window_key, cl);
-   1 | evas_object_key_grab(win, "Escape", 0, 0, 1); /* worst warn_unused ever. */
+   1 | evas_object_key_grab(win, "Escape", 0, ctrl | shift | alt, 1); /* worst warn_unused ever. */
+   1 | evas_object_key_grab(win, "q", ctrl, shift | alt, 1); /* worst warn_unused ever. */
 
    obj = elm_bg_add(win);
    WEIGHT(obj, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);

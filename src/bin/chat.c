@@ -315,9 +315,7 @@ static void
 _chat_window_key(Chat_Window *cw, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, Evas_Event_Key_Down *ev)
 {
    //DBG("%s", ev->keyname);
-   if (!strcmp(ev->keyname, "Escape"))
-     _chat_window_close_cb(cw, NULL, NULL);
-   else if (!strcmp(ev->keyname, "Tab"))
+   if (!strcmp(ev->keyname, "Tab"))
      {
         Elm_Toolbar_Item *cur, *new;
         double timer;
@@ -344,6 +342,9 @@ _chat_window_key(Chat_Window *cw, Evas *e __UNUSED__, Evas_Object *obj __UNUSED_
           }
         if (new && (new != cur)) elm_toolbar_item_selected_set(new, EINA_TRUE);
      }
+   if ((!strcmp(ev->keyname, "Escape")) || (!strcmp(ev->keyname, "w")))
+     _chat_window_close_cb(cw, NULL, NULL);
+
 }
 
 static void
@@ -375,6 +376,7 @@ chat_window_new(Contact_List *cl)
    shift = evas_key_modifier_mask_get(e, "Shift");
    alt = evas_key_modifier_mask_get(e, "Alt");
    1 | evas_object_key_grab(win, "Escape", 0, ctrl | shift | alt, 1); /* worst warn_unused ever. */
+   1 | evas_object_key_grab(win, "w", ctrl, shift | alt, 1); /* worst warn_unused ever. */
    1 | evas_object_key_grab(win, "Tab", ctrl, alt, 1); /* worst warn_unused ever. */
    1 | evas_object_key_grab(win, "Tab", ctrl | shift, alt, 1); /* worst warn_unused ever. */
    evas_object_resize(win, 550, 330);
