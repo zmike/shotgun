@@ -317,6 +317,33 @@ _chat_window_key(Chat_Window *cw, Evas *e __UNUSED__, Evas_Object *obj __UNUSED_
    //DBG("%s", ev->keyname);
    if (!strcmp(ev->keyname, "Escape"))
      _chat_window_close_cb(cw, NULL, NULL);
+   else if (!strcmp(ev->keyname, "Tab"))
+     {
+        Elm_Toolbar_Item *cur, *new;
+        double timer;
+        static double throttle;
+
+        /* fast-repeating keyboards will break this, so throttle here to avoid it */
+        timer = ecore_time_get();
+        if (timer - throttle < 0.1)
+          {
+             throttle = timer;
+             return;
+          }
+        throttle = timer;
+        cur = elm_toolbar_selected_item_get(cw->toolbar);
+        if (evas_key_modifier_is_set(ev->modifiers, "Shift"))
+          {
+             new = elm_toolbar_item_prev_get(cur);
+             if (!new) new = elm_toolbar_last_item_get(cw->toolbar);
+          }
+        else
+          {
+             new = elm_toolbar_item_next_get(cur);
+             if (!new) new = elm_toolbar_first_item_get(cw->toolbar);
+          }
+        if (new && (new != cur)) elm_toolbar_item_selected_set(new, EINA_TRUE);
+     }
 }
 
 static void
@@ -334,6 +361,8 @@ chat_window_new(Contact_List *cl)
 {
    Evas_Object *win, *bg, *box, *tb, *pg;
    Chat_Window *cw;
+   Evas *e;
+   Evas_Modifier_Mask ctrl, shift, alt;
 
    cw = calloc(1, sizeof(Chat_Window));
 
@@ -341,7 +370,13 @@ chat_window_new(Contact_List *cl)
    elm_object_focus_allow_set(win, 0);
    evas_object_smart_callback_add(win, "delete,request", (Evas_Smart_Cb)chat_window_free, cw);
    evas_object_event_callback_add(win, EVAS_CALLBACK_KEY_DOWN, (Evas_Object_Event_Cb)_chat_window_key, cw);
-   1 | evas_object_key_grab(win, "Escape", 0, 0, 1); /* worst warn_unused ever. */
+   e = evas_object_evas_get(win);
+   ctrl = evas_key_modifier_mask_get(e, "Control");
+   shift = evas_key_modifier_mask_get(e, "Shift");
+   alt = evas_key_modifier_mask_get(e, "Alt");
+   1 | evas_object_key_grab(win, "Escape", 0, ctrl | shift | alt, 1); /* worst warn_unused ever. */
+   1 | evas_object_key_grab(win, "Tab", ctrl, alt, 1); /* worst warn_unused ever. */
+   1 | evas_object_key_grab(win, "Tab", ctrl | shift, alt, 1); /* worst warn_unused ever. */
    evas_object_resize(win, 550, 330);
    evas_object_show(win);
 
