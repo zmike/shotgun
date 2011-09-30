@@ -1018,6 +1018,34 @@ contact_list_new(Shotgun_Auth *auth)
                               cl);
 
    evas_object_data_set(win, "contact-list", cl);
+   {
+      const char *color;
+      int x;
+      color = elm_theme_data_get(NULL, "shotgun/color/message");
+      if (color && (strlen(color) == 6))
+        {
+           char buf[3];
+
+           for (x = 0; x < 3; x++)
+             {
+                strncpy(buf, color + (2 * x), 2);
+                errno = 0;
+                cl->alert_colors[x] = strtol(buf, NULL, 16);
+                if (errno)
+                  {
+                     ERR("Illegal hex color: %s", buf);
+                     cl->alert_colors[x] = 1;
+                  }
+             }
+        }
+      else
+        cl->alert_colors[0] = 32, cl->alert_colors[1] = 68, cl->alert_colors[2] = 87;
+      for (x = 0; x < 3; x++)
+        {
+           if (cl->alert_colors[x] < 1) cl->alert_colors[x] = 1;
+        }
+      //INF("r, g, b: %d, %d, %d", cl->alert_colors[0], cl->alert_colors[1], cl->alert_colors[2]);
+   }
 
    evas_object_resize(win, 300, 700);
    evas_object_show(win);

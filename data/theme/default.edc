@@ -1,7 +1,11 @@
 data
   {
+      /* color for your own name in chat */
       item: "shotgun/color/me" "00FF01";
+      /* color for other person's name in chat */
       item: "shotgun/color/you" "0001FF";
+      /* color for new message alert chat tabs */
+      item: "shotgun/color/message" "263E57";
   }
 collections
   {

@@ -1,11 +1,13 @@
 #include "ui.h"
 
+/* start at 255, end at shotgun/color/message */
 static Eina_Bool
 _contact_chat_window_animator_in(Contact *c, double pos)
 {
    Evas_Object *obj;
    int x, y, w, h;
    double frame;
+   int r, g, b;
 
    if ((!c->chat_window) || contact_chat_window_current(c))
      {
@@ -13,19 +15,24 @@ _contact_chat_window_animator_in(Contact *c, double pos)
         return EINA_FALSE;
      }
 
+   r = c->list->alert_colors[0];
+   g = c->list->alert_colors[1];
+   b = c->list->alert_colors[2];
    obj = elm_toolbar_item_object_get(c->chat_tb_item);
    evas_object_geometry_get(obj, &x, &y, &w, &h);
    evas_object_move(c->animated, x - 1, y - 1);
    frame = ecore_animator_pos_map(pos, ECORE_POS_MAP_SINUSOIDAL, 0, 0);
-   evas_object_color_set(c->animated, (1 * frame) + (255 * (1.0 - frame)), (1 * frame) + (255 * (1.0 - frame)), 255, 255);
+   evas_object_color_set(c->animated, 255 - ((255 - r) * frame), 255 - ((255 - g) * frame), 255 - ((255 - b) * frame), 255);
    return EINA_TRUE;
 }
 
+/* start at shotgun/color/message, end at 255 */
 static Eina_Bool
 _contact_chat_window_animator_out(Contact *c, double pos)
 {
    Evas_Object *obj;
    int x, y, w, h;
+   int r, g, b;
    double frame;
 
    if ((!c->chat_window) || contact_chat_window_current(c))
@@ -34,11 +41,14 @@ _contact_chat_window_animator_out(Contact *c, double pos)
         return EINA_FALSE;
      }
 
+   r = c->list->alert_colors[0];
+   g = c->list->alert_colors[1];
+   b = c->list->alert_colors[2];
    obj = elm_toolbar_item_object_get(c->chat_tb_item);
    evas_object_geometry_get(obj, &x, &y, &w, &h);
    evas_object_move(c->animated, x - 1, y - 1);
    frame = ecore_animator_pos_map(pos, ECORE_POS_MAP_SINUSOIDAL, 0, 0);
-   evas_object_color_set(c->animated, 1 + (255 * frame), 1 + (255 * frame), 255, 255);
+   evas_object_color_set(c->animated, r + ((255 - r) * frame), g + ((255 - g) * frame), b + ((255 - b) * frame), 255);
    return EINA_TRUE;
 }
 
@@ -54,7 +64,8 @@ _contact_chat_window_animator_switch(Contact *c)
         return EINA_FALSE;
      }
    evas_object_color_get(c->animated, &r, &g, &b, &a);
-   cb = (Ecore_Timeline_Cb)((r + g + b + a == 1020) ? _contact_chat_window_animator_in : _contact_chat_window_animator_out);
+   cb = (Ecore_Timeline_Cb)((r + g + b + a >= 1000) ? _contact_chat_window_animator_in : _contact_chat_window_animator_out);
+   //INF("Next %s: %d, %d, %d", ((void*)cb == (void*)_contact_chat_window_animator_in) ? "_contact_chat_window_animator_in" : "_contact_chat_window_animator_out", r, g, b);
    c->animator = ecore_animator_timeline_add(2, cb, c);
 
    return EINA_TRUE;
@@ -166,7 +177,7 @@ contact_chat_window_animator_add(Contact *c)
    evas_object_geometry_get(obj, &x, &y, &w, &h);
    c->animated = evas_object_rectangle_add(evas_object_evas_get(obj));
    evas_object_resize(c->animated, w + 2, h + 2);
-   evas_object_color_set(c->animated, 0, 0, 120, 0);
+   evas_object_color_set(c->animated, 0, 0, 0, 0);
    /* here we inject the newly created rect as an intermediate clip for the tb item */
    clip = evas_object_clip_get(obj);
    evas_object_clip_set(obj, c->animated);
