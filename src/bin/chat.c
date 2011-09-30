@@ -550,6 +550,7 @@ chat_window_chat_new(Contact *c, Chat_Window *cw)
    elm_pager_content_push(cw->pager, box);
    elm_pager_content_promote(cw->pager, box);
    elm_toolbar_item_selected_set(c->chat_tb_item, EINA_TRUE);
+   elm_win_activate(cw->win);
 }
 
 void
