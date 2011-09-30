@@ -158,11 +158,7 @@ _chat_window_close_cb(Chat_Window *cw, Evas_Object *obj __UNUSED__, const char *
 
    cw->contacts = eina_list_remove(cw->contacts, c);
    c = eina_list_data_get(cw->contacts);
-   if (c)
-     {
-        elm_toolbar_item_selected_set(c->chat_tb_item, EINA_TRUE);
-        elm_win_title_set(c->chat_window->win, contact_name_get(c));
-     }
+   if (c) elm_win_title_set(c->chat_window->win, contact_name_get(c));
    else chat_window_free(cw, NULL, NULL);
 }
 
@@ -363,6 +359,7 @@ chat_window_new(Contact_List *cl)
 
    tb = elm_toolbar_add(win);
    elm_toolbar_mode_shrink_set(tb, ELM_TOOLBAR_SHRINK_SCROLL);
+   elm_toolbar_always_select_mode_set(tb, 1);
    elm_toolbar_homogeneous_set(tb, 1);
    elm_object_style_set(tb, "item_horizontal");
    ALIGN(tb, EVAS_HINT_FILL, 0.5);
