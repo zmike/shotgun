@@ -422,7 +422,7 @@ void
 chat_window_chat_new(Contact *c, Chat_Window *cw)
 {
    Evas_Object *win, *box, *convo, *entry, *radio, *obj;
-   Evas_Object *frame, *status, *menu;
+   Evas_Object *status, *menu;
    void *it;
    Eina_List *l;
    Shotgun_Event_Presence *pres;
@@ -480,14 +480,6 @@ chat_window_chat_new(Contact *c, Chat_Window *cw)
      }
    elm_radio_value_set(radio, 0);
 
-   frame = elm_frame_add(win);
-   elm_object_focus_allow_set(frame, 0);
-   elm_object_text_set(frame, contact_name_get(c));
-   WEIGHT(frame, EVAS_HINT_EXPAND, 0);
-   ALIGN(frame, EVAS_HINT_FILL, 0);
-   elm_box_pack_end(box, frame);
-   evas_object_show(frame);
-
    status = elm_entry_add(win);
    elm_entry_single_line_set(status, 1);
    elm_entry_cnp_textonly_set(status, 1);
@@ -496,13 +488,14 @@ chat_window_chat_new(Contact *c, Chat_Window *cw)
    elm_object_focus_allow_set(status, 0);
    elm_entry_scrollable_set(status, 1);
    elm_entry_line_wrap_set(status, ELM_WRAP_MIXED);
+   ALIGN(status, EVAS_HINT_FILL, 0);
    WEIGHT(status, EVAS_HINT_EXPAND, 0);
    elm_entry_text_filter_append(status, (Elm_Entry_Filter_Cb)_chat_conv_filter, c->list);
    evas_object_smart_callback_add(status, "anchor,in", (Evas_Smart_Cb)chat_conv_image_show, status);
    evas_object_smart_callback_add(status, "anchor,out", (Evas_Smart_Cb)chat_conv_image_hide, status);
    evas_object_smart_callback_add(status, "anchor,clicked", (Evas_Smart_Cb)_chat_conv_anchor_click, status);
 
-   elm_frame_content_set(frame, status);
+   elm_box_pack_end(box, status);
    evas_object_show(status);
 
    convo = elm_entry_add(win);
