@@ -107,7 +107,6 @@ main(int argc, char *argv[])
         CRI("Could not initialize eet backend!");
         return 1;
      }
-   ecore_animator_frametime_set(1./50);
    shotgun_connect(auth);
    ecore_main_loop_begin();
 
