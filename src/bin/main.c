@@ -42,7 +42,6 @@ static void
 _setup_extension(void)
 {
    elm_theme_extension_add(NULL, PACKAGE_DATA_DIR "/default.edj");
-   elm_theme_overlay_add(NULL, PACKAGE_DATA_DIR "/default.edj");
 }
 
 int
