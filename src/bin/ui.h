@@ -136,6 +136,8 @@ struct Contact
    Evas_Object *chat_input; /* input entry for the conversation */
    Evas_Object *chat_jid_menu; /* menu object for the submenu in the chat window */
    Evas_Object *status_line; /* status entry inside the frame at top */
+   Evas_Object *animated; /* animated object for status */
+   Ecore_Animator *animator; /* animator for status */
    Contact_List *list; /* the owner list */
    Eina_Bool tooltip_changed : 1; /* when set, tooltip_label will be re-created */
    Eina_Bool ignore_resource : 1; /* when set, priority will be ignored and messages will be sent to all resources */
@@ -171,6 +173,8 @@ void contact_jids_menu_del(Contact *c, const char *jid);
 void contact_free(Contact *c);
 Contact *do_something_with_user(Contact_List *cl, Shotgun_User *user);
 Eina_Bool contact_chat_window_current(Contact *c);
+void contact_chat_window_animator_add(Contact *c);
+void contact_chat_window_animator_del(Contact *c);
 void contact_subscription_set(Contact *c, Shotgun_Presence_Type type, Shotgun_User_Subscription sub);
 
 Eina_Bool ui_eet_init(Shotgun_Auth *auth);

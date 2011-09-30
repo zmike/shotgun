@@ -256,7 +256,8 @@ event_message_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Message *m
              //if (msg->status && cl->open window on status)
                chat_window_chat_new(c, cw);
           }
-        
+        else if (!contact_chat_window_current(c))
+          contact_chat_window_animator_add(c);
         chat_message_insert(c, contact_name_get(c), msg->msg, EINA_FALSE);
 #ifdef HAVE_DBUS
         ui_dbus_signal_message(cl, c, msg);

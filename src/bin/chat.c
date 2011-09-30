@@ -146,19 +146,24 @@ _chat_window_close_cb(Chat_Window *cw, Evas_Object *obj __UNUSED__, const char *
    elm_pager_content_pop(cw->pager);
    c = evas_object_data_get(box, "contact");
 
+   contact_chat_window_animator_del(c);
    it = c->chat_tb_item;
    if (c->last_conv != elm_entry_entry_get(c->chat_buffer))
      {
         eina_stringshare_del(c->last_conv);
         c->last_conv = eina_stringshare_ref(elm_entry_entry_get(c->chat_buffer));
      }
-   memset(&c->chat_window, 0, sizeof(void*) * 7);
+   memset(&c->chat_window, 0, sizeof(void*) * 9);
    elm_toolbar_item_del(it);
    evas_object_del(box);
 
    cw->contacts = eina_list_remove(cw->contacts, c);
    c = eina_list_data_get(cw->contacts);
-   if (c) elm_win_title_set(c->chat_window->win, contact_name_get(c));
+   if (c)
+     {
+        elm_win_title_set(c->chat_window->win, contact_name_get(c));
+        elm_object_focus_set(c->chat_input, EINA_TRUE);
+     }
    else chat_window_free(cw, NULL, NULL);
 }
 
@@ -351,10 +356,12 @@ static void
 _chat_window_switch(Contact *c, Evas_Object *obj __UNUSED__, Elm_Toolbar_Item *it)
 {
    if (elm_pager_content_top_get(c->chat_window->pager) == c->chat_box) return;
+   contact_chat_window_animator_del(c);
    elm_pager_content_promote(c->chat_window->pager, c->chat_box);
    elm_win_title_set(c->chat_window->win, contact_name_get(c));
    elm_toolbar_item_selected_set(it, EINA_TRUE);
    c->chat_window->contacts = eina_list_promote_list(c->chat_window->contacts, eina_list_data_find_list(c->chat_window->contacts, c));
+   elm_object_focus_set(c->chat_input, EINA_TRUE);
 }
 
 void
@@ -558,7 +565,6 @@ chat_window_free(Chat_Window *cw, Evas_Object *obj __UNUSED__, const char *ev __
 {
    Contact *c;
    cw->cl->chat_wins = eina_list_remove(cw->cl->chat_wins, cw);
-   evas_object_del(cw->win);
    EINA_LIST_FREE(cw->contacts, c)
      {
         if (c->last_conv != elm_entry_entry_get(c->chat_buffer))
@@ -566,7 +572,13 @@ chat_window_free(Chat_Window *cw, Evas_Object *obj __UNUSED__, const char *ev __
              eina_stringshare_del(c->last_conv);
              c->last_conv = eina_stringshare_ref(elm_entry_entry_get(c->chat_buffer));
           }
-        memset(&c->chat_window, 0, sizeof(void*) * 7);
+        if (c->animator)
+          {
+             ecore_animator_del(c->animator);
+             evas_object_del(c->animated);
+          }
+        memset(&c->chat_window, 0, sizeof(void*) * 9);
      }
+   evas_object_del(cw->win);
    free(cw);
 }

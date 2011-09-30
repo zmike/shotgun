@@ -1,5 +1,65 @@
 #include "ui.h"
 
+static Eina_Bool
+_contact_chat_window_animator_in(Contact *c, double pos)
+{
+   Evas_Object *obj;
+   int x, y, w, h;
+   double frame;
+
+   if ((!c->chat_window) || contact_chat_window_current(c))
+     {
+        contact_chat_window_animator_del(c);
+        return EINA_FALSE;
+     }
+
+   obj = elm_toolbar_item_object_get(c->chat_tb_item);
+   evas_object_geometry_get(obj, &x, &y, &w, &h);
+   evas_object_move(c->animated, x - 1, y - 1);
+   frame = ecore_animator_pos_map(pos, ECORE_POS_MAP_SINUSOIDAL, 0, 0);
+   evas_object_color_set(c->animated, (1 * frame) + (255 * (1.0 - frame)), (1 * frame) + (255 * (1.0 - frame)), 255, 255);
+   return EINA_TRUE;
+}
+
+static Eina_Bool
+_contact_chat_window_animator_out(Contact *c, double pos)
+{
+   Evas_Object *obj;
+   int x, y, w, h;
+   double frame;
+
+   if ((!c->chat_window) || contact_chat_window_current(c))
+     {
+        contact_chat_window_animator_del(c);
+        return EINA_FALSE;
+     }
+
+   obj = elm_toolbar_item_object_get(c->chat_tb_item);
+   evas_object_geometry_get(obj, &x, &y, &w, &h);
+   evas_object_move(c->animated, x - 1, y - 1);
+   frame = ecore_animator_pos_map(pos, ECORE_POS_MAP_SINUSOIDAL, 0, 0);
+   evas_object_color_set(c->animated, 1 + (255 * frame), 1 + (255 * frame), 255, 255);
+   return EINA_TRUE;
+}
+
+static Eina_Bool
+_contact_chat_window_animator_switch(Contact *c)
+{
+   int r, g, b, a;
+   Ecore_Timeline_Cb cb;
+
+   if ((!c->chat_window) || contact_chat_window_current(c))
+     {
+        contact_chat_window_animator_del(c);
+        return EINA_FALSE;
+     }
+   evas_object_color_get(c->animated, &r, &g, &b, &a);
+   cb = (Ecore_Timeline_Cb)((r + g + b + a == 1020) ? _contact_chat_window_animator_in : _contact_chat_window_animator_out);
+   c->animator = ecore_animator_timeline_add(2, cb, c);
+
+   return EINA_TRUE;
+}
+
 const char *
 contact_name_get(Contact *c)
 {
@@ -93,6 +153,47 @@ contact_chat_window_current(Contact *c)
    if (!c->chat_window) return EINA_FALSE;
 
    return c->chat_box == elm_pager_content_top_get(c->chat_window->pager);
+}
+
+void
+contact_chat_window_animator_add(Contact *c)
+{
+   Evas_Object *obj, *clip;
+   int x, y, w, h;
+   if (c->animator) return;
+
+   obj = elm_toolbar_item_object_get(c->chat_tb_item);
+   evas_object_geometry_get(obj, &x, &y, &w, &h);
+   c->animated = evas_object_rectangle_add(evas_object_evas_get(obj));
+   evas_object_resize(c->animated, w + 2, h + 2);
+   evas_object_color_set(c->animated, 0, 0, 120, 0);
+   /* here we inject the newly created rect as an intermediate clip for the tb item */
+   clip = evas_object_clip_get(obj);
+   evas_object_clip_set(obj, c->animated);
+   evas_object_clip_set(c->animated, clip);
+   evas_object_show(c->animated);
+   c->animator = ecore_animator_timeline_add(2, (Ecore_Timeline_Cb)_contact_chat_window_animator_in, c);
+   ecore_timer_add(2, (Ecore_Task_Cb)_contact_chat_window_animator_switch, c);
+}
+
+void
+contact_chat_window_animator_del(Contact *c)
+{
+   Evas_Object *obj, *clip;
+
+   if (c->animator) ecore_animator_del(c->animator);
+   c->animator = NULL;
+   if (c->animated)
+     {
+        if (c->chat_tb_item)
+          {
+             obj = elm_toolbar_item_object_get(c->chat_tb_item);
+             clip = evas_object_clip_get(c->animated);
+             evas_object_clip_set(obj, clip);
+          }
+        evas_object_del(c->animated);
+     }
+   c->animated = NULL;
 }
 
 void
