@@ -295,7 +295,7 @@ xml_sasl_read(Shotgun_Auth *auth, char *xml, size_t size)
         b64 = (char*)shotgun_base64_decode(node.child_value(), strlen(node.child_value()), &len);
         if (!b64) return EINA_FALSE;
         b64[len] = 0;
-        INF("Decoded: %s", b64);
+        //INF("Decoded: %s", b64);
         auth->features.auth_digestmd5 = eina_hash_string_superfast_new(free);
         for (key = b64; key && *key;)
           {
@@ -309,7 +309,7 @@ xml_sasl_read(Shotgun_Auth *auth, char *xml, size_t size)
                   /* skip escaped dquot */
                   while (next && (next[-1] == '\\')) next = strchr(next + 1, '"');
                   if ((!next) || (next[1] && (next[1] != ','))) goto error;
-                  INF("key: %s, val: %s", strndupa(key, e - key), strndupa(e + 2, next - (e + 2)));
+                  //INF("key: %s, val: %s", strndupa(key, e - key), strndupa(e + 2, next - (e + 2)));
                   eina_hash_add(auth->features.auth_digestmd5, strndupa(key, e - key), strndup(e + 2, next - (e + 2)));
                   next++;
                }
@@ -318,12 +318,12 @@ xml_sasl_read(Shotgun_Auth *auth, char *xml, size_t size)
                   next = strchr(e + 1, ',');
                   if (!next)
                     {
-                       INF("key: %s, val: %s", strndupa(key, e - key), strdupa(e + 1));
+                       //INF("key: %s, val: %s", strndupa(key, e - key), strdupa(e + 1));
                        eina_hash_add(auth->features.auth_digestmd5, strndupa(key, e - key), strdup(e + 1));
                     }
                   else
                     {
-                       INF("key: %s, val: %s", strndupa(key, e - key), strndupa(e + 1, next - (e + 1)));
+                       //INF("key: %s, val: %s", strndupa(key, e - key), strndupa(e + 1, next - (e + 1)));
                        eina_hash_add(auth->features.auth_digestmd5, strndupa(key, e - key), strndup(e + 1, next - (e + 1)));
                     }
                }
