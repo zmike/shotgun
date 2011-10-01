@@ -22,6 +22,41 @@ sasl_init(Shotgun_Auth *auth, size_t *size)
 }
 
 static void
+sasl_digestmd5_init(Shotgun_Auth *auth)
+{
+   char buf[1024], cnonce[128], *b64, *sasl;
+   const char *realm, *nonce;
+   unsigned char digest[16];
+   char md5buf[33], md5buf2[33];
+   size_t size;
+
+   realm = eina_hash_find(auth->features.auth_digestmd5, "realm");
+   if (!realm) realm = auth->from;
+   nonce = eina_hash_find(auth->features.auth_digestmd5, "nonce");
+   if (!nonce) return;
+   snprintf(buf, sizeof(buf), "%s:%s:%s", auth->user, realm, auth->pass);
+   md5_buffer(buf, strlen(buf), digest);
+   memcpy(buf, digest, sizeof(digest));
+   snprintf(cnonce, sizeof(cnonce), "%g", ecore_time_unix_get());
+   snprintf(&buf[16], sizeof(buf) - 16, ":%s:%s", nonce, cnonce);
+   md5_buffer(buf, strlen(&buf[16]) + 16, digest);
+   shotgun_md5_digest_to_str(digest, md5buf);
+   snprintf(buf, sizeof(buf), "AUTHENTICATE:xmpp/%s", realm);
+   md5_buffer(buf, sizeof("AUTHENTICATE:xmpp/") - 1 + strlen(&buf[sizeof("AUTHENTICATE:xmpp/") - 1]), digest);
+   shotgun_md5_digest_to_str(digest, md5buf2);
+   snprintf(buf, sizeof(buf), "%s:%s:00000001:%s:auth:%s", md5buf, nonce, cnonce, md5buf2);
+   md5_buffer(buf, strlen(buf), digest);
+   shotgun_md5_digest_to_str(digest, md5buf);
+   snprintf(buf, sizeof(buf), "username=\"%s\",realm=\"%s\",nonce=\"%s\",cnonce=\"%s\",nc=00000001,qop=auth,digest-uri=\"xmpp/%s\",response=%s,charset=utf-8",
+            auth->user, realm, nonce, cnonce, realm, md5buf);
+   b64 = shotgun_base64_encode((void*)buf, strlen(buf), &size);
+   sasl = xml_sasl_digestmd5_write(b64, &size);
+   shotgun_write(auth->svr, sasl, size);
+   free(b64);
+   free(sasl);
+}
+
+static void
 shotgun_stream_init(Shotgun_Auth *auth)
 {
    size_t len;
@@ -98,7 +133,6 @@ shotgun_login(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
         else
           {
              char *send;
-
              send = xml_sasl_write(auth, out, &len);
 #ifdef SHOTGUN_AUTH_VISIBLE
              shotgun_write(ev->server, send, len);
@@ -112,10 +146,15 @@ shotgun_login(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
           }
         break;
       case SHOTGUN_CONNECTION_STATE_SASL:
-        if (!xml_sasl_read(data, size))
+        if (!xml_sasl_read(auth, data, size))
           {
              ERR("Login failed!");
              shotgun_disconnect(auth);
+             break;
+          }
+        if (auth->features.auth_digestmd5)
+          {
+             sasl_digestmd5_init(auth);
              break;
           }
         /* yes, another stream. */

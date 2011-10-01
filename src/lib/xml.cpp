@@ -143,6 +143,8 @@ S: <stream:features>
                        auth->features.sasl_oauth2 = EINA_TRUE;
                      else if (s && (!strcmp(s, "X-GOOGLE_TOKEN")))
                        auth->features.sasl_gtoken = EINA_TRUE;
+                     else if (s && (!strcmp(s, "DIGEST-MD5")))
+                       auth->features.sasl_digestmd5 = EINA_TRUE;
                   }
              }
            break;
@@ -216,6 +218,25 @@ S: <failure xmlns='urn:ietf:params:xml:ns:xmpp-tls'/>
 }
 
 char *
+xml_sasl_digestmd5_write(const char *sasl, size_t *len)
+{
+/*
+http://www.ietf.org/rfc/rfc2831.txt
+<response xmlns="urn:ietf:params:xml:ns:xmpp-sasl">
+b64data
+</response>
+*/
+   xml_document doc;
+   xml_node a;
+
+   a = doc.append_child("response");
+   a.append_attribute("xmlns").set_value("urn:ietf:params:xml:ns:xmpp-sasl");
+   a.append_child(node_pcdata).set_value(sasl);
+
+   return xmlnode_to_buf(a, len, EINA_FALSE);
+}
+
+char *
 xml_sasl_write(Shotgun_Auth *auth, const char *sasl, size_t *len)
 {
 /*
@@ -237,6 +258,9 @@ http://code.google.com/apis/talk/jep_extensions/jid_domain_change.html
      a.append_attribute("mechanism").set_value("X-OAUTH2");
    else
 */
+   if (auth->features.sasl_digestmd5)
+     a.append_attribute("mechanism").set_value("DIGEST-MD5");
+   else
      a.append_attribute("mechanism").set_value("PLAIN");
    if (auth->features.sasl_gtoken)
      {
@@ -249,8 +273,75 @@ http://code.google.com/apis/talk/jep_extensions/jid_domain_change.html
 }
 
 Eina_Bool
-xml_sasl_read(const char *xml, size_t size __UNUSED__)
+xml_sasl_read(Shotgun_Auth *auth, char *xml, size_t size)
 {
+   if (auth->features.sasl_digestmd5 && (!auth->features.auth_digestmd5))
+     {
+        xml_document doc;
+        xml_parse_result res;
+        xml_node node;
+        char *b64;
+        const char *key;
+        size_t len;
+
+        res = doc.load_buffer_inplace(xml, size, parse_default, encoding_auto);
+        if ((res.status != status_ok) && (res.status != status_end_element_mismatch))
+          {
+             ERR("%s", res.description());
+             //goto error;
+          }
+        node = doc.first_child();
+        if (strcmp(node.name(), "challenge")) return EINA_FALSE;
+        b64 = (char*)shotgun_base64_decode(node.child_value(), strlen(node.child_value()), &len);
+        if (!b64) return EINA_FALSE;
+        b64[len] = 0;
+        INF("Decoded: %s", b64);
+        auth->features.auth_digestmd5 = eina_hash_string_superfast_new(free);
+        for (key = b64; key && *key;)
+          {
+             const char *e, *next;
+
+             e = strchr(key, '=');
+             if (!e) goto error;
+             if (e[1] == '"')
+               {
+                  next = strchr(e + 2, '"');
+                  /* skip escaped dquot */
+                  while (next && (next[-1] == '\\')) next = strchr(next + 1, '"');
+                  if ((!next) || (next[1] && (next[1] != ','))) goto error;
+                  INF("key: %s, val: %s", strndupa(key, e - key), strndupa(e + 2, next - (e + 2)));
+                  eina_hash_add(auth->features.auth_digestmd5, strndupa(key, e - key), strndup(e + 2, next - (e + 2)));
+                  next++;
+               }
+             else
+               {
+                  next = strchr(e + 1, ',');
+                  if (!next)
+                    {
+                       INF("key: %s, val: %s", strndupa(key, e - key), strdupa(e + 1));
+                       eina_hash_add(auth->features.auth_digestmd5, strndupa(key, e - key), strdup(e + 1));
+                    }
+                  else
+                    {
+                       INF("key: %s, val: %s", strndupa(key, e - key), strndupa(e + 1, next - (e + 1)));
+                       eina_hash_add(auth->features.auth_digestmd5, strndupa(key, e - key), strndup(e + 1, next - (e + 1)));
+                    }
+               }
+             key = next ? next + 1 : NULL;
+          }
+        free(b64);
+        return EINA_TRUE;
+error:
+        eina_hash_free(auth->features.auth_digestmd5);
+        auth->features.auth_digestmd5 = NULL;
+        free(b64);
+        return EINA_FALSE;
+     }
+   if (auth->features.sasl_digestmd5 && auth->features.auth_digestmd5)
+     {
+        eina_hash_free(auth->features.auth_digestmd5);
+        auth->features.auth_digestmd5 = NULL;
+     }
 /*
 S: <success xmlns="urn:ietf:params:xml:ns:xmpp-sasl"/>
 

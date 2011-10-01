@@ -60,6 +60,8 @@ CC_PIC="$lt_prog_compiler_pic"
 CXX_PIC="$lt_prog_compiler_pic_CXX"
 AC_SUBST([CC_PIC])
 AC_SUBST([CXX_PIC])
+AC_CHECK_HEADERS([limits.h])
+AC_CHECK_FUNCS([memcpy])
 
 ##PKG_CHECK_MODULES([ELM], [$requirement_elm]))
 PKG_CHECK_MODULES([ELM], [eina >= 1.0.999 eet >= 1.4.0 evas >= 1.0.999 ecore >= 1.0.999 ecore-evas >= 1.0.999 ecore-file >= 1.0.999 ecore-imf >= 1.0.999 ecore-con >= 1.0.999 edje >= 1.0.999 elementary])

@@ -25,6 +25,7 @@ void *alloca (size_t);
 #include <Ecore.h>
 #include <Ecore_Con.h>
 #include "Shotgun.h"
+#include "md5.h"
 
 #ifndef strdupa
 # define strdupa(str)       strcpy(alloca(strlen(str) + 1), str)
@@ -87,9 +88,11 @@ struct Shotgun_Auth
    Ecore_Event_Handler *ev_add, *ev_del, *ev_error, *ev_data, *ev_upgrade;
 
    struct
-   {  /* this serves no real purpose */
+   {
+      Eina_Hash *auth_digestmd5;
       Eina_Bool starttls : 1;
       Eina_Bool sasl_plain : 1;
+      Eina_Bool sasl_digestmd5 : 1;
       Eina_Bool sasl_oauth2 : 1;
       Eina_Bool sasl_gtoken : 1;
       Eina_Bool bind : 1;
@@ -124,6 +127,8 @@ void shotgun_presence_feed(Shotgun_Auth *auth, char *data, size_t size);
 
 char *shotgun_base64_encode(const unsigned char *string, double len, size_t *size);
 unsigned char *shotgun_base64_decode(const char *string, int len, size_t *size);
+void shotgun_md5_digest_to_str(unsigned char *digest, char *ret);
+void shotgun_md5_hmac_encode(unsigned char *digest, const char *string, size_t size, const void *key, size_t ksize);
 
 Eina_Bool shotgun_login_con(Shotgun_Auth *auth, int type, Ecore_Con_Event_Server_Add *ev);
 void shotgun_login(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev);

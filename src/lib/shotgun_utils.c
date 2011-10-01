@@ -1,4 +1,4 @@
-#include <stdlib.h>
+#include "shotgun_private.h"
 #include "cencode.h"
 #include "cdecode.h"
 
@@ -44,4 +44,74 @@ shotgun_base64_decode(const char *string, int len, size_t *size)
    *size = retlen;
 
    return ret;
+}
+
+
+void
+shotgun_md5_digest_to_str(unsigned char *digest, char *ret)
+{
+   char hexchars[] = "0123456789abcdef";
+   unsigned int x, y;
+   for (x = y = 0; x < 33; x++, y++)
+     {
+        ret[x++] = hexchars[digest[y] >> 4];
+        ret[x] = hexchars[digest[y] & 15];
+     }
+   ret[32] = 0;
+}
+
+/* the following is based on public domain
+ * hmac md5 code at http://tools.ietf.org/html/rfc2104#ref-MD5
+ */
+void
+shotgun_md5_hmac_encode(unsigned char *digest, const char *string, size_t size, const void *key, size_t ksize)
+{
+   md5_ctx ctx;
+   unsigned char opad[65] = {0}, ipad[65] = {0};
+   int i;
+   /* if key is longer than 64 bytes reset it to key=MD5(key) */
+   if (ksize > 64)
+     {
+        md5_buffer(key, ksize, digest);
+        key = digest;
+        ksize = 16;
+     }
+
+   /*
+    * the HMAC_MD5 transform looks like:
+    *
+    * MD5(K XOR opad, MD5(K XOR ipad, text))
+    *
+    * where K is an n byte key
+    * ipad is the byte 0x36 repeated 64 times
+    * opad is the byte 0x5c repeated 64 times
+    * and text is the data being protected
+    */
+
+   /* start out by storing key in pads */
+   memcpy(ipad, key, ksize);
+   memcpy(opad, key, ksize);
+
+   /* XOR key with ipad and opad values */
+   for (i = 0; i < 64; i++) {
+           ipad[i] ^= 0x36;
+           opad[i] ^= 0x5c;
+   }
+   /*
+    * perform inner MD5
+    */
+   md5_init_ctx(&ctx);                  /* init context for 1st
+                                         * pass */
+   md5_process_bytes(ipad, 64, &ctx);      /* start with inner pad */
+   md5_process_bytes(string, size, &ctx); /* then text of datagram */
+   md5_finish_ctx(&ctx, digest);          /* finish up 1st pass */
+   /*
+    * perform outer MD5
+    */
+   md5_init_ctx(&ctx);                   /* init context for 2nd
+                                         * pass */
+   md5_process_bytes(opad, 64, &ctx);     /* start with outer pad */
+   md5_process_bytes(digest, 16, &ctx);     /* then results of 1st
+                                         * hash */
+   md5_finish_ctx(&ctx, digest);          /* finish up 2nd pass */
 }
