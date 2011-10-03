@@ -460,12 +460,12 @@ chat_window_chat_new(Contact *c, Chat_Window *cw)
 
    c->chat_box = box = elm_box_add(win);
    elm_object_focus_allow_set(box, 0);
-   WEIGHT(box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+   /* WEIGHT(box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND); */
    evas_object_show(box);
 
    box2 = elm_box_add(win);
    elm_object_focus_allow_set(box2, 0);
-   WEIGHT(box2, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+   /* WEIGHT(box2, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND); */
    ALIGN(box2, EVAS_HINT_FILL, EVAS_HINT_FILL);
    elm_box_horizontal_set(box2, EINA_TRUE);
    elm_box_pack_end(box, box2);
