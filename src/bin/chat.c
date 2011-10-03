@@ -419,6 +419,7 @@ chat_window_new(Contact_List *cl)
    tb = elm_toolbar_add(win);
    elm_toolbar_mode_shrink_set(tb, ELM_TOOLBAR_SHRINK_SCROLL);
    elm_toolbar_always_select_mode_set(tb, 1);
+   elm_toolbar_homogeneous_set(tb, 0);
    elm_object_style_set(tb, "item_horizontal");
    ALIGN(tb, EVAS_HINT_FILL, 0.5);
    elm_toolbar_align_set(tb, 0.5);
