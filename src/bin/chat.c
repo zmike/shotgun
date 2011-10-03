@@ -551,7 +551,7 @@ chat_window_chat_new(Contact *c, Chat_Window *cw)
    elm_entry_single_line_set(entry, 1);
    elm_entry_scrollable_set(entry, 1);
    elm_entry_line_wrap_set(entry, ELM_WRAP_MIXED);
-   WEIGHT(entry, 0.8, EVAS_HINT_EXPAND);
+   WEIGHT(entry, EVAS_HINT_EXPAND, 0);
    ALIGN(entry, EVAS_HINT_FILL, EVAS_HINT_FILL);
    elm_box_pack_end(box, entry);
    evas_object_show(entry);
