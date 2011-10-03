@@ -20,6 +20,7 @@ cdecode.c \
 cencode.c \
 iq.c \
 login.c \
+md5.c \
 messaging.c \
 presence.c \
 pugixml.cpp \
