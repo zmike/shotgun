@@ -463,41 +463,6 @@ chat_window_chat_new(Contact *c, Chat_Window *cw)
    WEIGHT(box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    evas_object_show(box);
 
-   status = elm_entry_add(win);
-   elm_entry_single_line_set(status, 1);
-   elm_entry_cnp_textonly_set(status, 1);
-   elm_entry_scrollbar_policy_set(status, ELM_SCROLLER_POLICY_AUTO, ELM_SCROLLER_POLICY_OFF);
-   elm_entry_editable_set(status, 0);
-   elm_object_focus_allow_set(status, 0);
-   elm_entry_scrollable_set(status, 1);
-   elm_entry_line_wrap_set(status, ELM_WRAP_MIXED);
-   ALIGN(status, EVAS_HINT_FILL, 0);
-   WEIGHT(status, EVAS_HINT_EXPAND, 0);
-   elm_entry_text_filter_append(status, (Elm_Entry_Filter_Cb)_chat_conv_filter, c->list);
-   evas_object_smart_callback_add(status, "anchor,in", (Evas_Smart_Cb)chat_conv_image_show, status);
-   evas_object_smart_callback_add(status, "anchor,out", (Evas_Smart_Cb)chat_conv_image_hide, status);
-   evas_object_smart_callback_add(status, "anchor,clicked", (Evas_Smart_Cb)_chat_conv_anchor_click, status);
-
-   elm_box_pack_end(box, status);
-   evas_object_show(status);
-
-   convo = elm_entry_add(win);
-   elm_entry_cnp_textonly_set(convo, 1);
-   elm_entry_scrollbar_policy_set(convo, ELM_SCROLLER_POLICY_OFF, ELM_SCROLLER_POLICY_AUTO);
-   elm_entry_editable_set(convo, 0);
-   elm_entry_single_line_set(convo, 0);
-   elm_entry_scrollable_set(convo, 1);
-   elm_object_focus_allow_set(convo, 0);
-   elm_entry_line_wrap_set(convo, ELM_WRAP_MIXED);
-   elm_entry_text_filter_append(convo, (Elm_Entry_Filter_Cb)_chat_conv_filter, c->list);
-   evas_object_smart_callback_add(convo, "anchor,in", (Evas_Smart_Cb)chat_conv_image_show, convo);
-   evas_object_smart_callback_add(convo, "anchor,out", (Evas_Smart_Cb)chat_conv_image_hide, convo);
-   evas_object_smart_callback_add(convo, "anchor,clicked", (Evas_Smart_Cb)_chat_conv_anchor_click, convo);
-   WEIGHT(convo, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-   ALIGN(convo, EVAS_HINT_FILL, EVAS_HINT_FILL);
-   elm_box_pack_end(box, convo);
-   evas_object_show(convo);
-
    box2 = elm_box_add(win);
    elm_object_focus_allow_set(box2, 0);
    WEIGHT(box2, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
@@ -505,17 +470,6 @@ chat_window_chat_new(Contact *c, Chat_Window *cw)
    elm_box_horizontal_set(box2, EINA_TRUE);
    elm_box_pack_end(box, box2);
    evas_object_show(box2);
-
-   entry = elm_entry_add(win);
-   elm_entry_single_line_set(entry, 1);
-   elm_entry_scrollable_set(entry, 1);
-   elm_entry_line_wrap_set(entry, ELM_WRAP_MIXED);
-   WEIGHT(entry, 0.8, EVAS_HINT_EXPAND);
-   ALIGN(entry, EVAS_HINT_FILL, EVAS_HINT_FILL);
-   elm_box_pack_end(box2, entry);
-   evas_object_show(entry);
-   elm_object_focus_set(entry, EINA_TRUE);
-   evas_object_smart_callback_add(entry, "activated", (Evas_Smart_Cb)_chat_window_send_cb, c);
 
    obj = elm_toolbar_add(win);
    elm_toolbar_mode_shrink_set(obj, ELM_TOOLBAR_SHRINK_NONE);
@@ -557,6 +511,52 @@ chat_window_chat_new(Contact *c, Chat_Window *cw)
         elm_menu_item_add_object(menu, it, obj, (Evas_Smart_Cb)_chat_resource_force, c);
      }
    elm_radio_value_set(radio, 0);
+
+   status = elm_entry_add(win);
+   elm_entry_single_line_set(status, 1);
+   elm_entry_cnp_textonly_set(status, 1);
+   elm_entry_scrollbar_policy_set(status, ELM_SCROLLER_POLICY_AUTO, ELM_SCROLLER_POLICY_OFF);
+   elm_entry_editable_set(status, 0);
+   elm_object_focus_allow_set(status, 0);
+   elm_entry_scrollable_set(status, 1);
+   elm_entry_line_wrap_set(status, ELM_WRAP_MIXED);
+   ALIGN(status, EVAS_HINT_FILL, EVAS_HINT_FILL);
+   WEIGHT(status, EVAS_HINT_EXPAND, 0);
+   elm_entry_text_filter_append(status, (Elm_Entry_Filter_Cb)_chat_conv_filter, c->list);
+   evas_object_smart_callback_add(status, "anchor,in", (Evas_Smart_Cb)chat_conv_image_show, status);
+   evas_object_smart_callback_add(status, "anchor,out", (Evas_Smart_Cb)chat_conv_image_hide, status);
+   evas_object_smart_callback_add(status, "anchor,clicked", (Evas_Smart_Cb)_chat_conv_anchor_click, status);
+
+   elm_box_pack_end(box2, status);
+   evas_object_show(status);
+
+   convo = elm_entry_add(win);
+   elm_entry_cnp_textonly_set(convo, 1);
+   elm_entry_scrollbar_policy_set(convo, ELM_SCROLLER_POLICY_OFF, ELM_SCROLLER_POLICY_AUTO);
+   elm_entry_editable_set(convo, 0);
+   elm_entry_single_line_set(convo, 0);
+   elm_entry_scrollable_set(convo, 1);
+   elm_object_focus_allow_set(convo, 0);
+   elm_entry_line_wrap_set(convo, ELM_WRAP_MIXED);
+   elm_entry_text_filter_append(convo, (Elm_Entry_Filter_Cb)_chat_conv_filter, c->list);
+   evas_object_smart_callback_add(convo, "anchor,in", (Evas_Smart_Cb)chat_conv_image_show, convo);
+   evas_object_smart_callback_add(convo, "anchor,out", (Evas_Smart_Cb)chat_conv_image_hide, convo);
+   evas_object_smart_callback_add(convo, "anchor,clicked", (Evas_Smart_Cb)_chat_conv_anchor_click, convo);
+   WEIGHT(convo, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+   ALIGN(convo, EVAS_HINT_FILL, EVAS_HINT_FILL);
+   elm_box_pack_end(box, convo);
+   evas_object_show(convo);
+
+   entry = elm_entry_add(win);
+   elm_entry_single_line_set(entry, 1);
+   elm_entry_scrollable_set(entry, 1);
+   elm_entry_line_wrap_set(entry, ELM_WRAP_MIXED);
+   WEIGHT(entry, 0.8, EVAS_HINT_EXPAND);
+   ALIGN(entry, EVAS_HINT_FILL, EVAS_HINT_FILL);
+   elm_box_pack_end(box, entry);
+   evas_object_show(entry);
+   elm_object_focus_set(entry, EINA_TRUE);
+   evas_object_smart_callback_add(entry, "activated", (Evas_Smart_Cb)_chat_window_send_cb, c);
 
    evas_object_data_set(box, "contact", c);
    evas_object_data_set(box, "list", c->list);
