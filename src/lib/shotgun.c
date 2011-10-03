@@ -103,9 +103,12 @@ shotgun_data_detect(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
    if ((tag[len - 2] == '/') && (len >= 7) && memcmp(data, "<stream", 7)) return EINA_TRUE;
    if ((data != tag + len - (tag - data) - 1) && (!memcmp(data + 1, tag + len - (tag - data), tag - data - 1)))
      {
-        memcpy(buf, data + 1, sizeof(buf) - 1);
-        DBG("'%s' and '%s' match!", buf, tag + len - (tag - data));
-        DBG("Releasing buffered event!");
+        if (eina_log_domain_level_check(shotgun_log_dom, EINA_LOG_LEVEL_DBG))
+          {
+             memcpy(buf, data + 1, sizeof(buf) - 1);
+             DBG("'%s' and '%s' match!", buf, tag + len - (tag - data));
+             DBG("Releasing buffered event!");
+          }
         return EINA_TRUE;
      }
 
@@ -142,12 +145,15 @@ data(Shotgun_Auth *auth, int type __UNUSED__, Ecore_Con_Event_Server_Data *ev)
         DBG("Received xml version tag");
         return ECORE_CALLBACK_RENEW;
      }
-   recv = alloca(ev->size + 1);
-   memcpy(recv, ev->data, ev->size);
-   for (p = recv + ev->size - 1; isspace(*p); p--)
-     *p = 0;
-   recv[ev->size] = 0;
-   DBG("Receiving %i bytes:\n%s", ev->size, recv);
+   if (eina_log_domain_level_check(shotgun_log_dom, EINA_LOG_LEVEL_DBG))
+     {
+        recv = alloca(ev->size + 1);
+        memcpy(recv, ev->data, ev->size);
+        for (p = recv + ev->size - 1; isspace(*p); p--)
+          *p = 0;
+        recv[ev->size] = 0;
+        DBG("Receiving %i bytes:\n%s", ev->size, recv);
+     }
 
    if (!shotgun_data_detect(auth, ev))
      return ECORE_CALLBACK_RENEW;
