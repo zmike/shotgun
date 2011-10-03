@@ -445,7 +445,7 @@ chat_window_new(Contact_List *cl)
 void
 chat_window_chat_new(Contact *c, Chat_Window *cw)
 {
-   Evas_Object *win, *box, *convo, *entry, *radio, *obj;
+   Evas_Object *win, *box, *box2, *convo, *entry, *radio, *obj;
    Evas_Object *status, *menu;
    void *it;
    Eina_List *l;
@@ -463,46 +463,6 @@ chat_window_chat_new(Contact *c, Chat_Window *cw)
    elm_object_focus_allow_set(box, 0);
    WEIGHT(box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    evas_object_show(box);
-
-   obj = elm_toolbar_add(win);
-   elm_toolbar_mode_shrink_set(obj, ELM_TOOLBAR_SHRINK_MENU);
-   ALIGN(obj, EVAS_HINT_FILL, 0.5);
-   elm_toolbar_align_set(obj, 0);
-   it = elm_toolbar_item_append(obj, NULL, "Options", NULL, NULL);
-   elm_toolbar_item_menu_set(it, 1);
-   elm_toolbar_menu_parent_set(obj, win);
-   elm_box_pack_end(box, obj);
-   evas_object_show(obj);
-   c->chat_jid_menu = menu = elm_toolbar_item_menu_get(it);
-   elm_menu_item_add(menu, NULL, NULL, "Ignore Resource", (Evas_Smart_Cb)_chat_resource_ignore_toggle, c);
-   it = elm_menu_item_add(menu, NULL, "menu/arrow_right", "Send to", NULL, NULL);
-
-   radio = elm_radio_add(win);
-   elm_radio_state_value_set(radio, 0);
-   elm_object_text_set(radio, "Use Priority");
-   evas_object_show(radio);
-   elm_menu_item_add_object(menu, it, radio, (Evas_Smart_Cb)_chat_resource_force, c);
-
-   EINA_LIST_FOREACH(c->plist, l, pres)
-     {
-        const char *s;
-        char *buf;
-        size_t len;
-        int i = 1;
-
-        s = strchr(pres->jid, '/');
-        s = s ? s + 1 : pres->jid;
-        len = strlen(s);
-        buf = alloca(len + 20);
-        snprintf(buf, len, "%s (%i)", s ?: c->base->jid, pres->priority);
-        obj = elm_radio_add(win);
-        elm_radio_group_add(obj, radio);
-        elm_radio_state_value_set(obj, i++);
-        elm_object_text_set(obj, buf);
-        evas_object_show(obj);
-        elm_menu_item_add_object(menu, it, obj, (Evas_Smart_Cb)_chat_resource_force, c);
-     }
-   elm_radio_value_set(radio, 0);
 
    status = elm_entry_add(win);
    elm_entry_single_line_set(status, 1);
@@ -539,17 +499,65 @@ chat_window_chat_new(Contact *c, Chat_Window *cw)
    elm_box_pack_end(box, convo);
    evas_object_show(convo);
 
+   box2 = elm_box_add(win);
+   elm_object_focus_allow_set(box2, 0);
+   WEIGHT(box2, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+   ALIGN(box2, EVAS_HINT_FILL, EVAS_HINT_FILL);
+   elm_box_horizontal_set(box2, EINA_TRUE);
+   elm_box_pack_end(box, box2);
+   evas_object_show(box2);
+
    entry = elm_entry_add(win);
    elm_entry_single_line_set(entry, 1);
    elm_entry_scrollable_set(entry, 1);
    elm_entry_line_wrap_set(entry, ELM_WRAP_MIXED);
-   WEIGHT(entry, EVAS_HINT_EXPAND, 0);
-   ALIGN(entry, EVAS_HINT_FILL, 0);
-   elm_box_pack_end(box, entry);
+   WEIGHT(entry, 0.8, EVAS_HINT_EXPAND);
+   ALIGN(entry, EVAS_HINT_FILL, EVAS_HINT_FILL);
+   elm_box_pack_end(box2, entry);
    evas_object_show(entry);
    elm_object_focus_set(entry, EINA_TRUE);
-
    evas_object_smart_callback_add(entry, "activated", (Evas_Smart_Cb)_chat_window_send_cb, c);
+
+   obj = elm_toolbar_add(win);
+   elm_toolbar_mode_shrink_set(obj, ELM_TOOLBAR_SHRINK_NONE);
+   WEIGHT(obj, 0, 0);
+   ALIGN(obj, 0.5, 0.5);
+   elm_toolbar_align_set(obj, 0);
+   it = elm_toolbar_item_append(obj, NULL, "Options", NULL, NULL);
+   elm_toolbar_item_menu_set(it, 1);
+   elm_toolbar_menu_parent_set(obj, win);
+   elm_box_pack_end(box2, obj);
+   evas_object_show(obj);
+   c->chat_jid_menu = menu = elm_toolbar_item_menu_get(it);
+   elm_menu_item_add(menu, NULL, NULL, "Ignore Resource", (Evas_Smart_Cb)_chat_resource_ignore_toggle, c);
+   it = elm_menu_item_add(menu, NULL, "menu/arrow_right", "Send to", NULL, NULL);
+
+   radio = elm_radio_add(win);
+   elm_radio_state_value_set(radio, 0);
+   elm_object_text_set(radio, "Use Priority");
+   evas_object_show(radio);
+   elm_menu_item_add_object(menu, it, radio, (Evas_Smart_Cb)_chat_resource_force, c);
+
+   EINA_LIST_FOREACH(c->plist, l, pres)
+     {
+        const char *s;
+        char *buf;
+        size_t len;
+        int i = 1;
+
+        s = strchr(pres->jid, '/');
+        s = s ? s + 1 : pres->jid;
+        len = strlen(s);
+        buf = alloca(len + 20);
+        snprintf(buf, len, "%s (%i)", s ?: c->base->jid, pres->priority);
+        obj = elm_radio_add(win);
+        elm_radio_group_add(obj, radio);
+        elm_radio_state_value_set(obj, i++);
+        elm_object_text_set(obj, buf);
+        evas_object_show(obj);
+        elm_menu_item_add_object(menu, it, obj, (Evas_Smart_Cb)_chat_resource_force, c);
+     }
+   elm_radio_value_set(radio, 0);
 
    evas_object_data_set(box, "contact", c);
    evas_object_data_set(box, "list", c->list);
