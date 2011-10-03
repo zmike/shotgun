@@ -1,7 +1,6 @@
 PROTOCOL:
 	should probably wait for server return instead of assuming things just work
 BUGS:
-	shutdown crashes
 	ejabberd support
 	contact list right click menu in grid view
 
