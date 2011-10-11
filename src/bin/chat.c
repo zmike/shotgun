@@ -137,34 +137,7 @@ _chat_window_send_cb(Contact *c, Evas_Object *obj, void *ev __UNUSED__)
 static void
 _chat_window_close_cb(Chat_Window *cw, Evas_Object *obj __UNUSED__, const char *ev __UNUSED__)
 {
-   Contact *c;
-   Evas_Object *box;
-   Elm_Toolbar_Item *it;
-
-   INF("Closing page for %s", elm_win_title_get(cw->win));
-   box = elm_pager_content_top_get(cw->pager);
-   elm_pager_content_pop(cw->pager);
-   c = evas_object_data_get(box, "contact");
-
-   contact_chat_window_animator_del(c);
-   it = c->chat_tb_item;
-   if (c->last_conv != elm_entry_entry_get(c->chat_buffer))
-     {
-        eina_stringshare_del(c->last_conv);
-        c->last_conv = eina_stringshare_ref(elm_entry_entry_get(c->chat_buffer));
-     }
-   memset(&c->chat_window, 0, sizeof(void*) * 9);
-   elm_toolbar_item_del(it);
-   evas_object_del(box);
-
-   cw->contacts = eina_list_remove(cw->contacts, c);
-   c = eina_list_data_get(cw->contacts);
-   if (c)
-     {
-        elm_win_title_set(c->chat_window->win, contact_name_get(c));
-        elm_object_focus_set(c->chat_input, EINA_TRUE);
-     }
-   else chat_window_free(cw, NULL, NULL);
+   contact_chat_window_close(evas_object_data_get(elm_pager_content_top_get(cw->pager), "contact"));
 }
 
 static void
@@ -317,6 +290,18 @@ _chat_resource_force(Contact *c, Evas_Object *obj __UNUSED__, Elm_Menu_Item *ev)
 }
 
 static void
+_chat_window_otherclick(Elm_Toolbar_Item *it, Evas_Object *obj __UNUSED__, const char *emission, const char *source __UNUSED__)
+{
+   Contact *c;
+   int button;
+
+   c = elm_toolbar_item_data_get(it);
+   button = atoi(emission + sizeof("elm,action,click,") - 1);
+   if (button == 2) /* middle click */
+     contact_chat_window_close(c);
+}
+
+static void
 _chat_window_key(Chat_Window *cw, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, Evas_Event_Key_Down *ev)
 {
    //DBG("%s", ev->keyname);
@@ -456,6 +441,8 @@ chat_window_chat_new(Contact *c, Chat_Window *cw)
    c->chat_window = cw;
    cw->contacts = eina_list_append(cw->contacts, c);
    c->chat_tb_item = it = elm_toolbar_item_append(cw->toolbar, icon, contact_name_get(c), (Evas_Smart_Cb)_chat_window_switch, c);
+   obj = elm_toolbar_item_object_get(it);
+   edje_object_signal_callback_add(obj, "elm,action,click,*", "elm", (Edje_Signal_Cb)_chat_window_otherclick, it);
    if (!icon) elm_toolbar_item_icon_memfile_set(it, c->info->photo.data, c->info->photo.size, NULL, NULL);
    elm_win_title_set(cw->win, contact_name_get(c));
 

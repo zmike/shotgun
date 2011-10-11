@@ -177,6 +177,7 @@ Contact *do_something_with_user(Contact_List *cl, Shotgun_User *user);
 Eina_Bool contact_chat_window_current(Contact *c);
 void contact_chat_window_animator_add(Contact *c);
 void contact_chat_window_animator_del(Contact *c);
+void contact_chat_window_close(Contact *c);
 void contact_subscription_set(Contact *c, Shotgun_Presence_Type type, Shotgun_User_Subscription sub);
 
 Eina_Bool ui_eet_init(Shotgun_Auth *auth);

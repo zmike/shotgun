@@ -208,6 +208,34 @@ contact_chat_window_animator_del(Contact *c)
 }
 
 void
+contact_chat_window_close(Contact *c)
+{
+   Chat_Window *cw = c->chat_window;
+   Eina_Bool current = contact_chat_window_current(c);
+   INF("Closing page for %s", contact_name_get(c));
+   elm_pager_content_del(cw->pager, c->chat_box);
+   contact_chat_window_animator_del(c);
+   if (c->last_conv != elm_entry_entry_get(c->chat_buffer))
+     {
+        eina_stringshare_del(c->last_conv);
+        c->last_conv = eina_stringshare_ref(elm_entry_entry_get(c->chat_buffer));
+     }
+   elm_toolbar_item_del(c->chat_tb_item);
+   evas_object_del(c->chat_box);
+   memset(&c->chat_window, 0, sizeof(void*) * 9);
+
+   cw->contacts = eina_list_remove(cw->contacts, c);
+   if (!current) return;
+   c = eina_list_data_get(cw->contacts);
+   if (c)
+     {
+        elm_win_title_set(c->chat_window->win, contact_name_get(c));
+        elm_object_focus_set(c->chat_input, EINA_TRUE);
+     }
+   else chat_window_free(cw, NULL, NULL);
+}
+
+void
 contact_subscription_set(Contact *c, Shotgun_Presence_Type type, Shotgun_User_Subscription sub)
 {
    Shotgun_Event_Presence *pres;
