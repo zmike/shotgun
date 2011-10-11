@@ -141,6 +141,12 @@ _chat_window_close_cb(Chat_Window *cw, Evas_Object *obj __UNUSED__, const char *
 }
 
 static void
+_chat_window_longpress(Chat_Window *cw __UNUSED__, Evas_Object *obj __UNUSED__, Elm_Toolbar_Item *it)
+{
+   contact_chat_window_close(elm_toolbar_item_data_get(it));
+}
+
+static void
 _chat_conv_filter_helper(Contact_List *cl, int d, Eina_Strbuf **sbuf, const char *http, size_t *len)
 {
    Eina_Strbuf *buf = *sbuf;
@@ -406,6 +412,7 @@ chat_window_new(Contact_List *cl)
    elm_toolbar_always_select_mode_set(tb, 1);
    elm_toolbar_homogeneous_set(tb, 0);
    elm_object_style_set(tb, "item_horizontal");
+   evas_object_smart_callback_add(tb, "longpressed", (Evas_Smart_Cb)_chat_window_longpress, cw);
    ALIGN(tb, EVAS_HINT_FILL, 0.5);
    elm_toolbar_align_set(tb, 0.5);
    elm_box_pack_end(box, tb);
