@@ -213,7 +213,6 @@ contact_chat_window_close(Contact *c)
    Chat_Window *cw = c->chat_window;
    Eina_Bool current = contact_chat_window_current(c);
    INF("Closing page for %s", contact_name_get(c));
-   elm_pager_content_del(cw->pager, c->chat_box);
    contact_chat_window_animator_del(c);
    if (c->last_conv != elm_entry_entry_get(c->chat_buffer))
      {
@@ -230,6 +229,7 @@ contact_chat_window_close(Contact *c)
    if (c)
      {
         elm_win_title_set(c->chat_window->win, contact_name_get(c));
+        elm_pager_content_pop(cw->pager);
         elm_object_focus_set(c->chat_input, EINA_TRUE);
      }
    else chat_window_free(cw, NULL, NULL);
