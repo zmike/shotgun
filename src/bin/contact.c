@@ -229,8 +229,8 @@ contact_chat_window_close(Contact *c)
    if (c)
      {
         elm_win_title_set(c->chat_window->win, contact_name_get(c));
-        elm_pager_content_pop(cw->pager);
         elm_object_focus_set(c->chat_input, EINA_TRUE);
+        INF("%s is current", contact_name_get(c));
      }
    else chat_window_free(cw, NULL, NULL);
 }
