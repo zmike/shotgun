@@ -34,7 +34,9 @@ events.c \
 getpass_x.c \
 main.c \
 sha1.c \
+sha1.h \
 sha1wrap.c \
+ui.h \
 util.c
 
 MAINTAINERCLEANFILES = Makefile.in
