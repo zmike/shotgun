@@ -392,7 +392,7 @@ _it_label_get_list(Contact *c, Evas_Object *obj __UNUSED__, const char *part)
 }
 
 static Evas_Object *
-_it_icon_get(Contact *c, Evas_Object *obj, const char *part)
+_it_content_get(Contact *c, Evas_Object *obj, const char *part)
 {
    Evas_Object *ic;
    const char *str = NULL;
@@ -499,8 +499,8 @@ _contact_list_list_add(Contact_List *cl)
 
    cl->list = list = elm_genlist_add(cl->win);
    cl->mode = EINA_FALSE;
-   elm_genlist_always_select_mode_set(list, EINA_FALSE);
-   elm_genlist_bounce_set(list, EINA_FALSE, EINA_FALSE);
+   elm_gen_always_select_mode_set(list, EINA_FALSE);
+   elm_gen_bounce_set(list, EINA_FALSE, EINA_FALSE);
    elm_genlist_scroller_policy_set(list, ELM_SCROLLER_POLICY_OFF, ELM_SCROLLER_POLICY_AUTO);
    WEIGHT(list, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    ALIGN(list, EVAS_HINT_FILL, EVAS_HINT_FILL);
@@ -522,9 +522,9 @@ _contact_list_grid_add(Contact_List *cl)
 
    cl->list = grid = elm_gengrid_add(cl->win);
    cl->mode = EINA_TRUE;
-   elm_gengrid_always_select_mode_set(grid, EINA_FALSE);
+   elm_gen_always_select_mode_set(grid, EINA_FALSE);
    elm_gengrid_item_size_set(grid, 75, 100);
-   elm_gengrid_bounce_set(grid, EINA_FALSE, EINA_FALSE);
+   elm_gen_bounce_set(grid, EINA_FALSE, EINA_FALSE);
    WEIGHT(grid, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    ALIGN(grid, EVAS_HINT_FILL, EVAS_HINT_FILL);
    l = elm_box_children_get(cl->box);
@@ -755,7 +755,7 @@ contact_list_user_add(Contact_List *cl, Contact *c)
         .item_style = "double_label",
         .func = {
              .label_get = (Elm_Genlist_Item_Label_Get_Cb)_it_label_get_list,
-             .icon_get = (Elm_Genlist_Item_Icon_Get_Cb)_it_icon_get,
+             .content_get = (Elm_Genlist_Item_Content_Get_Cb)_it_content_get,
              .state_get = (Elm_Genlist_Item_State_Get_Cb)_it_state_get,
              .del = (Elm_Genlist_Item_Del_Cb)_it_del
         }
@@ -764,7 +764,7 @@ contact_list_user_add(Contact_List *cl, Contact *c)
         .item_style = "default",
         .func = {
              .label_get = (Elm_Gengrid_Item_Label_Get_Cb)_it_label_get_grid,
-             .icon_get = (Elm_Gengrid_Item_Icon_Get_Cb)_it_icon_get,
+             .content_get = (Elm_Gengrid_Item_Content_Get_Cb)_it_content_get,
              .state_get = (Elm_Gengrid_Item_State_Get_Cb)_it_state_get,
              .del = (Elm_Gengrid_Item_Del_Cb)_it_del
         }
@@ -945,8 +945,8 @@ contact_list_new(Shotgun_Auth *auth)
    //cl->list_at_xy_item_get[1] = (Ecore_Data_Cb)elm_gengrid_at_xy_item_get;
    cl->list_selected_item_get[0] = (Ecore_Data_Cb)elm_genlist_selected_item_get;
    cl->list_selected_item_get[1] = (Ecore_Data_Cb)elm_gengrid_selected_item_get;
-   cl->list_item_parent_get[0] = (Ecore_Data_Cb)elm_genlist_item_genlist_get;
-   cl->list_item_parent_get[1] = (Ecore_Data_Cb)elm_gengrid_item_gengrid_get;
+   cl->list_item_parent_get[0] = (Ecore_Data_Cb)elm_gen_item_widget_get;
+   cl->list_item_parent_get[1] = (Ecore_Data_Cb)elm_gen_item_widget_get;
    cl->list_item_del[0] = (Ecore_Cb)elm_genlist_item_del;
    cl->list_item_del[1] = (Ecore_Cb)elm_gengrid_item_del;
    cl->list_item_update[0] = (Ecore_Cb)elm_genlist_item_update;
