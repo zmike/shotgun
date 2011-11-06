@@ -152,6 +152,7 @@ _contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_
    elm_toolbar_item_selected_set(ev, EINA_FALSE);
    if (cl->pager) return;
    cl->pager = p = elm_naviframe_add(cl->win);
+   WEIGHT(p, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    ALIGN(p, EVAS_HINT_FILL, 0);
    elm_box_pack_after(cl->box, p, cl->list);
    elm_object_style_set(p, "slide");
@@ -162,7 +163,7 @@ _contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_
       elm_icon_standard_set(i, "arrow_left");
       evas_object_show(i);
       b = elm_button_add(cl->win);
-      elm_button_icon_set(b, i);
+      elm_object_content_set(b, i);
       evas_object_smart_callback_add(b, "clicked", (Evas_Smart_Cb)_contact_list_add_pager_cb_prev, cl);
       evas_object_show(b);
 
@@ -172,7 +173,7 @@ _contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_
       evas_object_color_set(i, 0, 255, 0, 255);
       evas_object_show(i);
       b2 = elm_button_add(cl->win);
-      elm_button_icon_set(b2, i);
+      elm_object_content_set(b2, i);
       evas_object_smart_callback_add(b2, "clicked", (Evas_Smart_Cb)_contact_list_add_pager_cb_next, cl);
       evas_object_show(b2);
 
@@ -202,7 +203,7 @@ _contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_
       evas_object_color_set(i, 255, 0, 0, 255);
       evas_object_show(i);
       b = elm_button_add(cl->win);
-      elm_button_icon_set(b, i);
+      elm_object_content_set(b, i);
       evas_object_smart_callback_add(b, "clicked", (Evas_Smart_Cb)_contact_list_add_pager_cb_prev, cl);
       evas_object_show(b);
 
@@ -211,7 +212,7 @@ _contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_
       elm_icon_standard_set(i, "arrow_right");
       evas_object_show(i);
       b2 = elm_button_add(cl->win);
-      elm_button_icon_set(b2, i);
+      elm_object_content_set(b2, i);
       evas_object_smart_callback_add(b2, "clicked", (Evas_Smart_Cb)_contact_list_add_pager_cb_next, cl);
       evas_object_show(b2);
 
