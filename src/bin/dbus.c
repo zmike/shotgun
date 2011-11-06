@@ -320,12 +320,11 @@ ui_dbus_notify(Evas_Object *img, const char *from, const char *msg)
    if (img)
      {
         i = e_notification_image_new();
-        e_notification_image_init(i, img);
-        e_notification_hint_image_data_set(n, i);
+        if (e_notification_image_init(i, img))
+          e_notification_hint_image_data_set(n, i);
      }
    e_notification_send(n, NULL, NULL);
    e_notification_unref(n);
-   if (img) e_notification_image_free(i);
 }
 #endif
 
