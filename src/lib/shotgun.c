@@ -71,6 +71,7 @@ shotgun_data_detect(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
              data += 21, len -= 21;
           }
         DBG("Appending %i to buffer", len);
+        //fprintf(stdout, "%*s\n", len, (char*)data);
         eina_strbuf_append_length(auth->buf, data, len);
         return EINA_FALSE;
      }
@@ -78,6 +79,7 @@ shotgun_data_detect(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
    if (auth->buf)
      {
         DBG("Appending %i to buffer", ev->size);
+        //fprintf(stdout, "%*s\n", ev->size, (char*)ev->data);
         eina_strbuf_append_length(auth->buf, ev->data, ev->size);
      }
 
@@ -101,6 +103,7 @@ shotgun_data_detect(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
 
    if (!memcmp(data, "<stream:stream", sizeof("<stream:stream") - 1)) return EINA_TRUE;
    if ((tag[len - 2] == '/') && (len >= 7) && memcmp(data, "<stream", 7)) return EINA_TRUE;
+   //fprintf(stderr, "tag: %*s || end: %*s\n", tag - data - 1, data + 1, tag - data - 1, tag + len - (tag - data));
    if ((data != tag + len - (tag - data) - 1) && (!memcmp(data + 1, tag + len - (tag - data), tag - data - 1)))
      {
         if (eina_log_domain_level_check(shotgun_log_dom, EINA_LOG_LEVEL_DBG))
