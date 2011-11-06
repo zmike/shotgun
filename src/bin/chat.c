@@ -78,7 +78,7 @@ chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me)
         Ecore_X_Window xwin = elm_win_xwindow_get(c->chat_window->win);
 
         if (xwin != ecore_x_window_focus_get())
-          ui_dbus_notify(from, msg);
+          ui_dbus_notify(elm_object_content_part_get(c->list_item, "elm.swallow.end"), from, msg);
 # endif
 #endif
      }

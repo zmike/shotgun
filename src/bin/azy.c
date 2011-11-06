@@ -46,7 +46,7 @@ ui_azy_return(void *data __UNUSED__, int type __UNUSED__, Azy_Content *content)
      snprintf(buf, sizeof(buf), "Your version of Shotgun! is %u commit%s old!", x, (x > 1) ? "s" : "");
    
 #ifdef HAVE_NOTIFY
-   ui_dbus_notify("Shotgun!", buf);
+   ui_dbus_notify(NULL, "Shotgun!", buf);
 #endif
    notified = EINA_TRUE;
    return ECORE_CALLBACK_RENEW;

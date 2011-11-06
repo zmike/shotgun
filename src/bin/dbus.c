@@ -311,13 +311,21 @@ ui_dbus_init(Contact_List *cl)
 
 #ifdef HAVE_NOTIFY
 void
-ui_dbus_notify(const char *from, const char *msg)
+ui_dbus_notify(Evas_Object *img, const char *from, const char *msg)
 {
    E_Notification *n;
+   E_Notification_Image *i;
 
    n = e_notification_full_new("SHOTGUN!", 0, NULL, from, msg, 5000);
+   if (img)
+     {
+        i = e_notification_image_new();
+        e_notification_image_init(i, img);
+        e_notification_hint_image_data_set(n, i);
+     }
    e_notification_send(n, NULL, NULL);
    e_notification_unref(n);
+   if (img) e_notification_image_free(i);
 }
 #endif
 

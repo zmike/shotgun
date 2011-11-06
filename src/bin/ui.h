@@ -197,7 +197,7 @@ void ui_dbus_signal_message(Contact_List *cl, Contact *c, Shotgun_Event_Message 
 void ui_dbus_signal_status_self(Contact_List *cl);
 void ui_dbus_init(Contact_List *cl);
 # ifdef HAVE_NOTIFY
-void ui_dbus_notify(const char *from, const char *msg);
+void ui_dbus_notify(Evas_Object *img, const char *from, const char *msg);
 # endif
 #endif
 
