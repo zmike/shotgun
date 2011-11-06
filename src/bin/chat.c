@@ -50,7 +50,7 @@ chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me)
    if (me)
      {
         color = elm_theme_data_get(NULL, "shotgun/color/me");
-        if ((!color) || (strlen(color) != 6))
+        if ((!color) || (eina_strlen_bounded(color, 7) != 6))
           {
              DBG("valid shotgun/color/me data not present in theme!");
              color = "00FF01";
@@ -59,7 +59,7 @@ chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me)
    else
      {
         color = elm_theme_data_get(NULL, "shotgun/color/you");
-        if ((!color) || (strlen(color) != 6))
+        if ((!color) || (eina_strlen_bounded(color, 7) != 6))
           {
              DBG("valid shotgun/color/you data not present in theme!");
              color = "0001FF";
