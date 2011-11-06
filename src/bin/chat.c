@@ -73,13 +73,16 @@ chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me)
    if (!me)
      {
         //if (!contact_chat_window_current(c))
-#ifdef HAVE_ECORE_X
-# ifdef HAVE_NOTIFY
+#ifdef HAVE_NOTIFY
+# ifdef HAVE_ECORE_X
         Ecore_X_Window xwin = elm_win_xwindow_get(c->chat_window->win);
 
         if (xwin != ecore_x_window_focus_get())
-          ui_dbus_notify(elm_object_content_part_get(c->list_item, "elm.swallow.end"), from, msg);
+          ui_dbus_notify(elm_icon_object_get(elm_object_item_content_part_get(c->list_item, "elm.swallow.end")), from, msg);
+        else
 # endif
+          if (!contact_chat_window_current(c))
+            ui_dbus_notify(elm_icon_object_get(elm_object_item_content_part_get(c->list_item, "elm.swallow.end")), from, msg);
 #endif
      }
    elm_entry_entry_append(e, buf);
@@ -438,7 +441,7 @@ chat_window_new(Contact_List *cl)
 }
 
 void
-chat_window_chat_new(Contact *c, Chat_Window *cw)
+chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
 {
    Evas_Object *win, *box, *box2, *convo, *entry, *radio, *obj;
    Evas_Object *status, *menu;
@@ -575,8 +578,13 @@ chat_window_chat_new(Contact *c, Chat_Window *cw)
    elm_entry_cursor_end_set(convo);
 
    elm_pager_content_push(cw->pager, box);
-   elm_pager_content_promote(cw->pager, box);
-   elm_toolbar_item_selected_set(c->chat_tb_item, EINA_TRUE);
+   if (focus)
+     {
+        elm_pager_content_promote(cw->pager, box);
+        elm_toolbar_item_selected_set(c->chat_tb_item, EINA_TRUE);
+     }
+   else
+     contact_chat_window_animator_add(c);
    elm_win_activate(cw->win);
 }
 

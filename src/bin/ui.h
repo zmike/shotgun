@@ -158,7 +158,7 @@ void contact_list_user_add(Contact_List *cl, Contact *c);
 void contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev);
 
 void chat_window_new(Contact_List *cl);
-void chat_window_chat_new(Contact *c, Chat_Window *cw);
+void chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus);
 void chat_window_free(Chat_Window *cw, Evas_Object *obj __UNUSED__, const char *ev __UNUSED__);
 void chat_message_status(Contact *c, Shotgun_Event_Message *msg);
 void chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me);
