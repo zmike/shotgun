@@ -105,7 +105,7 @@ _contact_list_add_pager_cb_next(Contact_List *cl, Evas_Object *obj __UNUSED__, v
    cl->pager_state++;
    if (cl->pager_state)
      {
-        elm_pager_content_promote(cl->pager, elm_pager_content_bottom_get(cl->pager));
+        elm_naviframe_item_promote(elm_naviframe_bottom_item_get(cl->pager));
         elm_object_focus_set(cl->pager_entries->next->data, 1);
         elm_entry_cursor_end_set(cl->pager_entries->next->data);
         return;
@@ -139,7 +139,7 @@ _contact_list_add_pager_cb_prev(Contact_List *cl, Evas_Object *obj __UNUSED__, v
         return;
      }
 
-   elm_pager_content_promote(cl->pager, elm_pager_content_bottom_get(cl->pager));
+   elm_naviframe_item_promote(elm_naviframe_bottom_item_get(cl->pager));
    elm_object_focus_set(cl->pager_entries->data, 1);
    elm_entry_cursor_end_set(cl->pager_entries->data);
 }
@@ -147,53 +147,34 @@ _contact_list_add_pager_cb_prev(Contact_List *cl, Evas_Object *obj __UNUSED__, v
 static void
 _contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_Item *ev)
 {
-   Evas_Object *p, *b, *o, *i;
+   Evas_Object *p, *b, *b2, *o, *i;
 
    elm_toolbar_item_selected_set(ev, EINA_FALSE);
    if (cl->pager) return;
-   cl->pager = p = elm_pager_add(cl->win);
+   cl->pager = p = elm_naviframe_add(cl->win);
    ALIGN(p, EVAS_HINT_FILL, 0);
    elm_box_pack_after(cl->box, p, cl->list);
    elm_object_style_set(p, "slide");
 
    {
-      b = elm_box_add(cl->win);
-      ALIGN(b, EVAS_HINT_FILL, EVAS_HINT_FILL);
-      elm_box_horizontal_set(b, 1);
-
       i = elm_icon_add(cl->win);
       elm_icon_order_lookup_set(i, ELM_ICON_LOOKUP_THEME);
       elm_icon_standard_set(i, "arrow_left");
       evas_object_show(i);
-      o = elm_button_add(cl->win);
-      elm_button_icon_set(o, i);
-      elm_box_pack_end(b, o);
-      evas_object_smart_callback_add(o, "clicked", (Evas_Smart_Cb)_contact_list_add_pager_cb_prev, cl);
-      evas_object_show(o);
-
-      o = elm_label_add(cl->win);
-      ALIGN(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
-      elm_object_text_set(o, "Contact's Name (Alias):");
-      elm_box_pack_end(b, o);
-      evas_object_show(o);
+      b = elm_button_add(cl->win);
+      elm_button_icon_set(b, i);
+      evas_object_smart_callback_add(b, "clicked", (Evas_Smart_Cb)_contact_list_add_pager_cb_prev, cl);
+      evas_object_show(b);
 
       i = elm_icon_add(cl->win);
       elm_icon_order_lookup_set(i, ELM_ICON_LOOKUP_THEME);
       elm_icon_standard_set(i, "shotgun/dialog_ok");
       evas_object_color_set(i, 0, 255, 0, 255);
       evas_object_show(i);
-      o = elm_button_add(cl->win);
-      elm_button_icon_set(o, i);
-      elm_box_pack_end(b, o);
-      evas_object_smart_callback_add(o, "clicked", (Evas_Smart_Cb)_contact_list_add_pager_cb_next, cl);
-      evas_object_show(o);
-
-      evas_object_show(b);
-
-      o = elm_box_add(cl->win);
-      ALIGN(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
-      elm_box_pack_end(o, b);
-      b = o;
+      b2 = elm_button_add(cl->win);
+      elm_button_icon_set(b2, i);
+      evas_object_smart_callback_add(b2, "clicked", (Evas_Smart_Cb)_contact_list_add_pager_cb_next, cl);
+      evas_object_show(b2);
 
       o = elm_entry_add(cl->win);
       WEIGHT(o, EVAS_HINT_EXPAND, 0);
@@ -205,55 +186,34 @@ _contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_
       elm_entry_editable_set(o, 1);
       elm_entry_scrollable_set(o, 1);
       elm_entry_scrollbar_policy_set(o, ELM_SCROLLER_POLICY_AUTO, ELM_SCROLLER_POLICY_OFF);
-      elm_box_pack_end(b, o);
       evas_object_smart_callback_add(o, "activated", (Evas_Smart_Cb)_contact_list_add_pager_cb_next, cl);
       evas_object_show(o);
       elm_entry_cursor_begin_set(o);
       elm_entry_select_all(o);
       elm_object_focus_set(o, 1);
 
-      evas_object_show(b);
-      elm_pager_content_push(p, b);
+      elm_naviframe_item_push(p, "Contact's Name (Alias):", b, b2, o, NULL);
    }
 
    {
-      b = elm_box_add(cl->win);
-      ALIGN(b, EVAS_HINT_FILL, EVAS_HINT_FILL);
-      elm_box_horizontal_set(b, 1);
-
       i = elm_icon_add(cl->win);
       elm_icon_order_lookup_set(i, ELM_ICON_LOOKUP_THEME);
       elm_icon_standard_set(i, "close");
       evas_object_color_set(i, 255, 0, 0, 255);
       evas_object_show(i);
-      o = elm_button_add(cl->win);
-      elm_button_icon_set(o, i);
-      elm_box_pack_end(b, o);
-      evas_object_smart_callback_add(o, "clicked", (Evas_Smart_Cb)_contact_list_add_pager_cb_prev, cl);
-      evas_object_show(o);
-
-      o = elm_label_add(cl->win);
-      ALIGN(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
-      elm_object_text_set(o, "Contact's Address:");
-      elm_box_pack_end(b, o);
-      evas_object_show(o);
+      b = elm_button_add(cl->win);
+      elm_button_icon_set(b, i);
+      evas_object_smart_callback_add(b, "clicked", (Evas_Smart_Cb)_contact_list_add_pager_cb_prev, cl);
+      evas_object_show(b);
 
       i = elm_icon_add(cl->win);
       elm_icon_order_lookup_set(i, ELM_ICON_LOOKUP_THEME);
       elm_icon_standard_set(i, "arrow_right");
       evas_object_show(i);
-      o = elm_button_add(cl->win);
-      elm_button_icon_set(o, i);
-      elm_box_pack_end(b, o);
-      evas_object_smart_callback_add(o, "clicked", (Evas_Smart_Cb)_contact_list_add_pager_cb_next, cl);
-      evas_object_show(o);
-
-      evas_object_show(b);
-
-      o = elm_box_add(cl->win);
-      ALIGN(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
-      elm_box_pack_end(o, b);
-      b = o;
+      b2 = elm_button_add(cl->win);
+      elm_button_icon_set(b2, i);
+      evas_object_smart_callback_add(b2, "clicked", (Evas_Smart_Cb)_contact_list_add_pager_cb_next, cl);
+      evas_object_show(b2);
 
       o = elm_entry_add(cl->win);
       WEIGHT(o, EVAS_HINT_EXPAND, 0);
@@ -265,15 +225,13 @@ _contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_
       elm_entry_editable_set(o, 1);
       elm_entry_scrollable_set(o, 1);
       elm_entry_scrollbar_policy_set(o, ELM_SCROLLER_POLICY_AUTO, ELM_SCROLLER_POLICY_OFF);
-      elm_box_pack_end(b, o);
       evas_object_smart_callback_add(o, "activated", (Evas_Smart_Cb)_contact_list_add_pager_cb_next, cl);
       evas_object_show(o);
       elm_entry_cursor_begin_set(o);
       elm_entry_select_all(o);
       elm_object_focus_set(o, 1);
 
-      evas_object_show(b);
-      elm_pager_content_push(p, b);
+      elm_naviframe_item_push(p, "Contact's Address:", b, b2, o, NULL);
    }
 
    evas_object_show(p);
