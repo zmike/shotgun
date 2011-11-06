@@ -8,6 +8,7 @@
 #define XML_NS_CHATSTATES "http://jabber.org/protocol/chatstates"
 #define XML_NS_BIND "urn:ietf:params:xml:ns:xmpp-bind"
 #define XML_NS_IDLE "jabber:iq:last"
+#define XML_NS_DELAY "urn:xmpp:delay"
 
 using namespace pugi;
 
@@ -640,6 +641,7 @@ xml_iq_disco_info_write(Shotgun_Auth *auth, xml_document &query)
    node.append_child("feature").append_attribute("var").set_value(XML_NS_DISCO_INFO); /* yay recursion */
    node.append_child("feature").append_attribute("var").set_value(XML_NS_CHATSTATES);
    node.append_child("feature").append_attribute("var").set_value(XML_NS_IDLE);
+   node.append_child("feature").append_attribute("var").set_value(XML_NS_DELAY);
 
    xml = xmlnode_to_buf(doc, &len, EINA_FALSE);
    shotgun_write(auth->svr, xml, len);
