@@ -111,9 +111,12 @@ static void
 _chat_window_send_cb(Contact *c, Evas_Object *obj, void *ev __UNUSED__)
 {
    char *s;
-   const char *jid;
+   const char *jid, *txt;
 
-   s = elm_entry_markup_to_utf8(elm_entry_entry_get(obj));
+   txt = elm_entry_entry_get(obj);
+   if ((!txt) || (!txt[0])) return;
+
+   s = elm_entry_markup_to_utf8(txt);
 
    if (c->ignore_resource)
      jid = c->base->jid;
