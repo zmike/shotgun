@@ -357,20 +357,19 @@ _it_content_get(Contact *c, Evas_Object *obj, const char *part)
    const char *str = NULL;
    int alpha = 255;
 
+   ic = elm_icon_add(obj);
+   evas_object_size_hint_aspect_set(ic, EVAS_ASPECT_CONTROL_VERTICAL, 1, 1);
    if (!strcmp(part, "elm.swallow.end"))
      {
-        ic = elm_icon_add(obj);
         if (c->info && c->info->photo.data)
           elm_icon_memfile_set(ic, c->info->photo.data, c->info->photo.size, NULL, NULL);
         else
           elm_icon_standard_set(ic, "shotgun/userunknown");
-        evas_object_size_hint_aspect_set(ic, EVAS_ASPECT_CONTROL_VERTICAL, 1, 1);
         evas_object_show(ic);
+        fprintf(stderr, "%s:%p\n", contact_name_get(c), elm_icon_object_get(ic));
         return ic;
      }
-   ic = elm_icon_add(obj);
    elm_icon_order_lookup_set(ic, ELM_ICON_LOOKUP_THEME);
-   evas_object_size_hint_aspect_set(ic, EVAS_ASPECT_CONTROL_VERTICAL, 1, 1);
    if (c->cur)
      {
         switch (c->cur->type)
