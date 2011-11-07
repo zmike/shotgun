@@ -367,9 +367,9 @@ _chat_window_key(Chat_Window *cw, Evas *e __UNUSED__, Evas_Object *obj __UNUSED_
 static void
 _chat_window_switch(Contact *c, Evas_Object *obj __UNUSED__, Elm_Toolbar_Item *it)
 {
-   if (elm_pager_content_top_get(c->chat_window->pager) == c->chat_box) return;
+   if (elm_pager_content_top_get(c->chat_window->pager) == c->chat_panes) return;
    contact_chat_window_animator_del(c);
-   elm_pager_content_promote(c->chat_window->pager, c->chat_box);
+   elm_pager_content_promote(c->chat_window->pager, c->chat_panes);
    elm_win_title_set(c->chat_window->win, contact_name_get(c));
    elm_toolbar_item_selected_set(it, EINA_TRUE);
    c->chat_window->contacts = eina_list_promote_list(c->chat_window->contacts, eina_list_data_find_list(c->chat_window->contacts, c));
@@ -443,7 +443,7 @@ chat_window_new(Contact_List *cl)
 void
 chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
 {
-   Evas_Object *win, *box, *box2, *convo, *entry, *radio, *obj;
+   Evas_Object *win, *box, *box2, *convo, *entry, *radio, *obj, *panes;
    Evas_Object *status, *menu;
    void *it;
    Eina_List *l;
@@ -459,7 +459,12 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
    if (!icon) elm_toolbar_item_icon_memfile_set(it, c->info->photo.data, c->info->photo.size, NULL, NULL);
    elm_win_title_set(cw->win, contact_name_get(c));
 
-   c->chat_box = box = elm_box_add(win);
+   c->chat_panes = panes = elm_panes_add(win);
+   WEIGHT(panes, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+   ALIGN(panes, EVAS_HINT_FILL, EVAS_HINT_FILL);
+   elm_panes_horizontal_set(panes, EINA_TRUE);
+
+   box = elm_box_add(win);
    elm_object_focus_allow_set(box, 0);
    /* WEIGHT(box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND); */
    evas_object_show(box);
@@ -548,19 +553,24 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
    elm_box_pack_end(box, convo);
    evas_object_show(convo);
 
+   elm_object_content_part_set(panes, ELM_PANES_CONTENT_LEFT, box);
+
    entry = elm_entry_add(win);
    elm_entry_single_line_set(entry, 1);
    elm_entry_scrollable_set(entry, 1);
    elm_entry_line_wrap_set(entry, ELM_WRAP_MIXED);
-   WEIGHT(entry, EVAS_HINT_EXPAND, 0);
+   WEIGHT(entry, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    ALIGN(entry, EVAS_HINT_FILL, EVAS_HINT_FILL);
-   elm_box_pack_end(box, entry);
    evas_object_show(entry);
    elm_object_focus_set(entry, EINA_TRUE);
    evas_object_smart_callback_add(entry, "activated", (Evas_Smart_Cb)_chat_window_send_cb, c);
 
-   evas_object_data_set(box, "contact", c);
-   evas_object_data_set(box, "list", c->list);
+   elm_object_content_part_set(panes, ELM_PANES_CONTENT_RIGHT, entry);
+   elm_panes_content_left_size_set(panes, 0.8);
+   evas_object_show(panes);
+
+   evas_object_data_set(panes, "contact", c);
+   evas_object_data_set(panes, "list", c->list);
 
    c->chat_buffer = convo;
    c->chat_input = entry;
@@ -577,10 +587,10 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
      elm_entry_entry_set(convo, c->last_conv);
    elm_entry_cursor_end_set(convo);
 
-   elm_pager_content_push(cw->pager, box);
+   elm_pager_content_push(cw->pager, panes);
    if (focus)
      {
-        elm_pager_content_promote(cw->pager, box);
+        elm_pager_content_promote(cw->pager, panes);
         elm_toolbar_item_selected_set(c->chat_tb_item, EINA_TRUE);
      }
    else

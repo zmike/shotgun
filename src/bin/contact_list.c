@@ -359,6 +359,7 @@ _it_content_get(Contact *c, Evas_Object *obj, const char *part)
 
    ic = elm_icon_add(obj);
    evas_object_size_hint_aspect_set(ic, EVAS_ASPECT_CONTROL_VERTICAL, 1, 1);
+   elm_icon_preload_set(ic, EINA_TRUE);
    if (!strcmp(part, "elm.swallow.end"))
      {
         if (c->info && c->info->photo.data)
@@ -366,7 +367,6 @@ _it_content_get(Contact *c, Evas_Object *obj, const char *part)
         else
           elm_icon_standard_set(ic, "shotgun/userunknown");
         evas_object_show(ic);
-        fprintf(stderr, "%s:%p\n", contact_name_get(c), elm_icon_object_get(ic));
         return ic;
      }
    elm_icon_order_lookup_set(ic, ELM_ICON_LOOKUP_THEME);

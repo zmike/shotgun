@@ -163,7 +163,7 @@ contact_chat_window_current(Contact *c)
 {
    if (!c->chat_window) return EINA_FALSE;
 
-   return c->chat_box == elm_pager_content_top_get(c->chat_window->pager);
+   return c->chat_panes == elm_pager_content_top_get(c->chat_window->pager);
 }
 
 void
@@ -220,7 +220,7 @@ contact_chat_window_close(Contact *c)
         c->last_conv = eina_stringshare_ref(elm_entry_entry_get(c->chat_buffer));
      }
    elm_toolbar_item_del(c->chat_tb_item);
-   evas_object_del(c->chat_box);
+   evas_object_del(c->chat_panes);
    memset(&c->chat_window, 0, sizeof(void*) * 9);
 
    cw->contacts = eina_list_remove(cw->contacts, c);
