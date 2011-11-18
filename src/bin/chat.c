@@ -553,7 +553,7 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
    elm_box_pack_end(box, convo);
    evas_object_show(convo);
 
-   elm_object_content_part_set(panes, ELM_PANES_CONTENT_LEFT, box);
+   elm_object_part_content_set(panes, "elm.swallow.left", box);
 
    entry = elm_entry_add(win);
    elm_entry_single_line_set(entry, 1);
@@ -565,7 +565,7 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
    elm_object_focus_set(entry, EINA_TRUE);
    evas_object_smart_callback_add(entry, "activated", (Evas_Smart_Cb)_chat_window_send_cb, c);
 
-   elm_object_content_part_set(panes, ELM_PANES_CONTENT_RIGHT, entry);
+   elm_object_part_content_set(panes, "elm.swallow.right", entry);
    elm_panes_content_left_size_set(panes, 0.8);
    evas_object_show(panes);
 

@@ -12,7 +12,7 @@ static Eina_Bool
 ui_azy_return(void *data __UNUSED__, int type __UNUSED__, Azy_Content *content)
 {
    Azy_Rss *rss;
-   Eina_List *items, *l;
+   const Eina_List *items, *l;
    Azy_Rss_Item *item;
    const char *id;
    unsigned int x = 1;

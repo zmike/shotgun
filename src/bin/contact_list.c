@@ -267,9 +267,9 @@ _contact_list_rightclick_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *o
    if (!it) return;
    menu = elm_menu_add(elm_object_top_widget_get(obj));
    if (cl->mode)
-     name = elm_object_item_text_part_get(it, NULL);
+     name = elm_object_item_part_text_get(it, NULL);
    else
-     name = elm_object_item_text_part_get(it, "elm.text");
+     name = elm_object_item_part_text_get(it, "elm.text");
    c = elm_object_item_data_get(it);
    switch (c->base->subscription)
      {
@@ -359,7 +359,6 @@ _it_content_get(Contact *c, Evas_Object *obj, const char *part)
 
    ic = elm_icon_add(obj);
    evas_object_size_hint_aspect_set(ic, EVAS_ASPECT_CONTROL_VERTICAL, 1, 1);
-   elm_icon_preload_set(ic, EINA_TRUE);
    if (!strcmp(part, "elm.swallow.end"))
      {
         if (c->info && c->info->photo.data)
