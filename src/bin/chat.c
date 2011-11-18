@@ -460,6 +460,7 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
    elm_win_title_set(cw->win, contact_name_get(c));
 
    c->chat_panes = panes = elm_panes_add(win);
+   elm_win_resize_object_add(win, panes);
    WEIGHT(panes, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    ALIGN(panes, EVAS_HINT_FILL, EVAS_HINT_FILL);
    elm_panes_horizontal_set(panes, EINA_TRUE);
