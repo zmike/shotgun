@@ -178,7 +178,7 @@ _contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_
       evas_object_show(b2);
 
       o = elm_entry_add(cl->win);
-      WEIGHT(o, EVAS_HINT_EXPAND, 0);
+      WEIGHT(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
       ALIGN(o, EVAS_HINT_FILL, 0.5);
       cl->pager_entries = eina_list_append(cl->pager_entries, o);
       elm_entry_entry_append(o, "Example Name");
@@ -217,7 +217,7 @@ _contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_
       evas_object_show(b2);
 
       o = elm_entry_add(cl->win);
-      WEIGHT(o, EVAS_HINT_EXPAND, 0);
+      WEIGHT(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
       ALIGN(o, EVAS_HINT_FILL, 0.5);
       cl->pager_entries = eina_list_prepend(cl->pager_entries, o);
       elm_entry_entry_append(o, "contact@example.com");
@@ -840,6 +840,7 @@ contact_list_new(Shotgun_Auth *auth)
    evas_object_show(obj);
 
    cl->box = box = elm_box_add(win);
+   elm_box_homogeneous_set(box, EINA_FALSE);
    WEIGHT(box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    elm_win_resize_object_add(win, box);
    evas_object_show(box);
