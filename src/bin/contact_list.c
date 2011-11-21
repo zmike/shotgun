@@ -152,7 +152,7 @@ _contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_
    elm_toolbar_item_selected_set(ev, EINA_FALSE);
    if (cl->pager) return;
    cl->pager = p = elm_naviframe_add(cl->win);
-   WEIGHT(p, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+   WEIGHT(p, EVAS_HINT_EXPAND, 0);
    ALIGN(p, EVAS_HINT_FILL, EVAS_HINT_FILL);
    elm_box_pack_after(cl->box, p, cl->list);
    elm_object_style_set(p, "slide");
