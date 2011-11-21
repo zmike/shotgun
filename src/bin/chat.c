@@ -74,15 +74,13 @@ chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me)
      {
         //if (!contact_chat_window_current(c))
 #ifdef HAVE_NOTIFY
-# ifdef HAVE_ECORE_X
-        Ecore_X_Window xwin = elm_win_xwindow_get(c->chat_window->win);
-
-        if (xwin != ecore_x_window_focus_get())
+        if (!elm_win_focus_get(c->chat_window->win))
           ui_dbus_notify(elm_icon_object_get(elm_object_item_content_part_get(c->list_item, "elm.swallow.end")), from, msg);
         else
-# endif
-          if (!contact_chat_window_current(c))
-            ui_dbus_notify(elm_icon_object_get(elm_object_item_content_part_get(c->list_item, "elm.swallow.end")), from, msg);
+          {
+             if (!contact_chat_window_current(c))
+               ui_dbus_notify(elm_icon_object_get(elm_object_item_content_part_get(c->list_item, "elm.swallow.end")), from, msg);
+          }
 #endif
      }
    elm_entry_entry_append(e, buf);
@@ -460,7 +458,6 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
    elm_win_title_set(cw->win, contact_name_get(c));
 
    c->chat_panes = panes = elm_panes_add(win);
-   elm_win_resize_object_add(win, panes);
    WEIGHT(panes, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    ALIGN(panes, EVAS_HINT_FILL, EVAS_HINT_FILL);
    elm_panes_horizontal_set(panes, EINA_TRUE);
