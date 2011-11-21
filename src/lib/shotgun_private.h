@@ -109,7 +109,7 @@ extern "C" {
 static inline void
 shotgun_write(Ecore_Con_Server *svr, const void *data, size_t size)
 {
-   DBG("Sending:\n%s", (char*)data);
+   DBG("Sending %zu bytes:\n%s", size, (char*)data);
    ecore_con_server_send(svr, data, size);
 }
 

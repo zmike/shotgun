@@ -63,7 +63,7 @@ shotgun_stream_init(Shotgun_Auth *auth)
    char *xml;
 
    xml = xml_stream_init_create(auth, "en", &len);
-   shotgun_write(auth->svr, xml, len - 1);
+   shotgun_write(auth->svr, xml, len);
    free(xml);
 }
 
