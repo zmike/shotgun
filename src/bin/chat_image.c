@@ -24,14 +24,7 @@ _chat_conv_image_provider(Image *i, Evas_Object *obj, Evas_Object *tt)
    ALIGN(ret, EVAS_HINT_FILL, EVAS_HINT_FILL);
    elm_box_pack_end(ret, ic);
 
-#ifdef HAVE_ECORE_X
-   Ecore_X_Window xwin;
-   xwin = elm_win_xwindow_get(elm_object_top_widget_get(obj));
-   xwin = ecore_x_window_root_get(xwin);
-   ecore_x_randr_screen_current_size_get(xwin, &cw, &ch, NULL, NULL);
-#else
-   evas_object_geometry_get(elm_object_top_widget_get(obj), NULL, NULL, &cw, &ch);
-#endif
+   elm_win_screen_size_get(elm_object_top_widget_get(obj), &cw, &ch, NULL, NULL);
    elm_icon_size_get(ic, &w, &h);
    elm_icon_scale_set(ic, 0, 0);
    if (elm_icon_animated_available_get(ic))
