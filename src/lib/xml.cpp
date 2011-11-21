@@ -134,8 +134,8 @@ S: <stream:features>
                        auth->features.sasl_oauth2 = EINA_TRUE;
                      else if (s && (!strcmp(s, "X-GOOGLE_TOKEN")))
                        auth->features.sasl_gtoken = EINA_TRUE;
-                     else if (s && (!strcmp(s, "DIGEST-MD5")))
-                       auth->features.sasl_digestmd5 = EINA_TRUE;
+//                     else if (s && (!strcmp(s, "DIGEST-MD5")))
+  //                     auth->features.sasl_digestmd5 = EINA_TRUE;
                   }
              }
            break;
