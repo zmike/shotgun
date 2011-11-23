@@ -40,13 +40,13 @@ sasl_digestmd5_init(Shotgun_Auth *auth)
    snprintf(cnonce, sizeof(cnonce), "%g", ecore_time_unix_get());
    snprintf(&buf[16], sizeof(buf) - 16, ":%s:%s", nonce, cnonce);
    md5_buffer(buf, strlen(&buf[16]) + 16, digest);
-   shotgun_md5_digest_to_str(digest, md5buf);
+   shotgun_strtohex(digest, 32, md5buf);
    snprintf(buf, sizeof(buf), "AUTHENTICATE:xmpp/%s", realm);
    md5_buffer(buf, sizeof("AUTHENTICATE:xmpp/") - 1 + strlen(&buf[sizeof("AUTHENTICATE:xmpp/") - 1]), digest);
-   shotgun_md5_digest_to_str(digest, md5buf2);
+   shotgun_strtohex(digest, 32, md5buf2);
    snprintf(buf, sizeof(buf), "%s:%s:00000001:%s:auth:%s", md5buf, nonce, cnonce, md5buf2);
    md5_buffer(buf, strlen(buf), digest);
-   shotgun_md5_digest_to_str(digest, md5buf);
+   shotgun_strtohex(digest, 32, md5buf);
    snprintf(buf, sizeof(buf), "username=\"%s\",realm=\"%s\",nonce=\"%s\",cnonce=\"%s\",nc=00000001,qop=auth,digest-uri=\"xmpp/%s\",response=%s,charset=utf-8",
             auth->user, realm, nonce, cnonce, realm, md5buf);
    b64 = shotgun_base64_encode((void*)buf, strlen(buf), &size);

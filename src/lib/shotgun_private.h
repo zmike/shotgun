@@ -127,7 +127,7 @@ void shotgun_presence_feed(Shotgun_Auth *auth, char *data, size_t size);
 
 char *shotgun_base64_encode(const unsigned char *string, double len, size_t *size);
 unsigned char *shotgun_base64_decode(const char *string, int len, size_t *size);
-void shotgun_md5_digest_to_str(unsigned char *digest, char *ret);
+void shotgun_strtohex(unsigned char *digest, size_t len, char *ret);
 void shotgun_md5_hmac_encode(unsigned char *digest, const char *string, size_t size, const void *key, size_t ksize);
 
 Eina_Bool shotgun_login_con(Shotgun_Auth *auth, int type, Ecore_Con_Event_Server_Add *ev);

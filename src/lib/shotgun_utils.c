@@ -48,16 +48,16 @@ shotgun_base64_decode(const char *string, int len, size_t *size)
 
 
 void
-shotgun_md5_digest_to_str(unsigned char *digest, char *ret)
+shotgun_strtohex(unsigned char *digest, size_t len, char *ret)
 {
    char hexchars[] = "0123456789abcdef";
    unsigned int x, y;
-   for (x = y = 0; x < 33; x++, y++)
+   for (x = y = 0; x < len + 1; x++, y++)
      {
         ret[x++] = hexchars[digest[y] >> 4];
         ret[x] = hexchars[digest[y] & 15];
      }
-   ret[32] = 0;
+   ret[len] = 0;
 }
 
 /* the following is based on public domain
