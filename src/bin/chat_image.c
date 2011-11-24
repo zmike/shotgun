@@ -4,9 +4,9 @@
 static Evas_Object *
 _chat_conv_image_provider(Image *i, Evas_Object *obj, Evas_Object *tt)
 {
-   Evas_Object *ret, *ic, *win = elm_object_top_widget_get(obj);
+   Evas_Object *ret, *ic;
    int w, h, cw, ch;
-   DBG("(i=%p,win=%p)", i, win);
+   DBG("(i=%p)", i);
    if ((!i) || (!i->buf)) goto error;
 
    w = h = cw = ch = 0;
@@ -20,11 +20,12 @@ _chat_conv_image_provider(Image *i, Evas_Object *obj, Evas_Object *tt)
      }
    evas_object_show(ic);
    ret = elm_box_add(tt);
+   elm_box_homogeneous_set(ret, EINA_FALSE);
    WEIGHT(ret, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    ALIGN(ret, EVAS_HINT_FILL, EVAS_HINT_FILL);
    elm_box_pack_end(ret, ic);
 
-   elm_win_screen_size_get(elm_object_top_widget_get(obj), &cw, &ch, NULL, NULL);
+   elm_win_screen_size_get(tt, NULL, NULL, &cw, &ch);
    elm_icon_size_get(ic, &w, &h);
    elm_icon_scale_set(ic, 0, 0);
    if (elm_icon_animated_available_get(ic))
@@ -65,7 +66,6 @@ chat_conv_image_show(Contact *c, Evas_Object *obj, Elm_Entry_Anchor_Info *ev)
    if (!i) return;
    elm_object_tooltip_content_cb_set(obj, (Elm_Tooltip_Content_Cb)_chat_conv_image_provider, i, NULL);
    elm_tooltip_size_restrict_disable(obj, EINA_TRUE);
-   elm_object_tooltip_style_set(obj, "transparent");
    elm_object_tooltip_show(obj);
    DBG("anchor in: '%s' (%i, %i)", ev->name, ev->x, ev->y);
 }
