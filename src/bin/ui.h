@@ -165,8 +165,8 @@ void chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Boo
 
 void chat_image_add(Contact_List *cl, const char *url);
 void chat_image_free(Image *i);
-void chat_conv_image_show(Evas_Object *convo, Evas_Object *obj, Elm_Entry_Anchor_Info *ev);
-void chat_conv_image_hide(Evas_Object *convo __UNUSED__, Evas_Object *obj, Elm_Entry_Anchor_Info *ev);
+void chat_conv_image_show(Contact *c, Evas_Object *obj, Elm_Entry_Anchor_Info *ev);
+void chat_conv_image_hide(Contact *c, Evas_Object *obj, Elm_Entry_Anchor_Info *ev);
 Eina_Bool chat_image_data(void *d __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Url_Data *ev);
 Eina_Bool chat_image_complete(void *d __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Url_Complete *ev);
 

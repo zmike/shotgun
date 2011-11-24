@@ -56,16 +56,14 @@ error:
 }
 
 void
-chat_conv_image_show(Evas_Object *convo, Evas_Object *obj, Elm_Entry_Anchor_Info *ev)
+chat_conv_image_show(Contact *c, Evas_Object *obj, Elm_Entry_Anchor_Info *ev)
 {
-   Evas_Object *win = elm_object_top_widget_get(convo);
    Image *i = NULL;
-   Contact *c = evas_object_data_get(win, "contact");
 
    if (!c) return;
    i = eina_hash_find(c->list->images, ev->name);
    if (!i) return;
-   elm_object_tooltip_content_cb_set(convo, (Elm_Tooltip_Content_Cb)_chat_conv_image_provider, i, NULL);
+   elm_object_tooltip_content_cb_set(obj, (Elm_Tooltip_Content_Cb)_chat_conv_image_provider, i, NULL);
    elm_tooltip_size_restrict_disable(obj, EINA_TRUE);
    elm_object_tooltip_style_set(obj, "transparent");
    elm_object_tooltip_show(obj);
@@ -73,11 +71,9 @@ chat_conv_image_show(Evas_Object *convo, Evas_Object *obj, Elm_Entry_Anchor_Info
 }
 
 void
-chat_conv_image_hide(Evas_Object *convo, Evas_Object *obj, Elm_Entry_Anchor_Info *ev)
+chat_conv_image_hide(Contact *c, Evas_Object *obj, Elm_Entry_Anchor_Info *ev)
 {
-   Evas_Object *win = elm_object_top_widget_get(convo);
    Image *i = NULL;
-   Contact *c = evas_object_data_get(win, "contact");
 
    if (!c) return;
    i = eina_hash_find(c->list->images, ev->name);

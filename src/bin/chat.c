@@ -1,7 +1,7 @@
 #include "ui.h"
 
 static void
-_chat_conv_anchor_click(Evas_Object *entry, Evas_Object *obj __UNUSED__, Elm_Entry_Anchor_Info *ev)
+_chat_conv_anchor_click(Contact *c, Evas_Object *obj __UNUSED__, Elm_Entry_Anchor_Info *ev)
 {
    DBG("anchor click: '%s' (%i, %i)", ev->name, ev->x, ev->y);
    switch (ev->button)
@@ -26,7 +26,7 @@ _chat_conv_anchor_click(Evas_Object *entry, Evas_Object *obj __UNUSED__, Elm_Ent
            size_t len;
            len = strlen(ev->name);
            if (len == sizeof(int)) len++; /* workaround for stupid elm cnp bug which breaks the universe */
-           ecore_x_selection_clipboard_set(elm_win_xwindow_get(elm_object_top_widget_get(entry)), ev->name, len);
+           ecore_x_selection_clipboard_set(elm_win_xwindow_get(c->chat_window->win), ev->name, len);
         }
 #endif
       default:
@@ -527,9 +527,9 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
    ALIGN(status, EVAS_HINT_FILL, EVAS_HINT_FILL);
    WEIGHT(status, EVAS_HINT_EXPAND, 0);
    elm_entry_text_filter_append(status, (Elm_Entry_Filter_Cb)_chat_conv_filter, c->list);
-   evas_object_smart_callback_add(status, "anchor,in", (Evas_Smart_Cb)chat_conv_image_show, status);
-   evas_object_smart_callback_add(status, "anchor,out", (Evas_Smart_Cb)chat_conv_image_hide, status);
-   evas_object_smart_callback_add(status, "anchor,clicked", (Evas_Smart_Cb)_chat_conv_anchor_click, status);
+   evas_object_smart_callback_add(status, "anchor,in", (Evas_Smart_Cb)chat_conv_image_show, c);
+   evas_object_smart_callback_add(status, "anchor,out", (Evas_Smart_Cb)chat_conv_image_hide, c);
+   evas_object_smart_callback_add(status, "anchor,clicked", (Evas_Smart_Cb)_chat_conv_anchor_click, c);
 
    elm_box_pack_end(box2, status);
    evas_object_show(status);
@@ -543,9 +543,9 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
    elm_object_focus_allow_set(convo, 0);
    elm_entry_line_wrap_set(convo, ELM_WRAP_MIXED);
    elm_entry_text_filter_append(convo, (Elm_Entry_Filter_Cb)_chat_conv_filter, c->list);
-   evas_object_smart_callback_add(convo, "anchor,in", (Evas_Smart_Cb)chat_conv_image_show, convo);
-   evas_object_smart_callback_add(convo, "anchor,out", (Evas_Smart_Cb)chat_conv_image_hide, convo);
-   evas_object_smart_callback_add(convo, "anchor,clicked", (Evas_Smart_Cb)_chat_conv_anchor_click, convo);
+   evas_object_smart_callback_add(convo, "anchor,in", (Evas_Smart_Cb)chat_conv_image_show, c);
+   evas_object_smart_callback_add(convo, "anchor,out", (Evas_Smart_Cb)chat_conv_image_hide, c);
+   evas_object_smart_callback_add(convo, "anchor,clicked", (Evas_Smart_Cb)_chat_conv_anchor_click, c);
    WEIGHT(convo, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    ALIGN(convo, EVAS_HINT_FILL, EVAS_HINT_FILL);
    elm_box_pack_end(box, convo);
