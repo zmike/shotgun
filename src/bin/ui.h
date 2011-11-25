@@ -69,6 +69,7 @@ typedef struct Shotgun_Settings
    Eina_Bool disable_notify;
    Eina_Bool enable_chat_focus;
    Eina_Bool enable_chat_promote;
+   Eina_Bool enable_chat_newselect;
    Eina_Bool enable_account_info;
    Eina_Bool enable_last_account;
 } Shotgun_Settings;

@@ -118,6 +118,14 @@ settings_new(Contact_List *cl)
    elm_check_state_pointer_set(ck, &cl->settings.enable_chat_promote);
    elm_box_pack_end(frbox, ck);
    evas_object_show(ck);
+
+   ck = elm_check_add(cl->win);
+   EXPAND(ck);
+   FILL(ck);
+   elm_object_text_set(ck, "Always select new chat tabs");
+   elm_check_state_pointer_set(ck, &cl->settings.enable_chat_newselect);
+   elm_box_pack_end(frbox, ck);
+   evas_object_show(ck);
 }
 
 void
