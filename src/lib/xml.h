@@ -14,7 +14,7 @@ Eina_Bool xml_stream_init_read(Shotgun_Auth *auth, char *xml, size_t size);
 Eina_Bool xml_starttls_read(char *xml, size_t size);
 char *xml_sasl_digestmd5_write(const char *sasl, size_t *len);
 char *xml_sasl_write(Shotgun_Auth *auth, const char *sasl, size_t *len);
-Eina_Bool xml_sasl_read(Shotgun_Auth *auth, char *xml, size_t size);
+int xml_sasl_read(Shotgun_Auth *auth, char *xml, size_t size);
 
 char *xml_iq_write_contact_add(const char *jid, const char *alias, Eina_List *groups, size_t *len);
 char *xml_iq_write_contact_del(const char *user, size_t *len);

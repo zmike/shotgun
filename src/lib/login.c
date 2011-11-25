@@ -24,34 +24,63 @@ sasl_init(Shotgun_Auth *auth, size_t *size)
 static void
 sasl_digestmd5_init(Shotgun_Auth *auth)
 {
-   char buf[1024], cnonce[128], *b64, *sasl;
+   char buf[1024], cnonce[128], *b64, *sasl, *user, *pass;
    const char *realm, *nonce;
    unsigned char digest[16];
-   char md5buf[33], md5buf2[33];
+   char md5buf[33];
+   char ha1[33];
    size_t size;
 
    realm = eina_hash_find(auth->features.auth_digestmd5, "realm");
    if (!realm) realm = auth->from;
    nonce = eina_hash_find(auth->features.auth_digestmd5, "nonce");
    if (!nonce) return;
-   snprintf(buf, sizeof(buf), "%s:%s:%s", auth->user, realm, auth->pass);
+   DBG("DIGEST-MD5: NONCE %s", nonce);
+   user = eina_str_convert("iso-8859-1", "utf-8", auth->user);
+   pass = eina_str_convert("iso-8859-1", "utf-8", auth->pass);
+   /* X */
+   snprintf(buf, sizeof(buf), "%s:%s:%s", user ?: auth->user, realm, pass ?: auth->pass);
+   DBG("DIGEST-MD5: X %s", buf);
    md5_buffer(buf, strlen(buf), digest);
+   /* Y */
    memcpy(buf, digest, sizeof(digest));
-   snprintf(cnonce, sizeof(cnonce), "%g", ecore_time_unix_get());
+   snprintf(cnonce, sizeof(cnonce), "%.16g", ecore_time_unix_get());
+   shotgun_strtohex((void*)cnonce, 32, md5buf);
+   memcpy(cnonce, md5buf, sizeof(md5buf));
+   cnonce[32] = 0;
+   DBG("DIGEST-MD5: CNONCE %s", cnonce);
+   /* A1 */
    snprintf(&buf[16], sizeof(buf) - 16, ":%s:%s", nonce, cnonce);
+   DBG("DIGEST-MD5: A1 %s", buf + 16);
+   /* HA1 */
    md5_buffer(buf, strlen(&buf[16]) + 16, digest);
    shotgun_strtohex(digest, 32, md5buf);
+   memcpy(ha1, md5buf, sizeof(md5buf));
+   ha1[32] = 0;
+   DBG("DIGEST-MD5: HA1 %s", ha1);
+   /* A2 */
    snprintf(buf, sizeof(buf), "AUTHENTICATE:xmpp/%s", realm);
-   md5_buffer(buf, sizeof("AUTHENTICATE:xmpp/") - 1 + strlen(&buf[sizeof("AUTHENTICATE:xmpp/") - 1]), digest);
-   shotgun_strtohex(digest, 32, md5buf2);
-   snprintf(buf, sizeof(buf), "%s:%s:00000001:%s:auth:%s", md5buf, nonce, cnonce, md5buf2);
+   size = strlen(buf);
+   DBG("DIGEST-MD5: A2 %s", buf);
+   /* HA2 */
+   md5_buffer(buf, size + strlen(&buf[size]), digest);
+   shotgun_strtohex(digest, 32, md5buf);
+   DBG("DIGEST-MD5: HA2 %s", md5buf);
+   /* KD */
+   snprintf(buf, sizeof(buf), "%s:%s:00000001:%s:auth:%s", ha1, nonce, cnonce, md5buf);
+   DBG("DIGEST-MD5: KD %s", buf);
    md5_buffer(buf, strlen(buf), digest);
    shotgun_strtohex(digest, 32, md5buf);
+   DBG("DIGEST-MD5: HKD %s", md5buf);
+   /* Z */
    snprintf(buf, sizeof(buf), "username=\"%s\",realm=\"%s\",nonce=\"%s\",cnonce=\"%s\",nc=00000001,qop=auth,digest-uri=\"xmpp/%s\",response=%s,charset=utf-8",
             auth->user, realm, nonce, cnonce, realm, md5buf);
+   DBG("DIGEST-MD5: Z %s", buf);
    b64 = shotgun_base64_encode((void*)buf, strlen(buf), &size);
    sasl = xml_sasl_digestmd5_write(b64, &size);
    shotgun_write(auth->svr, sasl, size);
+   free(user);
+   free(pass);
    free(b64);
    free(sasl);
 }
@@ -92,6 +121,7 @@ shotgun_login(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
    char *out;
    char *data;
    size_t len, size;
+   int ret;
 
    data = auth->buf ? (char*)eina_strbuf_string_get(auth->buf) : (char*)ev->data;
    size = auth->buf ? eina_strbuf_length_get(auth->buf) : (size_t)ev->size;
@@ -146,15 +176,24 @@ shotgun_login(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
           }
         break;
       case SHOTGUN_CONNECTION_STATE_SASL:
-        if (!xml_sasl_read(auth, data, size))
+        ret = xml_sasl_read(auth, data, size);
+        if (!ret)
           {
              ERR("Login failed!");
              shotgun_disconnect(auth);
              break;
           }
-        if (auth->features.auth_digestmd5)
+        if ((ret == 2) && auth->features.sasl_digestmd5)
           {
-             sasl_digestmd5_init(auth);
+             if (auth->features.auth_digestmd5)
+               sasl_digestmd5_init(auth);
+             else
+               {
+                  out = xml_sasl_digestmd5_write(NULL, &len);
+                  EINA_SAFETY_ON_NULL_GOTO(out, error);
+                  shotgun_write(ev->server, out, len);
+                  free(out);
+               }
              break;
           }
         /* yes, another stream. */
@@ -170,7 +209,7 @@ shotgun_login(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
              out = xml_iq_write_preset(auth, SHOTGUN_IQ_PRESET_BIND, &len);
              EINA_SAFETY_ON_NULL_GOTO(out, error);
 
-             shotgun_write(ev->server, out, strlen(out));
+             shotgun_write(ev->server, out, len);
              free(out);
              auth->state++;
              ecore_event_add(SHOTGUN_EVENT_CONNECTION_STATE, auth, shotgun_fake_free, NULL);

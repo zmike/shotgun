@@ -134,8 +134,8 @@ S: <stream:features>
                        auth->features.sasl_oauth2 = EINA_TRUE;
                      else if (s && (!strcmp(s, "X-GOOGLE_TOKEN")))
                        auth->features.sasl_gtoken = EINA_TRUE;
-//                     else if (s && (!strcmp(s, "DIGEST-MD5")))
-  //                     auth->features.sasl_digestmd5 = EINA_TRUE;
+                     else if (s && (!strcmp(s, "DIGEST-MD5")))
+                       auth->features.sasl_digestmd5 = EINA_TRUE;
                   }
              }
            break;
@@ -222,7 +222,7 @@ b64data
 
    a = doc.append_child("response");
    a.append_attribute("xmlns").set_value("urn:ietf:params:xml:ns:xmpp-sasl");
-   a.append_child(node_pcdata).set_value(sasl);
+   if (sasl) a.append_child(node_pcdata).set_value(sasl);
 
    return xmlnode_to_buf(a, len, EINA_FALSE);
 }
@@ -263,9 +263,16 @@ http://code.google.com/apis/talk/jep_extensions/jid_domain_change.html
    return xmlnode_to_buf(a, len, EINA_FALSE);
 }
 
-Eina_Bool
+int
 xml_sasl_read(Shotgun_Auth *auth, char *xml, size_t size)
 {
+/*
+S: <success xmlns="urn:ietf:params:xml:ns:xmpp-sasl"/>
+
+S: <failure xmlns="urn:ietf:params:xml:ns:xmpp-sasl"><not-authorized/></failure
+*/
+   /* I don't even care at this point */
+   if (xml[1] == 's') return 1;
    if (auth->features.sasl_digestmd5 && (!auth->features.auth_digestmd5))
      {
         xml_document doc;
@@ -321,7 +328,7 @@ xml_sasl_read(Shotgun_Auth *auth, char *xml, size_t size)
              key = next ? next + 1 : NULL;
           }
         free(b64);
-        return EINA_TRUE;
+        return 2;
 error:
         eina_hash_free(auth->features.auth_digestmd5);
         auth->features.auth_digestmd5 = NULL;
@@ -332,14 +339,9 @@ error:
      {
         eina_hash_free(auth->features.auth_digestmd5);
         auth->features.auth_digestmd5 = NULL;
+        return (xml[1] == 'c') ? 2 : 0;
      }
-/*
-S: <success xmlns="urn:ietf:params:xml:ns:xmpp-sasl"/>
-
-S: <failure xmlns="urn:ietf:params:xml:ns:xmpp-sasl"><not-authorized/></failure
-*/
-   /* I don't even care at this point */
-   return xml[1] == 's';
+   return 0;
 }
 
 char *
