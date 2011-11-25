@@ -16,6 +16,8 @@ settings_new(Contact_List *cl)
    evas_object_show(ic);
    back = elm_button_add(cl->win);
    elm_object_content_set(back, ic);
+   elm_object_tooltip_text_set(back, "Return to contact list");
+   elm_tooltip_size_restrict_disable(back, EINA_TRUE);
    WEIGHT(back, 0, 0);
    ALIGN(back, 0, 0);
    elm_box_pack_end(box, back);
@@ -56,6 +58,8 @@ settings_new(Contact_List *cl)
    FILL(ck);
    elm_object_text_set(ck, "Save account info");
    elm_check_state_pointer_set(ck, &cl->settings.enable_account_info);
+   elm_object_tooltip_text_set(ck, "Remember account name and password");
+   elm_tooltip_size_restrict_disable(ck, EINA_TRUE);
    elm_box_pack_end(frbox, ck);
    evas_object_show(ck);
 
@@ -64,6 +68,8 @@ settings_new(Contact_List *cl)
    FILL(ck);
    elm_object_text_set(ck, "Remember last account");
    elm_check_state_pointer_set(ck, &cl->settings.enable_last_account);
+   elm_object_tooltip_text_set(ck, "Automatically sign in with current account on next run");
+   elm_tooltip_size_restrict_disable(ck, EINA_TRUE);
    elm_box_pack_end(frbox, ck);
    evas_object_show(ck);
 
@@ -86,6 +92,8 @@ settings_new(Contact_List *cl)
    FILL(ck);
    elm_object_text_set(ck, "Disable notifications");
    elm_check_state_pointer_set(ck, &cl->settings.disable_notify);
+   elm_object_tooltip_text_set(ck, "Disables use of notification popups");
+   elm_tooltip_size_restrict_disable(ck, EINA_TRUE);
    elm_box_pack_end(frbox, ck);
    evas_object_show(ck);
 #endif
@@ -108,6 +116,8 @@ settings_new(Contact_List *cl)
    FILL(ck);
    elm_object_text_set(ck, "Focus chat window on message");
    elm_check_state_pointer_set(ck, &cl->settings.enable_chat_focus);
+   elm_object_tooltip_text_set(ck, "Focus chat window whenever message is received");
+   elm_tooltip_size_restrict_disable(ck, EINA_TRUE);
    elm_box_pack_end(frbox, ck);
    evas_object_show(ck);
 
@@ -116,6 +126,8 @@ settings_new(Contact_List *cl)
    FILL(ck);
    elm_object_text_set(ck, "Promote contact on message");
    elm_check_state_pointer_set(ck, &cl->settings.enable_chat_promote);
+   elm_object_tooltip_text_set(ck, "Move contact to top of list when message is received");
+   elm_tooltip_size_restrict_disable(ck, EINA_TRUE);
    elm_box_pack_end(frbox, ck);
    evas_object_show(ck);
 
@@ -124,6 +136,8 @@ settings_new(Contact_List *cl)
    FILL(ck);
    elm_object_text_set(ck, "Always select new chat tabs");
    elm_check_state_pointer_set(ck, &cl->settings.enable_chat_newselect);
+   elm_object_tooltip_text_set(ck, "When a message is received which would open a new tab, make that tab active");
+   elm_tooltip_size_restrict_disable(ck, EINA_TRUE);
    elm_box_pack_end(frbox, ck);
    evas_object_show(ck);
 }
