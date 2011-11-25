@@ -21,8 +21,8 @@ _chat_conv_image_provider(Image *i, Evas_Object *obj, Evas_Object *tt)
    evas_object_show(ic);
    ret = elm_box_add(tt);
    elm_box_homogeneous_set(ret, EINA_FALSE);
-   WEIGHT(ret, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-   ALIGN(ret, EVAS_HINT_FILL, EVAS_HINT_FILL);
+   EXPAND(ret);
+   FILL(ret);
    elm_box_pack_end(ret, ic);
 
    elm_win_screen_size_get(tt, NULL, NULL, &cw, &ch);

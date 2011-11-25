@@ -105,7 +105,7 @@ void
 contact_jids_menu_del(Contact *c, const char *jid)
 {
    const Eina_List *l, *ll;
-   Elm_Menu_Item *it;
+   Elm_Object_Item *it;
    Evas_Object *radio;
    const char *s, *rs;
 
@@ -119,7 +119,7 @@ contact_jids_menu_del(Contact *c, const char *jid)
    else s = jid;
    EINA_LIST_REVERSE_FOREACH(l, ll, it)
      {
-        radio = elm_menu_item_object_content_get(it);
+        radio = elm_object_item_content_get(it);
         rs = elm_object_text_get(radio);
         if (strcmp(rs, s)) continue;
         if (elm_radio_state_value_get(radio) == elm_radio_value_get(radio))

@@ -52,6 +52,8 @@ void *alloca (size_t);
 
 #define WEIGHT evas_object_size_hint_weight_set
 #define ALIGN evas_object_size_hint_align_set
+#define EXPAND(X) WEIGHT((X), EVAS_HINT_EXPAND, EVAS_HINT_EXPAND)
+#define FILL(X) ALIGN((X), EVAS_HINT_FILL, EVAS_HINT_FILL)
 
 extern int ui_log_dom;
 
@@ -62,10 +64,21 @@ typedef void (*Contact_List_Item_Tooltip_Cb)(void *item, Elm_Tooltip_Item_Conten
 typedef Eina_Bool (*Contact_List_Item_Tooltip_Resize_Cb)(void *item, Eina_Bool set);
 typedef void *(*Contact_List_At_XY_Item_Get)(void *list, Evas_Coord x, Evas_Coord y, int *ret);
 
+typedef struct Shotgun_Settings
+{
+   Eina_Bool disable_notify;
+   Eina_Bool enable_chat_focus;
+   Eina_Bool enable_chat_promote;
+   Eina_Bool enable_account_info;
+   Eina_Bool enable_last_account;
+} Shotgun_Settings;
+
 struct Contact_List
 {
    Evas_Object *win; /* window */
+   Evas_Object *flip; /* flip for settings */
    Evas_Object *box; /* main box */
+   Evas_Object *settings_box; /* settings box */
    Evas_Object *list; /* list/grid object */
    Evas_Object *status_entry; /* entry for user's status */
 
@@ -88,15 +101,17 @@ struct Contact_List
    E_DBus_Object *dbus_object;
 #endif
 
+   Shotgun_Settings settings;
+
    /* fps for doing stuff to both list and grid views with the same function */
    Ecore_Data_Cb list_item_parent_get[2];
    Ecore_Data_Cb list_selected_item_get[2];
    Contact_List_At_XY_Item_Get list_at_xy_item_get[2];
    Ecore_Cb list_item_del[2];
    Ecore_Cb list_item_update[2];
+   Ecore_Cb list_item_promote[2];
    Contact_List_Item_Tooltip_Cb list_item_tooltip_add[2];
    Contact_List_Item_Tooltip_Resize_Cb list_item_tooltip_resize[2];
-
    struct {
         Ecore_Event_Handler *iq;
         Ecore_Event_Handler *presence;
@@ -153,7 +168,7 @@ typedef struct
    Contact_List *cl;
 } Image;
 
-Contact_List *contact_list_new(Shotgun_Auth *auth);
+Contact_List *contact_list_new(Shotgun_Auth *auth, Shotgun_Settings *ss);
 void contact_list_user_add(Contact_List *cl, Contact *c);
 void contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev);
 
@@ -186,10 +201,12 @@ Eina_Bool ui_eet_dummy_check(const char *url);
 void ui_eet_image_add(const char *url, Eina_Binbuf *buf);
 Eina_Binbuf *ui_eet_image_get(const char *url);
 void ui_eet_shutdown(Shotgun_Auth *auth);
-Shotgun_Auth *ui_eet_auth_get(void);
-void ui_eet_auth_set(Shotgun_Auth *auth, Eina_Bool store_pw, Eina_Bool use_auth);
+Shotgun_Auth *ui_eet_auth_get(const char *name, const char *domain);
+void ui_eet_auth_set(Shotgun_Auth *auth, Shotgun_Settings *settings, Eina_Bool use_auth);
 void ui_eet_userinfo_add(Shotgun_Auth *auth, Shotgun_User_Info *info);
 Shotgun_User_Info *ui_eet_userinfo_get(Shotgun_Auth *auth, const char *jid);
+Shotgun_Settings *ui_eet_settings_get(Shotgun_Auth *auth);
+void ui_eet_settings_set(Shotgun_Auth *auth, Shotgun_Settings *ss);
 
 #ifdef HAVE_DBUS
 void ui_dbus_signal_message_self(Contact_List *cl, const char *jid, const char *s);
@@ -197,7 +214,7 @@ void ui_dbus_signal_message(Contact_List *cl, Contact *c, Shotgun_Event_Message 
 void ui_dbus_signal_status_self(Contact_List *cl);
 void ui_dbus_init(Contact_List *cl);
 # ifdef HAVE_NOTIFY
-void ui_dbus_notify(Evas_Object *img, const char *from, const char *msg);
+void ui_dbus_notify(Contact_List *cl, Evas_Object *img, const char *from, const char *msg);
 # endif
 #endif
 
@@ -210,6 +227,9 @@ void ui_azy_shutdown(Contact_List *cl);
 Eina_Bool event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev);
 Eina_Bool event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence *ev);
 Eina_Bool event_message_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Message *msg);
+
+void settings_new(Contact_List *cl);
+void settings_toggle(Contact_List *cl, Evas_Object *obj, void *event_info);
 
 const char *util_configdir_get(void);
 Eina_Bool util_configdir_create(void);

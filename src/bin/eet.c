@@ -23,6 +23,25 @@ typedef struct UI_Eet_Auth
 } UI_Eet_Auth;
 
 static Eet_Data_Descriptor *
+eet_ss_edd_new(void)
+{
+   Eet_Data_Descriptor *edd;
+   Eet_Data_Descriptor_Class eddc;
+   EET_EINA_FILE_DATA_DESCRIPTOR_CLASS_SET(&eddc, Shotgun_Settings);
+   edd = eet_data_descriptor_stream_new(&eddc);
+#define ADD(name, type) \
+  EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Shotgun_Settings, #name, name, EET_T_##type)
+
+   ADD(disable_notify, UCHAR);
+   ADD(enable_chat_focus, UCHAR);
+   ADD(enable_chat_promote, UCHAR);
+   ADD(enable_account_info, UCHAR);
+   ADD(enable_last_account, UCHAR);
+#undef ADD
+   return edd;
+}
+
+static Eet_Data_Descriptor *
 eet_auth_edd_new(void)
 {
    Eet_Data_Descriptor *edd;
@@ -111,16 +130,52 @@ ui_eet_shutdown(Shotgun_Auth *auth)
 }
 
 Shotgun_Auth *
-ui_eet_auth_get(void)
+_ui_eet_auth_get(Eet_File *ef, const char *jid)
 {
-   Eet_File *ef;
    Eet_Data_Descriptor *edd;
    UI_Eet_Auth *a;
-   char *jid, buf[4096], *p;
+   Shotgun_Auth *auth;
+   char buf[4096], *p;
+   int size;
+
+   edd = eet_auth_edd_new();
+   a = eet_data_read(ef, edd, jid);
+   eet_data_descriptor_free(edd);
+   if (!a)
+     {
+        eet_close(ef);
+        return NULL;
+     }
+   auth = shotgun_new(a->server, a->username, a->domain);
+   /* FIXME: use resource */
+   if (auth)
+     {
+        snprintf(buf, sizeof(buf), "%s/pw", shotgun_jid_get(auth));
+        p = eet_read_cipher(ef, buf, &size, shotgun_jid_get(auth));
+        if (p) shotgun_password_set(auth, p);
+        shotgun_data_set(auth, ef);
+     }
+   else
+     {
+        ERR("Could not create auth info!");
+        eet_close(ef);
+     }
+   eina_stringshare_del(a->server);
+   eina_stringshare_del(a->username);
+   eina_stringshare_del(a->domain);
+   eina_stringshare_del(a->resource);
+   free(a);
+   return auth;
+}
+
+Shotgun_Auth *
+ui_eet_auth_get(const char *name, const char *domain)
+{
+   Eet_File *ef;
+   char *jid, buf[4096];
    const char *home;
    int size;
-   Shotgun_Auth *auth;
-
+   
    EINA_SAFETY_ON_TRUE_RETURN_VAL(!util_configdir_create(), NULL);
    eet_init();
    home = util_configdir_get();
@@ -132,50 +187,21 @@ ui_eet_auth_get(void)
    jid = eet_read(ef, "last_account", &size);
    if ((!jid) || (jid[size - 1]))
      {
-        eet_close(ef);
-        ERR("Could not read name of last account!");
-        return NULL;
+        if ((!name) && (!domain))
+          {
+             eet_close(ef);
+             ERR("Could not read name of last account!");
+             return NULL;
+          }
+        snprintf(buf, sizeof(buf), "%s@%s", name, domain);
      }
-   edd = eet_auth_edd_new();
-   a = eet_data_read(ef, edd, jid);
-   eet_data_descriptor_free(edd);
-   if (!a)
-     {
-        eet_close(ef);
-        ERR("Could not read account info!");
-        return NULL;
-     }
-   auth = shotgun_new(a->server, a->username, a->domain);
-   /* FIXME: use resource */
-   if (!auth)
-     {
-        ERR("Could not create auth info!");
-        goto error;
-     }
-   snprintf(buf, sizeof(buf), "%s/pw", shotgun_jid_get(auth));
-   p = eet_read_cipher(ef, buf, &size, shotgun_jid_get(auth));
-   if (p) shotgun_password_set(auth, p);
-#ifdef HAVE_PAM
-#endif
-   shotgun_data_set(auth, ef);
-   eina_stringshare_del(a->server);
-   eina_stringshare_del(a->username);
-   eina_stringshare_del(a->domain);
-   eina_stringshare_del(a->resource);
-   free(a);
-   return auth;
-error:
-   eet_close(ef);
-   eina_stringshare_del(a->server);
-   eina_stringshare_del(a->username);
-   eina_stringshare_del(a->domain);
-   eina_stringshare_del(a->resource);
-   free(a);
-   return NULL;
+   else
+     return _ui_eet_auth_get(ef, jid);
+   return _ui_eet_auth_get(ef, buf);
 }
 
 void
-ui_eet_auth_set(Shotgun_Auth *auth, Eina_Bool store_pw, Eina_Bool use_auth)
+ui_eet_auth_set(Shotgun_Auth *auth, Shotgun_Settings *settings, Eina_Bool use_auth)
 {
    Eet_File *ef;
    const char *s, *jid;
@@ -189,15 +215,23 @@ ui_eet_auth_set(Shotgun_Auth *auth, Eina_Bool store_pw, Eina_Bool use_auth)
    a.domain = shotgun_domain_get(auth);
    a.resource = shotgun_resource_get(auth);
    a.server = shotgun_servername_get(auth);
+
+   if (settings->enable_last_account)
+     eet_write(ef, "last_account", jid, strlen(jid) + 1, 0);
+   else
+     eet_delete(ef, "last_account");
+
+   snprintf(buf, sizeof(buf), "%s/pw", jid);
+   if (!settings->enable_account_info)
+     {
+        eet_delete(ef, buf);
+        return;
+     }
    /* FIXME: list for multiple accounts */
    edd = eet_auth_edd_new();
 
-   eet_write(ef, "last_account", jid, strlen(jid) + 1, 0);
-
    eet_data_write(ef, edd, jid, &a, 0);
    eet_data_descriptor_free(edd);
-   if (!store_pw) return;
-   snprintf(buf, sizeof(buf), "%s/pw", jid);
    if (!use_auth)
      {
         s = shotgun_password_get(auth);
@@ -353,4 +387,28 @@ ui_eet_image_get(const char *url)
 
    free(img);
    return buf;
+}
+
+Shotgun_Settings *
+ui_eet_settings_get(Shotgun_Auth *auth)
+{
+   Eet_Data_Descriptor *edd;
+   Eet_File *ef = shotgun_data_get(auth);
+   Shotgun_Settings *ss;
+
+   edd = eet_ss_edd_new();
+   ss = eet_data_read(ef, edd, "settings");
+   eet_data_descriptor_free(edd);
+   return ss;
+}
+
+void
+ui_eet_settings_set(Shotgun_Auth *auth, Shotgun_Settings *ss)
+{
+   Eet_Data_Descriptor *edd;
+   Eet_File *ef = shotgun_data_get(auth);
+
+   edd = eet_ss_edd_new();
+   eet_data_write(ef, edd, "settings", ss, 0);
+   eet_data_descriptor_free(edd);
 }

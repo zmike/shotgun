@@ -75,22 +75,21 @@ chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me)
         //if (!contact_chat_window_current(c))
 #ifdef HAVE_NOTIFY
         if (!elm_win_focus_get(c->chat_window->win))
-          ui_dbus_notify(elm_icon_object_get(elm_object_item_content_part_get(c->list_item, "elm.swallow.end")), from, msg);
+          ui_dbus_notify(c->list, elm_icon_object_get(elm_object_item_content_part_get(c->list_item, "elm.swallow.end")), from, msg);
         else
           {
              if (!contact_chat_window_current(c))
-               ui_dbus_notify(elm_icon_object_get(elm_object_item_content_part_get(c->list_item, "elm.swallow.end")), from, msg);
+               ui_dbus_notify(c->list, elm_icon_object_get(elm_object_item_content_part_get(c->list_item, "elm.swallow.end")), from, msg);
           }
 #endif
      }
    elm_entry_entry_append(e, buf);
    elm_entry_cursor_end_set(e);
-/* FIXME:
-   if (cl->raise windows on event)
-     elm_win_activate(c->cw->chat_window);
-   if (cl->list_promote on event)
-     cl->item_promote[cl->mode](c->list_item);
-*/
+   if (c->list->settings.enable_chat_focus)
+     elm_win_activate(c->chat_window->win);
+   if (c->list->settings.enable_chat_promote)
+     /* FIXME: gengrid doesn't have item promote */
+     if (c->list->list_item_promote[c->list->mode]) c->list->list_item_promote[c->list->mode](c->list_item);
 }
 
 void
@@ -240,27 +239,27 @@ _chat_conv_filter(Contact_List *cl, Evas_Object *obj __UNUSED__, char **str)
 }
 
 static void
-_chat_resource_ignore_toggle(Contact *c, Evas_Object *obj __UNUSED__, Elm_Menu_Item *ev)
+_chat_resource_ignore_toggle(Contact *c, Evas_Object *obj __UNUSED__, Elm_Object_Item *ev)
 {
-   Elm_Menu_Item *next = elm_menu_item_next_get(ev);
+   Elm_Object_Item *next = elm_menu_item_next_get(ev);
    c->ignore_resource = !c->ignore_resource;
    if (c->ignore_resource)
      {
         const Eina_List *l;
         Evas_Object *radio;
-        elm_menu_item_label_set(ev, "Unignore Resource");
+        elm_object_item_text_set(ev, "Unignore Resource");
         l = elm_menu_item_subitems_get(next);
-        radio = elm_menu_item_object_content_get(l->data);
+        radio = elm_object_item_content_get(l->data);
         c->force_resource = NULL;
         elm_radio_state_value_set(radio, 0);
      }
    else
-     elm_menu_item_label_set(ev, "Ignore Resource");
-   elm_menu_item_disabled_set(next, c->ignore_resource);
+     elm_object_item_text_set(ev, "Ignore Resource");
+   elm_object_item_disabled_set(next, c->ignore_resource);
 }
 
 static void
-_chat_resource_force(Contact *c, Evas_Object *obj __UNUSED__, Elm_Menu_Item *ev)
+_chat_resource_force(Contact *c, Evas_Object *obj __UNUSED__, Elm_Object_Item *ev)
 {
    Eina_List *l;
    Shotgun_Event_Presence *pres;
@@ -269,7 +268,7 @@ _chat_resource_force(Contact *c, Evas_Object *obj __UNUSED__, Elm_Menu_Item *ev)
    int val;
 
 
-   radio = (Evas_Object*)elm_menu_item_object_content_get(ev);
+   radio = (Evas_Object*)elm_object_item_content_get(ev);
    val = elm_radio_state_value_get(radio);
    if (!val)
      {
@@ -401,13 +400,13 @@ chat_window_new(Contact_List *cl)
 
    bg = elm_bg_add(win);
    elm_object_focus_allow_set(bg, 0);
-   WEIGHT(bg, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+   EXPAND(bg);
    elm_win_resize_object_add(win, bg);
    evas_object_show(bg);
 
    box = elm_box_add(win);
    elm_object_focus_allow_set(box, 0);
-   WEIGHT(box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+   EXPAND(box);
    elm_win_resize_object_add(win, box);
    evas_object_show(box);
 
@@ -423,8 +422,8 @@ chat_window_new(Contact_List *cl)
    evas_object_show(tb);
 
    pg = elm_pager_add(win);
-   WEIGHT(pg, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-   ALIGN(pg, EVAS_HINT_FILL, EVAS_HINT_FILL);
+   EXPAND(pg);
+   FILL(pg);
    elm_box_pack_end(box, pg);
    elm_object_style_set(pg, "slide");
    evas_object_show(pg);
@@ -458,13 +457,13 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
    elm_win_title_set(cw->win, contact_name_get(c));
 
    c->chat_panes = panes = elm_panes_add(win);
-   WEIGHT(panes, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-   ALIGN(panes, EVAS_HINT_FILL, EVAS_HINT_FILL);
+   EXPAND(panes);
+   FILL(panes);
    elm_panes_horizontal_set(panes, EINA_TRUE);
 
    box = elm_box_add(win);
    elm_object_focus_allow_set(box, 0);
-   /* WEIGHT(box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND); */
+   /* EXPAND(box); */
    evas_object_show(box);
 
    box2 = elm_box_add(win);
@@ -524,7 +523,7 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
    elm_object_focus_allow_set(status, 0);
    elm_entry_scrollable_set(status, 1);
    elm_entry_line_wrap_set(status, ELM_WRAP_MIXED);
-   ALIGN(status, EVAS_HINT_FILL, EVAS_HINT_FILL);
+   FILL(status);
    WEIGHT(status, EVAS_HINT_EXPAND, 0);
    elm_entry_text_filter_append(status, (Elm_Entry_Filter_Cb)_chat_conv_filter, c->list);
    evas_object_smart_callback_add(status, "anchor,in", (Evas_Smart_Cb)chat_conv_image_show, c);
@@ -546,8 +545,8 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
    evas_object_smart_callback_add(convo, "anchor,in", (Evas_Smart_Cb)chat_conv_image_show, c);
    evas_object_smart_callback_add(convo, "anchor,out", (Evas_Smart_Cb)chat_conv_image_hide, c);
    evas_object_smart_callback_add(convo, "anchor,clicked", (Evas_Smart_Cb)_chat_conv_anchor_click, c);
-   WEIGHT(convo, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-   ALIGN(convo, EVAS_HINT_FILL, EVAS_HINT_FILL);
+   EXPAND(convo);
+   FILL(convo);
    elm_box_pack_end(box, convo);
    evas_object_show(convo);
 
@@ -557,8 +556,8 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
    elm_entry_single_line_set(entry, 1);
    elm_entry_scrollable_set(entry, 1);
    elm_entry_line_wrap_set(entry, ELM_WRAP_MIXED);
-   WEIGHT(entry, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-   ALIGN(entry, EVAS_HINT_FILL, EVAS_HINT_FILL);
+   EXPAND(entry);
+   FILL(entry);
    evas_object_show(entry);
    elm_object_focus_set(entry, EINA_TRUE);
    evas_object_smart_callback_add(entry, "activated", (Evas_Smart_Cb)_chat_window_send_cb, c);

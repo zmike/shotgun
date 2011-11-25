@@ -9,7 +9,7 @@ static Ecore_Event_Handler *ad = NULL;
 static Ecore_Event_Handler *ads = NULL;
 
 static Eina_Bool
-ui_azy_return(void *data __UNUSED__, int type __UNUSED__, Azy_Content *content)
+ui_azy_return(Contact_List *cl, int type __UNUSED__, Azy_Content *content)
 {
    Azy_Rss *rss;
    const Eina_List *items, *l;
@@ -46,7 +46,7 @@ ui_azy_return(void *data __UNUSED__, int type __UNUSED__, Azy_Content *content)
      snprintf(buf, sizeof(buf), "Your version of Shotgun! is %u commit%s old!", x, (x > 1) ? "s" : "");
    
 #ifdef HAVE_NOTIFY
-   ui_dbus_notify(NULL, "Shotgun!", buf);
+   ui_dbus_notify(cl, NULL, "Shotgun!", buf);
 #endif
    notified = EINA_TRUE;
    return ECORE_CALLBACK_RENEW;
@@ -101,7 +101,7 @@ ui_azy_init(Contact_List *cl)
    azy_client_data_set(cli, cl);
 
    ac = ecore_event_handler_add(AZY_CLIENT_CONNECTED, (Ecore_Event_Handler_Cb)ui_azy_connected, NULL);
-   ar = ecore_event_handler_add(AZY_CLIENT_RETURN, (Ecore_Event_Handler_Cb)ui_azy_return, NULL);
+   ar = ecore_event_handler_add(AZY_CLIENT_RETURN, (Ecore_Event_Handler_Cb)ui_azy_return, cl);
    ad = ecore_event_handler_add(AZY_CLIENT_DISCONNECTED, (Ecore_Event_Handler_Cb)ui_azy_disconnected, NULL);
    ads = ecore_event_handler_add(AZY_EVENT_DOWNLOAD_STATUS, (Ecore_Event_Handler_Cb)ui_azy_download_status, NULL);
 }

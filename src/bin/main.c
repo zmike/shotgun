@@ -22,11 +22,14 @@ static Eina_Bool
 con(void *d __UNUSED__, int type __UNUSED__, Shotgun_Auth *auth)
 {
    Contact_List *cl;
+   Shotgun_Settings *ss;
    INF("Connected!");
    shotgun_iq_roster_get(auth);
    shotgun_presence_set(auth, SHOTGUN_USER_STATUS_CHAT, "testing SHOTGUN!", 1);
    shotgun_presence_send(auth);
-   cl = contact_list_new(auth);
+   ss = ui_eet_settings_get(auth);
+   cl = contact_list_new(auth, ss);
+   free(ss);
 #ifdef HAVE_DBUS
    ui_dbus_init(cl);
 #endif
@@ -60,6 +63,7 @@ main(int argc, char *argv[])
      }
 
    eina_init();
+   ecore_app_args_set(argc, (const char**)argv);
    ecore_con_url_init();
    shotgun_init();
    elm_init(argc, argv);
@@ -80,18 +84,20 @@ main(int argc, char *argv[])
    ecore_event_handler_add(SHOTGUN_EVENT_DISCONNECT, (Ecore_Event_Handler_Cb)disc, NULL);
 
    if (argc < 3)
-     {
-        auth = ui_eet_auth_get();
-        if (!auth)
-          {
-             fprintf(stderr, "Usage: %s [server] [username] [domain]\n", argv[0]);
-             fprintf(stderr, "Usage example: %s talk.google.com my_username gmail.com\n", argv[0]);
-             fprintf(stderr, "Usage example (with saved account): %s\n", argv[0]);
-             return 1;
-          }
-     }
+     auth = ui_eet_auth_get(NULL, NULL);
+   else if (argc == 3)
+     auth = ui_eet_auth_get(argv[1], argv[2]);
    else
      auth = shotgun_new(argv[1], argv[2], argv[3]);
+
+   if (!auth)
+     {
+        fprintf(stderr, "Usage: %s [server] [username] [domain]\n", argv[0]);
+        fprintf(stderr, "Usage example: %s talk.google.com my_username gmail.com\n", argv[0]);
+        fprintf(stderr, "Usage example (with saved account): %s\n", argv[0]);
+        return 1;
+     }
+
    if (!shotgun_password_get(auth))
      {
         pass = getpass_x("Password: ");

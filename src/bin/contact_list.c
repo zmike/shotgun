@@ -19,6 +19,8 @@ _contact_list_free_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj __U
      contact_free(c);
 
    shotgun_disconnect(cl->account);
+   ui_eet_auth_set(cl->account, &cl->settings, EINA_FALSE);
+   ui_eet_settings_set(cl->account, &cl->settings);
 
    free(cl);
 }
@@ -37,20 +39,20 @@ static void
 _contact_list_user_del(Contact *c)
 {
    Evas_Object *menu, *ic;
-   Elm_Menu_Item *mi;
+   Elm_Object_Item *mi;
    char buf[128];
    int x, y;
 
    menu = elm_menu_add(c->list->win);
    snprintf(buf, sizeof(buf), "Really remove %s?", c->base->jid);
    mi = elm_menu_item_add(menu, NULL, NULL, buf, NULL, NULL);
-   elm_menu_item_disabled_set(mi, 1);
+   elm_object_item_disabled_set(mi, 1);
    elm_menu_item_separator_add(menu, NULL);
    mi = elm_menu_item_add(menu, NULL, "shotgun/dialog_ok", "Yes", (Evas_Smart_Cb)_contact_list_user_del_cb, c);
-   ic = elm_menu_item_object_content_get(mi);
+   ic = elm_object_item_content_get(mi);
    evas_object_color_set(ic, 0, 255, 0, 255);
    mi = elm_menu_item_add(menu, NULL, "close", "No", (Evas_Smart_Cb)_contact_list_user_del_cb, NULL);
-   ic = elm_menu_item_object_content_get(mi);
+   ic = elm_object_item_content_get(mi);
    evas_object_color_set(ic, 255, 0, 0, 255);
    evas_pointer_canvas_xy_get(evas_object_evas_get(c->list->win), &x, &y);
    elm_menu_move(menu, x, y);
@@ -153,7 +155,7 @@ _contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_
    if (cl->pager) return;
    cl->pager = p = elm_naviframe_add(cl->win);
    WEIGHT(p, EVAS_HINT_EXPAND, 0);
-   ALIGN(p, EVAS_HINT_FILL, EVAS_HINT_FILL);
+   FILL(p);
    elm_box_pack_after(cl->box, p, cl->list);
    elm_object_style_set(p, "slide");
 
@@ -178,7 +180,7 @@ _contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_
       evas_object_show(b2);
 
       o = elm_entry_add(cl->win);
-      WEIGHT(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+      EXPAND(o);
       ALIGN(o, EVAS_HINT_FILL, 0.5);
       cl->pager_entries = eina_list_append(cl->pager_entries, o);
       elm_entry_entry_append(o, "Example Name");
@@ -217,7 +219,7 @@ _contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_
       evas_object_show(b2);
 
       o = elm_entry_add(cl->win);
-      WEIGHT(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+      EXPAND(o);
       ALIGN(o, EVAS_HINT_FILL, 0.5);
       cl->pager_entries = eina_list_prepend(cl->pager_entries, o);
       elm_entry_entry_append(o, "contact@example.com");
@@ -252,7 +254,7 @@ static void
 _contact_list_rightclick_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj, Evas_Event_Mouse_Down *ev)
 {
    Evas_Object *menu;
-   Elm_Menu_Item *mi;
+   Elm_Object_Item *mi;
    void *it;
    Contact *c;
    const char *name;
@@ -282,7 +284,7 @@ _contact_list_rightclick_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *o
         if (c->base->subscription_pending)
           {
              mi = elm_menu_item_add(menu, NULL, "shotgun/arrow_pending_left", "Subscription request sent", NULL, NULL);
-             elm_menu_item_disabled_set(mi, EINA_TRUE);
+             elm_object_item_disabled_set(mi, EINA_TRUE);
           }
         else
           {
@@ -459,8 +461,8 @@ _contact_list_list_add(Contact_List *cl)
    elm_gen_always_select_mode_set(list, EINA_FALSE);
    elm_gen_bounce_set(list, EINA_FALSE, EINA_FALSE);
    elm_genlist_scroller_policy_set(list, ELM_SCROLLER_POLICY_OFF, ELM_SCROLLER_POLICY_AUTO);
-   WEIGHT(list, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-   ALIGN(list, EVAS_HINT_FILL, EVAS_HINT_FILL);
+   EXPAND(list);
+   FILL(list);
    elm_genlist_compress_mode_set(list, EINA_TRUE);
    l = elm_box_children_get(cl->box);
    elm_box_pack_after(cl->box, list, l->data);
@@ -482,8 +484,8 @@ _contact_list_grid_add(Contact_List *cl)
    elm_gen_always_select_mode_set(grid, EINA_FALSE);
    elm_gengrid_item_size_set(grid, 75, 100);
    elm_gen_bounce_set(grid, EINA_FALSE, EINA_FALSE);
-   WEIGHT(grid, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-   ALIGN(grid, EVAS_HINT_FILL, EVAS_HINT_FILL);
+   EXPAND(grid);
+   FILL(grid);
    l = elm_box_children_get(cl->box);
    elm_box_pack_after(cl->box, grid, l->data);
    evas_object_show(grid);
@@ -546,12 +548,12 @@ _contact_list_status_send(Contact_List *cl)
 }
 
 static void
-_contact_list_status_menu(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Menu_Item *it)
+_contact_list_status_menu(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Object_Item *it)
 {
    Evas_Object *radio;
    Shotgun_User_Status val;
 
-   radio = (Evas_Object*)elm_menu_item_object_content_get(it);
+   radio = (Evas_Object*)elm_object_item_content_get(it);
    val = elm_radio_state_value_get(radio);
    if ((Shotgun_User_Status)elm_radio_value_get(radio) == val) return;
    elm_radio_value_set(radio, val);
@@ -681,15 +683,9 @@ out:
    label = elm_label_add(tt);
    elm_label_line_wrap_set(label, ELM_WRAP_NONE);
    elm_object_text_set(label, c->tooltip_label);
-   WEIGHT(label, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-   ALIGN(label, EVAS_HINT_FILL, EVAS_HINT_FILL);
+   EXPAND(label);
+   FILL(label);
    return label;
-}
-
-static void
-_contact_list_saveinfo_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, void *ev __UNUSED__)
-{
-   ui_eet_auth_set(cl->account, EINA_TRUE, EINA_FALSE);
 }
 
 static void
@@ -698,7 +694,12 @@ _contact_list_window_key(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj 
    //DBG("%s", ev->keyname);
    if (!strcmp(ev->keyname, "Escape"))
      {
-        if (!cl->pager) return;
+        if (!cl->pager)
+          {
+             if (elm_flip_front_get(cl->flip)) return;
+             elm_flip_go(cl->flip, ELM_FLIP_ROTATE_Y_CENTER_AXIS);
+             return;
+          }
         _contact_list_add_pager_cb_prev(cl, NULL, NULL);
      }
    else if (!strcmp(ev->keyname, "q"))
@@ -814,7 +815,7 @@ contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev)
 }
 
 Contact_List *
-contact_list_new(Shotgun_Auth *auth)
+contact_list_new(Shotgun_Auth *auth, Shotgun_Settings *ss)
 {
    Evas_Object *win, *obj, *tb, *radio, *box, *menu, *entry;
    Elm_Toolbar_Item *it;
@@ -827,6 +828,22 @@ contact_list_new(Shotgun_Auth *auth)
    cl = calloc(1, sizeof(Contact_List));
    cl->account = auth;
 
+   if (ss) memcpy(&cl->settings, ss, sizeof(Shotgun_Settings));
+   else
+     {
+        int argc;
+        ecore_app_args_get(&argc, NULL);
+        switch (argc)
+          {
+           case 1:
+             cl->settings.enable_last_account = EINA_TRUE;
+           case 3:
+             cl->settings.enable_account_info = EINA_TRUE;
+           default:
+             break;
+          }
+     }
+
    cl->win = win = elm_win_add(NULL, "Contacts", ELM_WIN_BASIC);
    elm_win_title_set(win, "Contacts");
    elm_win_autodel_set(win, 1);
@@ -834,19 +851,33 @@ contact_list_new(Shotgun_Auth *auth)
    ctrl = evas_key_modifier_mask_get(e, "Control");
    shift = evas_key_modifier_mask_get(e, "Shift");
    alt = evas_key_modifier_mask_get(e, "Alt");
-   evas_object_smart_callback_add(win, "delete,request", (Evas_Smart_Cb)_contact_list_free_cb, cl);
+   evas_object_event_callback_add(win, EVAS_CALLBACK_FREE, (Evas_Object_Event_Cb)_contact_list_free_cb, cl);
    evas_object_event_callback_add(win, EVAS_CALLBACK_KEY_DOWN, (Evas_Object_Event_Cb)_contact_list_window_key, cl);
    1 | evas_object_key_grab(win, "Escape", 0, ctrl | shift | alt, 1); /* worst warn_unused ever. */
    1 | evas_object_key_grab(win, "q", ctrl, shift | alt, 1); /* worst warn_unused ever. */
 
    obj = elm_bg_add(win);
-   WEIGHT(obj, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+   EXPAND(obj);
    elm_win_resize_object_add(win, obj);
    evas_object_show(obj);
 
+   cl->flip = elm_flip_add(win);
+   EXPAND(cl->flip);
+   FILL(cl->flip);
+   elm_flip_interaction_set(cl->flip, ELM_FLIP_INTERACTION_ROTATE);
+   elm_flip_interacton_direction_enabled_set(cl->flip, ELM_FLIP_DIRECTION_UP, EINA_TRUE);
+   elm_flip_interacton_direction_enabled_set(cl->flip, ELM_FLIP_DIRECTION_DOWN, EINA_TRUE);
+   elm_flip_interacton_direction_enabled_set(cl->flip, ELM_FLIP_DIRECTION_LEFT, EINA_TRUE);
+   elm_flip_interacton_direction_enabled_set(cl->flip, ELM_FLIP_DIRECTION_RIGHT, EINA_TRUE);
+   elm_flip_interacton_direction_hitsize_set(cl->flip, ELM_FLIP_DIRECTION_UP, 0.5);
+   elm_flip_interacton_direction_hitsize_set(cl->flip, ELM_FLIP_DIRECTION_DOWN, 0.5);
+   elm_flip_interacton_direction_hitsize_set(cl->flip, ELM_FLIP_DIRECTION_LEFT, 0.5);
+   elm_flip_interacton_direction_hitsize_set(cl->flip, ELM_FLIP_DIRECTION_RIGHT, 0.5);
+   settings_new(cl);
+
    cl->box = box = elm_box_add(win);
    elm_box_homogeneous_set(box, EINA_FALSE);
-   WEIGHT(box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+   EXPAND(box);
    elm_win_resize_object_add(win, box);
    evas_object_show(box);
 
@@ -859,8 +890,8 @@ contact_list_new(Shotgun_Auth *auth)
    elm_box_pack_end(box, tb);
    evas_object_show(tb);
    menu = elm_toolbar_item_menu_get(it);
-   elm_menu_item_add(menu, NULL, "menu/folder", "Save Account Info", (Evas_Smart_Cb)_contact_list_saveinfo_cb, cl);
    elm_menu_item_add(menu, NULL, "refresh", "Toggle View Mode", (Evas_Smart_Cb)_contact_list_mode_toggle, cl);
+   elm_menu_item_add(menu, NULL, "edit", "Settings", (Evas_Smart_Cb)settings_toggle, cl);
    elm_menu_item_add(menu, NULL, "close", "Quit", (Evas_Smart_Cb)_contact_list_close, cl);
 
    it = elm_toolbar_item_append(tb, NULL, "Status", NULL, NULL);
@@ -914,6 +945,8 @@ contact_list_new(Shotgun_Auth *auth)
    cl->list_item_del[1] = (Ecore_Cb)elm_gengrid_item_del;
    cl->list_item_update[0] = (Ecore_Cb)elm_genlist_item_update;
    cl->list_item_update[1] = (Ecore_Cb)elm_gengrid_item_update;
+   cl->list_item_promote[0] = (Ecore_Cb)elm_genlist_item_promote;
+   cl->list_item_promote[1] = (Ecore_Cb)NULL;
    cl->list_item_tooltip_add[0] = (Contact_List_Item_Tooltip_Cb)elm_genlist_item_tooltip_content_cb_set;
    cl->list_item_tooltip_add[1] = (Contact_List_Item_Tooltip_Cb)elm_gengrid_item_tooltip_content_cb_set;
    cl->list_item_tooltip_resize[0] = (Contact_List_Item_Tooltip_Resize_Cb)elm_genlist_item_tooltip_size_restrict_disable;
@@ -924,7 +957,7 @@ contact_list_new(Shotgun_Auth *auth)
    tb = elm_toolbar_add(win);
    elm_toolbar_mode_shrink_set(tb, ELM_TOOLBAR_SHRINK_SCROLL);
    WEIGHT(tb, EVAS_HINT_EXPAND, 0.0);
-   ALIGN(tb, EVAS_HINT_FILL, EVAS_HINT_FILL);
+   FILL(tb);
    elm_toolbar_align_set(tb, 0);
    it = elm_toolbar_item_append(tb, "shotgun/useradd", "Add Contact", (Evas_Smart_Cb)_contact_list_add_cb, cl);
    it = elm_toolbar_item_append(tb, "shotgun/userdel", "Remove Contact", (Evas_Smart_Cb)_contact_list_del_cb, cl);
@@ -932,6 +965,8 @@ contact_list_new(Shotgun_Auth *auth)
    elm_box_pack_end(box, tb);
    elm_object_scale_set(tb, 0.75);
    evas_object_show(tb);
+
+   elm_flip_content_front_set(cl->flip, box);
 
    obj = elm_separator_add(win);
    elm_separator_horizontal_set(obj, EINA_TRUE);
@@ -1010,6 +1045,7 @@ contact_list_new(Shotgun_Auth *auth)
       //INF("r, g, b: %d, %d, %d", cl->alert_colors[0], cl->alert_colors[1], cl->alert_colors[2]);
    }
 
+   evas_object_show(cl->flip);
    evas_object_resize(win, 300, 700);
    evas_object_show(win);
    return cl;
