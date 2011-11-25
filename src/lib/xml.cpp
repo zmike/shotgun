@@ -9,6 +9,7 @@
 #define XML_NS_BIND "urn:ietf:params:xml:ns:xmpp-bind"
 #define XML_NS_IDLE "jabber:iq:last"
 #define XML_NS_DELAY "urn:xmpp:delay"
+#define XML_NS_SESSION "urn:ietf:params:xml:ns:xmpp-session"
 
 using namespace pugi;
 
@@ -449,6 +450,12 @@ xml_iq_write_preset(Shotgun_Auth *auth, Shotgun_Iq_Preset p, size_t *len)
         iq.append_attribute("to").set_value(auth->from);
         iq.append_attribute("type").set_value("result");
         iq.append_attribute("id").set_value("resultvalue");
+        break;
+      case SHOTGUN_IQ_PRESET_SESSION:
+        iq.append_attribute("type").set_value("set");
+        iq.append_attribute("id").set_value("sessionvalue");
+        node = iq.append_child("session");
+        node.append_attribute("xmlns").set_value(XML_NS_SESSION);
       default:
         break;
      }

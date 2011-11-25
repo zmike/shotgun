@@ -226,8 +226,24 @@ shotgun_login(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
              EINA_SAFETY_ON_NULL_GOTO(auth->bind, error);
              INF("Bind: %s", auth->bind);
           }
-        INF("Login complete!");
+        if (!auth->features.sasl_digestmd5)
+          {
+             INF("Login complete!");
+             auth->state = SHOTGUN_CONNECTION_STATE_CONNECTED;
+             ecore_event_add(SHOTGUN_EVENT_CONNECT, auth, shotgun_fake_free, NULL);
+             break;
+          }
+        out = xml_iq_write_preset(auth, SHOTGUN_IQ_PRESET_SESSION, &len);
+        EINA_SAFETY_ON_NULL_GOTO(out, error);
+
+        shotgun_write(ev->server, out, len);
+        free(out);
         auth->state++;
+        ecore_event_add(SHOTGUN_EVENT_CONNECTION_STATE, auth, shotgun_fake_free, NULL);
+        break;
+      case SHOTGUN_CONNECTION_STATE_SESSION:
+        INF("Login complete!");
+        auth->state = SHOTGUN_CONNECTION_STATE_CONNECTED;
         ecore_event_add(SHOTGUN_EVENT_CONNECT, auth, shotgun_fake_free, NULL);
       default:
         break;
