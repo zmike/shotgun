@@ -2,7 +2,7 @@
 
 
 static Evas_Object *
-_chat_conv_image_provider(Image *i, Evas_Object *obj, Evas_Object *tt)
+_chat_conv_image_provider(Image *i, Evas_Object *obj __UNUSED__, Evas_Object *tt)
 {
    Evas_Object *ret, *ic;
    int w, h, cw, ch;
