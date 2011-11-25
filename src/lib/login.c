@@ -35,12 +35,12 @@ sasl_digestmd5_init(Shotgun_Auth *auth)
    if (!realm) realm = auth->from;
    nonce = eina_hash_find(auth->features.auth_digestmd5, "nonce");
    if (!nonce) return;
-   DBG("DIGEST-MD5: NONCE %s", nonce);
+   //DBG("DIGEST-MD5: NONCE %s", nonce);
    user = eina_str_convert("iso-8859-1", "utf-8", auth->user);
    pass = eina_str_convert("iso-8859-1", "utf-8", auth->pass);
    /* X */
    snprintf(buf, sizeof(buf), "%s:%s:%s", user ?: auth->user, realm, pass ?: auth->pass);
-   DBG("DIGEST-MD5: X %s", buf);
+   //DBG("DIGEST-MD5: X %s", buf);
    md5_buffer(buf, strlen(buf), digest);
    /* Y */
    memcpy(buf, digest, sizeof(digest));
@@ -48,34 +48,34 @@ sasl_digestmd5_init(Shotgun_Auth *auth)
    shotgun_strtohex((void*)cnonce, 32, md5buf);
    memcpy(cnonce, md5buf, sizeof(md5buf));
    cnonce[32] = 0;
-   DBG("DIGEST-MD5: CNONCE %s", cnonce);
+   //DBG("DIGEST-MD5: CNONCE %s", cnonce);
    /* A1 */
    snprintf(&buf[16], sizeof(buf) - 16, ":%s:%s", nonce, cnonce);
-   DBG("DIGEST-MD5: A1 %s", buf + 16);
+   //DBG("DIGEST-MD5: A1 %s", buf + 16);
    /* HA1 */
    md5_buffer(buf, strlen(&buf[16]) + 16, digest);
    shotgun_strtohex(digest, 32, md5buf);
    memcpy(ha1, md5buf, sizeof(md5buf));
    ha1[32] = 0;
-   DBG("DIGEST-MD5: HA1 %s", ha1);
+   //DBG("DIGEST-MD5: HA1 %s", ha1);
    /* A2 */
    snprintf(buf, sizeof(buf), "AUTHENTICATE:xmpp/%s", realm);
    size = strlen(buf);
-   DBG("DIGEST-MD5: A2 %s", buf);
+   //DBG("DIGEST-MD5: A2 %s", buf);
    /* HA2 */
    md5_buffer(buf, size + strlen(&buf[size]), digest);
    shotgun_strtohex(digest, 32, md5buf);
-   DBG("DIGEST-MD5: HA2 %s", md5buf);
+   //DBG("DIGEST-MD5: HA2 %s", md5buf);
    /* KD */
    snprintf(buf, sizeof(buf), "%s:%s:00000001:%s:auth:%s", ha1, nonce, cnonce, md5buf);
-   DBG("DIGEST-MD5: KD %s", buf);
+   //DBG("DIGEST-MD5: KD %s", buf);
    md5_buffer(buf, strlen(buf), digest);
    shotgun_strtohex(digest, 32, md5buf);
-   DBG("DIGEST-MD5: HKD %s", md5buf);
+   //DBG("DIGEST-MD5: HKD %s", md5buf);
    /* Z */
    snprintf(buf, sizeof(buf), "username=\"%s\",realm=\"%s\",nonce=\"%s\",cnonce=\"%s\",nc=00000001,qop=auth,digest-uri=\"xmpp/%s\",response=%s,charset=utf-8",
             auth->user, realm, nonce, cnonce, realm, md5buf);
-   DBG("DIGEST-MD5: Z %s", buf);
+   //DBG("DIGEST-MD5: Z %s", buf);
    b64 = shotgun_base64_encode((void*)buf, strlen(buf), &size);
    sasl = xml_sasl_digestmd5_write(b64, &size);
    shotgun_write(auth->svr, sasl, size);
