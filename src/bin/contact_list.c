@@ -727,7 +727,12 @@ contact_list_user_add(Contact_List *cl, Contact *c)
         }
    };
    if ((!c) || c->list_item) return;
-   if ((!cl->view) && (!c->status) && (c->base->subscription == SHOTGUN_USER_SUBSCRIPTION_BOTH)) return;
+   if (!cl->view)
+     {
+        if (!c->cur) return;
+        if ((!c->status) && (c->base->subscription == SHOTGUN_USER_SUBSCRIPTION_BOTH))
+          return;
+     }
    c->tooltip_changed = EINA_TRUE;
    if (cl->mode)
      c->list_item = elm_gengrid_item_append(cl->list, &ggit, c, NULL, NULL);
