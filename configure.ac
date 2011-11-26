@@ -1,11 +1,11 @@
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
-m4_define([v_maj], [1])
-m4_define([v_min], [0])
+m4_define([v_maj], [0])
+m4_define([v_min], [4])
 m4_define([v_mic], [0])
 m4_define([v_rev], m4_esyscmd_s([git log -n1 --pretty=oneline 2> /dev/null | cut -d' ' -f1 ]))
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
-m4_ifdef([v_rev], [m4_define([v_ver], [v_maj.v_min.v_mic.v_rev])], [m4_define([v_ver], [v_maj.v_min.v_mic])])
+m4_define([v_ver], [v_maj.v_min.v_mic])
 m4_define([lt_rev], m4_eval(v_maj + v_min))
 m4_define([lt_cur], v_mic)
 m4_define([lt_age], v_min)
@@ -13,7 +13,7 @@ m4_define([lt_age], v_min)
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 
 AC_PREREQ(2.57)
-AC_INIT([shotgun],[1.0.v_rev],[mike@zentific.com],[shotgun])
+AC_INIT([shotgun],[v_ver],[mike@zentific.com],[shotgun])
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADER([config.h])
