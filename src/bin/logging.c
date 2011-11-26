@@ -48,7 +48,7 @@ logging_contact_file_refresh(Contact *c)
    struct tm *tt;
 
    if (c->log) fclose(c->log);
-   t = time(NULL);
+   t = ecore_time_unix_get();
    tt = localtime(&t);
    strftime(ti, sizeof(ti), "%Y-%m-%d.txt", tt);
    if (!logs_refresh)

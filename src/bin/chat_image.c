@@ -99,7 +99,7 @@ chat_image_add(Contact_List *cl, const char *url)
    Image *i;
    unsigned long long t;
 
-   t = (unsigned long long)time(NULL);
+   t = (unsigned long long)ecore_time_unix_get();
 
    i = eina_hash_find(cl->images, url);
    if (i)
@@ -183,7 +183,7 @@ chat_image_complete(void *d __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Url
         eina_hash_del_by_key(i->cl->images, ecore_con_url_url_get(ev->url_con));
         return ECORE_CALLBACK_RENEW;
      }
-   i->timestamp = (unsigned long long)time(NULL);
+   i->timestamp = (unsigned long long)ecore_time_unix_get();
    if (ui_eet_image_add(i->addr, i->buf, i->timestamp) == 1)
      i->cl->image_size += eina_binbuf_length_get(i->buf);
    chat_image_cleanup(i->cl);

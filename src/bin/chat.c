@@ -44,7 +44,7 @@ chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me)
    const char *color;
 
    len = strftime(timebuf, sizeof(timebuf), "[%H:%M:%S]",
-            localtime((time_t[]){ time(NULL) }));
+            localtime((time_t[]){ ecore_time_unix_get() }));
 
    s = elm_entry_utf8_to_markup(msg);
    if (me)

@@ -176,7 +176,7 @@ image_cleaner_cb(Contact_List *cl)
         return EINA_FALSE;
      }
 
-   now = (unsigned long long)time(NULL);
+   now = (unsigned long long)ecore_time_unix_get();
    now -= cl->settings.allowed_image_age * 24 * 60 * 60;
    EINA_LIST_FOREACH_SAFE(icl->cache, l, l2, ic)
      {
