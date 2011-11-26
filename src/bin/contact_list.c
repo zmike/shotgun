@@ -273,7 +273,11 @@ _contact_list_rightclick_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *o
      name = elm_object_item_part_text_get(it, NULL);
    else
      name = elm_object_item_part_text_get(it, "elm.text");
+
    c = elm_object_item_data_get(it);
+   contact_resource_menu_setup(c, menu);
+   elm_menu_item_separator_add(menu, NULL);
+
    switch (c->base->subscription)
      {
       case SHOTGUN_USER_SUBSCRIPTION_TO:
@@ -297,7 +301,6 @@ _contact_list_rightclick_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *o
         break;
      }
    snprintf(buf, sizeof(buf), "Remove %s", name);
-   elm_menu_item_separator_add(menu, NULL);
    elm_menu_item_add(menu, NULL, "menu/delete", buf, (Evas_Smart_Cb)_contact_list_remove_cb, it);
    elm_menu_move(menu, ev->output.x, ev->output.y);
    evas_object_show(menu);

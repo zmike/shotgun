@@ -269,48 +269,6 @@ _chat_resource_ignore_toggle(Contact *c, Evas_Object *obj __UNUSED__, Elm_Object
 }
 
 static void
-_chat_resource_force(Contact *c, Evas_Object *obj __UNUSED__, Elm_Object_Item *ev)
-{
-   Eina_List *l;
-   Shotgun_Event_Presence *pres;
-   const char *res, *s;
-   Evas_Object *radio;
-   int val;
-
-
-   radio = (Evas_Object*)elm_object_item_content_get(ev);
-   val = elm_radio_state_value_get(radio);
-   if (!val)
-     {
-        /* selected use priority */
-        c->force_resource = NULL;
-        elm_radio_state_value_set(radio, 0);
-        return;
-     }
-   res = elm_object_text_get(radio);
-   if (c->force_resource)
-     {
-        s = strchr(c->force_resource, '/');
-        if (s) s++;
-        else s = c->base->jid;
-        /* selected previously set resource */
-        if (!memcmp(res, s, strlen(s))) return;
-     }
-   EINA_LIST_FOREACH(c->plist, l, pres)
-     {
-        s = strchr(pres->jid, '/');
-        if (*s) s++;
-        else s = c->base->jid;
-        if (!memcmp(res, s, strlen(s))) continue;
-        eina_stringshare_del(c->force_resource);
-        c->force_resource = eina_stringshare_ref(pres->jid);
-        contact_presence_set(c, pres);
-        break;
-     }
-   elm_radio_state_value_set(radio, elm_menu_item_index_get(ev));
-}
-
-static void
 _chat_window_otherclick(Elm_Toolbar_Item *it, Evas_Object *obj __UNUSED__, const char *emission, const char *source __UNUSED__)
 {
    Contact *c;
@@ -471,11 +429,9 @@ chat_window_new(Contact_List *cl)
 void
 chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
 {
-   Evas_Object *win, *box, *box2, *convo, *entry, *radio, *obj, *panes;
+   Evas_Object *win, *box, *box2, *convo, *entry, *obj, *panes;
    Evas_Object *status, *menu;
    void *it;
-   Eina_List *l;
-   Shotgun_Event_Presence *pres;
    const char *icon = (c->info && c->info->photo.size) ? NULL : "shotgun/userunknown";
 
    if (c->list->settings.enable_logging)
@@ -525,34 +481,7 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
    evas_object_show(obj);
    c->chat_jid_menu = menu = elm_toolbar_item_menu_get(it);
    elm_menu_item_add(menu, NULL, NULL, "Ignore Resource", (Evas_Smart_Cb)_chat_resource_ignore_toggle, c);
-   it = elm_menu_item_add(menu, NULL, "menu/arrow_right", "Send to", NULL, NULL);
-
-   radio = elm_radio_add(win);
-   elm_radio_state_value_set(radio, 0);
-   elm_object_text_set(radio, "Use Priority");
-   evas_object_show(radio);
-   elm_menu_item_add_object(menu, it, radio, (Evas_Smart_Cb)_chat_resource_force, c);
-
-   EINA_LIST_FOREACH(c->plist, l, pres)
-     {
-        const char *s;
-        char *buf;
-        size_t len;
-        int i = 1;
-
-        s = strchr(pres->jid, '/');
-        s = s ? s + 1 : pres->jid;
-        len = strlen(s);
-        buf = alloca(len + 20);
-        snprintf(buf, len, "%s (%i)", s ?: c->base->jid, pres->priority);
-        obj = elm_radio_add(win);
-        elm_radio_group_add(obj, radio);
-        elm_radio_state_value_set(obj, i++);
-        elm_object_text_set(obj, buf);
-        evas_object_show(obj);
-        elm_menu_item_add_object(menu, it, obj, (Evas_Smart_Cb)_chat_resource_force, c);
-     }
-   elm_radio_value_set(radio, 0);
+   contact_resource_menu_setup(c, menu);
 
    c->status_line = status = elm_entry_add(win);
    elm_entry_single_line_set(status, 1);
@@ -630,7 +559,6 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
      contact_chat_window_animator_add(c);
 
    elm_win_activate(cw->win);
-   fprintf(stderr, "%p\n", c->chat_buffer);
 }
 
 void
@@ -642,7 +570,6 @@ chat_window_free(Chat_Window *cw, Evas_Object *obj __UNUSED__, const char *ev __
    cl->chat_wins = eina_list_remove(cl->chat_wins, cw);
    EINA_LIST_FREE(cw->contacts, c)
      {
-        fprintf(stderr, "%p\n", c->chat_buffer);
         const char *ent = elm_entry_entry_get(c->chat_buffer);
         if (c->last_conv != ent)
           {

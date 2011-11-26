@@ -237,6 +237,88 @@ contact_chat_window_close(Contact *c)
    else chat_window_free(cw, NULL, NULL);
 }
 
+void
+contact_resource_menu_setup(Contact *c, Evas_Object *menu)
+{
+   Evas_Object *win, *radio, *obj;
+   void *it;
+   Eina_List *l;
+   Shotgun_Event_Presence *pres;
+   int set = 0;
+
+   win = elm_object_top_widget_get(menu);
+   it = elm_menu_item_add(menu, NULL, "menu/arrow_right", "Send to", NULL, NULL);
+
+   radio = elm_radio_add(win);
+   elm_radio_state_value_set(radio, 0);
+   elm_object_text_set(radio, "Use Priority");
+   evas_object_show(radio);
+   elm_menu_item_add_object(menu, it, radio, (Evas_Smart_Cb)contact_resource_set, c);
+
+   EINA_LIST_FOREACH(c->plist, l, pres)
+     {
+        const char *s;
+        char *buf;
+        size_t len;
+        int i = 1;
+
+        s = strchr(pres->jid, '/');
+        s = s ? s + 1 : pres->jid;
+        len = strlen(s);
+        buf = alloca(len + 20);
+        snprintf(buf, len, "%s (%i)", s ?: c->base->jid, pres->priority);
+        obj = elm_radio_add(win);
+        elm_radio_group_add(obj, radio);
+        if (pres->jid == c->force_resource) set = i;
+        elm_radio_state_value_set(obj, i++);
+        elm_object_text_set(obj, buf);
+        evas_object_show(obj);
+        elm_menu_item_add_object(menu, it, obj, (Evas_Smart_Cb)contact_resource_set, c);
+     }
+   elm_radio_value_set(radio, set);
+}
+
+void
+contact_resource_set(Contact *c, Evas_Object *obj __UNUSED__, Elm_Object_Item *ev)
+{
+   Eina_List *l;
+   Shotgun_Event_Presence *pres;
+   const char *res, *s;
+   Evas_Object *radio;
+   int val;
+
+   radio = (Evas_Object*)elm_object_item_content_get(ev);
+   val = elm_radio_state_value_get(radio);
+   if (!val)
+     {
+        /* selected use priority */
+        c->force_resource = NULL;
+        elm_radio_state_value_set(radio, 0);
+        return;
+     }
+   res = elm_object_text_get(radio);
+   if (c->force_resource)
+     {
+        s = strchr(c->force_resource, '/');
+        if (s) s++;
+        else s = c->base->jid;
+        /* selected previously set resource */
+        if (!memcmp(res, s, strlen(s))) return;
+     }
+   EINA_LIST_FOREACH(c->plist, l, pres)
+     {
+        s = strchr(pres->jid, '/');
+        if (*s) s++;
+        else s = c->base->jid;
+        if (!memcmp(res, s, strlen(s))) continue;
+        eina_stringshare_del(c->force_resource);
+        c->force_resource = eina_stringshare_ref(pres->jid);
+        contact_presence_set(c, pres);
+        break;
+     }
+   elm_radio_state_value_set(radio, elm_menu_item_index_get(ev));
+}
+
 Shotgun_Event_Presence *
 contact_presence_get(Contact *c)
 {

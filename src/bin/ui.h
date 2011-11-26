@@ -207,6 +207,8 @@ Eina_Bool chat_image_complete(void *d __UNUSED__, int type __UNUSED__, Ecore_Con
 
 Shotgun_Event_Presence *contact_presence_get(Contact *c);
 void contact_presence_set(Contact *c, Shotgun_Event_Presence *cur);
+void contact_resource_set(Contact *c, Evas_Object *obj __UNUSED__, Elm_Object_Item *ev);
+void contact_resource_menu_setup(Contact *c, Evas_Object *menu);
 const char *contact_name_get(Contact *c);
 void contact_jids_menu_del(Contact *c, const char *jid);
 void contact_free(Contact *c);
