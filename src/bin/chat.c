@@ -323,6 +323,7 @@ _chat_window_otherclick(Elm_Toolbar_Item *it, Evas_Object *obj __UNUSED__, const
 static void
 _chat_window_key(Chat_Window *cw, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, Evas_Event_Key_Down *ev)
 {
+   Contact_List *cl = cw->cl;
    //DBG("%s", ev->keyname);
    if (!strcmp(ev->keyname, "Tab"))
      {
@@ -366,9 +367,16 @@ _chat_window_key(Chat_Window *cw, Evas *e __UNUSED__, Evas_Object *obj __UNUSED_
           }
         if (new && (new != cur)) elm_toolbar_item_selected_set(new, EINA_TRUE);
      }
-   if ((!strcmp(ev->keyname, "Escape")) || (!strcmp(ev->keyname, "w")))
-     _chat_window_close_cb(cw, NULL, NULL);
-
+   IF_ILLUME
+     {
+        if (!strcmp(ev->keyname, "w"))
+          _chat_window_close_cb(cw, NULL, NULL);
+     }
+   else
+     {
+        if ((!strcmp(ev->keyname, "Escape")) || (!strcmp(ev->keyname, "w")))
+          _chat_window_close_cb(cw, NULL, NULL);
+     }
 }
 
 static void
@@ -393,34 +401,45 @@ chat_window_new(Contact_List *cl)
 
    cw = calloc(1, sizeof(Chat_Window));
 
-   win = elm_win_add(NULL, "chat-window", ELM_WIN_BASIC);
-   elm_object_focus_allow_set(win, 0);
-   evas_object_smart_callback_add(win, "delete,request", (Evas_Smart_Cb)chat_window_free, cw);
+   IF_ILLUME
+     cw->win = win = cl->win;
+   else
+     {
+        cw->win = win = elm_win_add(NULL, "chat-window", ELM_WIN_BASIC);
+        evas_object_smart_callback_add(win, "delete,request", (Evas_Smart_Cb)chat_window_free, cw);
+     }
    evas_object_event_callback_add(win, EVAS_CALLBACK_KEY_DOWN, (Evas_Object_Event_Cb)_chat_window_key, cw);
    e = evas_object_evas_get(win);
    ctrl = evas_key_modifier_mask_get(e, "Control");
    shift = evas_key_modifier_mask_get(e, "Shift");
    alt = evas_key_modifier_mask_get(e, "Alt");
-   1 | evas_object_key_grab(win, "Escape", 0, ctrl | shift | alt, 1); /* worst warn_unused ever. */
    1 | evas_object_key_grab(win, "w", ctrl, shift | alt, 1); /* worst warn_unused ever. */
    1 | evas_object_key_grab(win, "Tab", ctrl, alt, 1); /* worst warn_unused ever. */
    1 | evas_object_key_grab(win, "Tab", ctrl | shift, alt, 1); /* worst warn_unused ever. */
-   evas_object_resize(win, 550, 330);
-   evas_object_show(win);
 
-   bg = elm_bg_add(win);
-   elm_object_focus_allow_set(bg, 0);
-   EXPAND(bg);
-   elm_win_resize_object_add(win, bg);
-   evas_object_show(bg);
+   IF_NOT_ILLUME
+     {
+        1 | evas_object_key_grab(win, "Escape", 0, ctrl | shift | alt, 1); /* worst warn_unused ever. */
+        evas_object_resize(win, 550, 330);
+        evas_object_show(win);
 
-   box = elm_box_add(win);
+        bg = elm_bg_add(win);
+        elm_object_focus_allow_set(bg, 0);
+        EXPAND(bg);
+        elm_win_resize_object_add(win, bg);
+        evas_object_show(bg);
+     }
+
+   cw->box = box = elm_box_add(win);
    elm_object_focus_allow_set(box, 0);
    EXPAND(box);
+   FILL(box);
    elm_win_resize_object_add(win, box);
+   IF_ILLUME
+     elm_box_pack_end(cl->illume_box, box);
    evas_object_show(box);
 
-   tb = elm_toolbar_add(win);
+   cw->toolbar = tb = elm_toolbar_add(win);
    elm_toolbar_mode_shrink_set(tb, ELM_TOOLBAR_SHRINK_SCROLL);
    elm_toolbar_always_select_mode_set(tb, 1);
    elm_toolbar_homogeneous_set(tb, 0);
@@ -431,20 +450,20 @@ chat_window_new(Contact_List *cl)
    elm_box_pack_end(box, tb);
    evas_object_show(tb);
 
-   pg = elm_pager_add(win);
+   cw->pager = pg = elm_pager_add(win);
    EXPAND(pg);
    FILL(pg);
    elm_box_pack_end(box, pg);
    elm_object_style_set(pg, "slide");
    evas_object_show(pg);
 
-   elm_win_activate(win);
+   IF_NOT_ILLUME
+     elm_win_activate(win);
 
    cw->cl = cl;
-   cw->win = win;
-   cw->toolbar = tb;
-   cw->pager = pg;
    cl->chat_wins = eina_list_append(cl->chat_wins, cw);
+   IF_ILLUME
+     evas_object_resize(cw->win, 850, 700);
 }
 
 void
@@ -533,7 +552,7 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
      }
    elm_radio_value_set(radio, 0);
 
-   status = elm_entry_add(win);
+   c->status_line = status = elm_entry_add(win);
    elm_entry_single_line_set(status, 1);
    elm_entry_cnp_textonly_set(status, 1);
    elm_entry_scrollbar_policy_set(status, ELM_SCROLLER_POLICY_AUTO, ELM_SCROLLER_POLICY_OFF);
@@ -551,7 +570,7 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
    elm_box_pack_end(box2, status);
    evas_object_show(status);
 
-   convo = elm_entry_add(win);
+   c->chat_buffer = convo = elm_entry_add(win);
    elm_entry_cnp_textonly_set(convo, 1);
    elm_entry_scrollbar_policy_set(convo, ELM_SCROLLER_POLICY_OFF, ELM_SCROLLER_POLICY_AUTO);
    elm_entry_editable_set(convo, 0);
@@ -570,7 +589,7 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
 
    elm_object_part_content_set(panes, "elm.swallow.left", box);
 
-   entry = elm_entry_add(win);
+   c->chat_input = entry = elm_entry_add(win);
    elm_entry_single_line_set(entry, 1);
    elm_entry_scrollable_set(entry, 1);
    elm_entry_line_wrap_set(entry, ELM_WRAP_MIXED);
@@ -587,9 +606,6 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
    evas_object_data_set(panes, "contact", c);
    evas_object_data_set(panes, "list", c->list);
 
-   c->chat_buffer = convo;
-   c->chat_input = entry;
-   c->status_line = status;
    if (c->description)
      {
         char *s;
@@ -610,20 +626,26 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
      }
    else
      contact_chat_window_animator_add(c);
+
    elm_win_activate(cw->win);
+   fprintf(stderr, "%p\n", c->chat_buffer);
 }
 
 void
 chat_window_free(Chat_Window *cw, Evas_Object *obj __UNUSED__, const char *ev __UNUSED__)
 {
    Contact *c;
-   cw->cl->chat_wins = eina_list_remove(cw->cl->chat_wins, cw);
+   Contact_List *cl = cw->cl;
+
+   cl->chat_wins = eina_list_remove(cl->chat_wins, cw);
    EINA_LIST_FREE(cw->contacts, c)
      {
-        if (c->last_conv != elm_entry_entry_get(c->chat_buffer))
+        fprintf(stderr, "%p\n", c->chat_buffer);
+        const char *ent = elm_entry_entry_get(c->chat_buffer);
+        if (c->last_conv != ent)
           {
              eina_stringshare_del(c->last_conv);
-             c->last_conv = eina_stringshare_ref(elm_entry_entry_get(c->chat_buffer));
+             c->last_conv = eina_stringshare_ref(ent);
           }
         if (c->animator)
           {
@@ -632,6 +654,24 @@ chat_window_free(Chat_Window *cw, Evas_Object *obj __UNUSED__, const char *ev __
           }
         memset(&c->chat_window, 0, sizeof(void*) * 9);
      }
-   evas_object_del(cw->win);
+   IF_ILLUME
+     {
+        Evas *e;
+        Evas_Modifier_Mask ctrl, shift, alt;
+
+        evas_object_event_callback_del_full(cl->win, EVAS_CALLBACK_KEY_DOWN, (Evas_Object_Event_Cb)_chat_window_key, cw);
+        e = evas_object_evas_get(cl->win);
+        ctrl = evas_key_modifier_mask_get(e, "Control");
+        shift = evas_key_modifier_mask_get(e, "Shift");
+        alt = evas_key_modifier_mask_get(e, "Alt");
+        evas_object_key_ungrab(cl->win, "w", ctrl, shift | alt);
+        evas_object_key_ungrab(cl->win, "Tab", ctrl, alt);
+        evas_object_key_ungrab(cl->win, "Tab", ctrl | shift, alt);
+        evas_object_del(cw->box);
+        evas_object_resize(cw->win, 300, 700);
+     }
+   else
+     evas_object_del(cw->win);
+
    free(cw);
 }

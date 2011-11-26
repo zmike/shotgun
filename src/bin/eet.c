@@ -70,6 +70,7 @@ eet_ss_edd_new(void)
    ADD(enable_account_info, UCHAR);
    ADD(enable_last_account, UCHAR);
    ADD(enable_logging, UCHAR);
+   ADD(enable_illume, UCHAR);
    ADD(disable_image_fetch, UCHAR);
    ADD(allowed_image_age, UINT);
    ADD(allowed_image_size, UINT);

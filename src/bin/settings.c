@@ -88,6 +88,7 @@ settings_new(Contact_List *cl)
    EXPAND(box);
    FILL(box);
    elm_win_resize_object_add(cl->win, box);
+   elm_flip_content_back_set(cl->flip, box);
    evas_object_show(box);
 
    ic = elm_icon_add(cl->win);
@@ -102,7 +103,6 @@ settings_new(Contact_List *cl)
    elm_box_pack_end(box, back);
    evas_object_smart_callback_add(back, "clicked", (Evas_Smart_Cb)settings_toggle, cl);
    evas_object_show(back);
-   elm_flip_content_back_set(cl->flip, box);
 
    scr = elm_scroller_add(cl->win);
    EXPAND(scr);
@@ -120,9 +120,11 @@ settings_new(Contact_List *cl)
    evas_object_show(scr);
 
    SETTINGS_FRAME("Account");
-
    SETTINGS_CHECK("Save account info", enable_account_info, "Remember account name and password");
    SETTINGS_CHECK("Remember last account", enable_last_account, "Automatically sign in with current account on next run");
+
+   SETTINGS_FRAME("Appearance");
+   SETTINGS_CHECK("Enable single window mode", enable_illume, "Use a single window for the application - REQUIRES RESTART (embedded friendly)");
 
 #ifdef HAVE_NOTIFY
    SETTINGS_FRAME("DBus");
@@ -131,7 +133,6 @@ settings_new(Contact_List *cl)
 
    SETTINGS_FRAME("Images");
    SETTINGS_CHECK("Disable automatic image fetching", disable_image_fetch, "Disables background fetching of images");
-
    SETTINGS_SLIDER("Max image age", "Number of days to save linked images on disk before deleting them",
                    "%1.0f days", 60, image_age);
    SETTINGS_SLIDER("Max image memory", "Total size of images to keep in memory",
@@ -151,5 +152,12 @@ settings_toggle(Contact_List *cl, Evas_Object *obj __UNUSED__, void *event_info 
    if ((!cl->image_cleaner) && cl->settings.allowed_image_age)
      ui_eet_idler_start(cl);
    chat_image_cleanup(cl);
+   IF_ILLUME
+     {
+        if (elm_flip_front_get(cl->flip))
+          elm_object_text_set(cl->illume_frame, "Settings");
+        else
+          elm_object_text_set(cl->illume_frame, "Contacts");
+     }
    elm_flip_go(cl->flip, ELM_FLIP_ROTATE_Y_CENTER_AXIS);
 }

@@ -460,6 +460,7 @@ _contact_list_list_add(Contact_List *cl)
    cl->list = list = elm_genlist_add(cl->win);
    cl->mode = EINA_FALSE;
    elm_gen_always_select_mode_set(list, EINA_FALSE);
+   elm_genlist_reorder_mode_set(list, EINA_TRUE);
    elm_gen_bounce_set(list, EINA_FALSE, EINA_FALSE);
    elm_genlist_scroller_policy_set(list, ELM_SCROLLER_POLICY_OFF, ELM_SCROLLER_POLICY_AUTO);
    EXPAND(list);
@@ -818,12 +819,15 @@ contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev)
 Contact_List *
 contact_list_new(Shotgun_Auth *auth, Shotgun_Settings *ss)
 {
-   Evas_Object *win, *obj, *tb, *radio, *box, *menu, *entry;
+   Evas_Object *win, *obj, *tb, *radio, *box, *menu, *entry, *fr;
    Elm_Toolbar_Item *it;
    Contact_List *cl;
    Evas *e;
    Evas_Modifier_Mask ctrl, shift, alt;
+   int argc, x;
+   char **argv;
 
+   ecore_app_args_get(&argc, &argv);
    elm_policy_set(ELM_POLICY_QUIT, ELM_POLICY_QUIT_LAST_WINDOW_CLOSED);
 
    cl = calloc(1, sizeof(Contact_List));
@@ -832,8 +836,6 @@ contact_list_new(Shotgun_Auth *auth, Shotgun_Settings *ss)
    if (ss) memcpy(&cl->settings, ss, sizeof(Shotgun_Settings));
    else
      {
-        int argc;
-        ecore_app_args_get(&argc, NULL);
         switch (argc)
           {
            case 1:
@@ -845,8 +847,17 @@ contact_list_new(Shotgun_Auth *auth, Shotgun_Settings *ss)
           }
      }
 
-   cl->win = win = elm_win_add(NULL, "Contacts", ELM_WIN_BASIC);
-   elm_win_title_set(win, "Contacts");
+   for (x = 1; x < argc; x++)
+     {
+        if ((!strcmp(argv[x], "--illume")) || (!strcmp(argv[x], "--enable-illume")))
+          cl->settings.enable_illume = EINA_TRUE;
+        if (!strcmp(argv[x], "--disable-illume"))
+          cl->settings.enable_illume = EINA_FALSE;
+     }
+
+   INF("ILLUME: %s", cl->settings.enable_illume ? "ENABLED" : "DISABLED");
+   cl->win = win = elm_win_add(NULL, cl->settings.enable_illume ? "Shotgun" : "Contacts", ELM_WIN_BASIC);
+   elm_win_title_set(win, cl->settings.enable_illume ? "Shotgun" : "Contacts");
    elm_win_autodel_set(win, 1);
    e = evas_object_evas_get(win);
    ctrl = evas_key_modifier_mask_get(e, "Control");
@@ -859,28 +870,52 @@ contact_list_new(Shotgun_Auth *auth, Shotgun_Settings *ss)
 
    obj = elm_bg_add(win);
    EXPAND(obj);
+   FILL(obj);
    elm_win_resize_object_add(win, obj);
    evas_object_show(obj);
+
+   if (cl->settings.enable_illume)
+     {
+        cl->illume_box = box = elm_box_add(win);
+        elm_box_homogeneous_set(box, EINA_FALSE);
+        elm_box_horizontal_set(box, EINA_TRUE);
+        EXPAND(box);
+        FILL(box);
+        elm_win_resize_object_add(win, box);
+        evas_object_show(box);
+
+        cl->illume_frame = fr = elm_frame_add(win);
+        EXPAND(fr);
+        FILL(fr);
+        elm_object_text_set(fr, "Contacts");
+        elm_box_pack_end(box, fr);
+     }
 
    cl->flip = elm_flip_add(win);
    EXPAND(cl->flip);
    FILL(cl->flip);
-   elm_flip_interaction_set(cl->flip, ELM_FLIP_INTERACTION_ROTATE);
-   elm_flip_interacton_direction_enabled_set(cl->flip, ELM_FLIP_DIRECTION_UP, EINA_TRUE);
-   elm_flip_interacton_direction_enabled_set(cl->flip, ELM_FLIP_DIRECTION_DOWN, EINA_TRUE);
-   elm_flip_interacton_direction_enabled_set(cl->flip, ELM_FLIP_DIRECTION_LEFT, EINA_TRUE);
-   elm_flip_interacton_direction_enabled_set(cl->flip, ELM_FLIP_DIRECTION_RIGHT, EINA_TRUE);
-   elm_flip_interacton_direction_hitsize_set(cl->flip, ELM_FLIP_DIRECTION_UP, 0.5);
-   elm_flip_interacton_direction_hitsize_set(cl->flip, ELM_FLIP_DIRECTION_DOWN, 0.5);
-   elm_flip_interacton_direction_hitsize_set(cl->flip, ELM_FLIP_DIRECTION_LEFT, 0.5);
-   elm_flip_interacton_direction_hitsize_set(cl->flip, ELM_FLIP_DIRECTION_RIGHT, 0.5);
-   settings_new(cl);
+
+   IF_ILLUME
+     {
+        elm_object_content_set(fr, cl->flip);
+        evas_object_show(fr);
+     }
 
    cl->box = box = elm_box_add(win);
    elm_box_homogeneous_set(box, EINA_FALSE);
-   EXPAND(box);
-   elm_win_resize_object_add(win, box);
+   IF_ILLUME
+     WEIGHT(box, 0, EVAS_HINT_EXPAND);
+   else
+     {
+        EXPAND(box);
+        elm_win_resize_object_add(win, box);
+     }
    evas_object_show(box);
+
+   elm_flip_content_front_set(cl->flip, box);
+
+   settings_new(cl);
+   evas_object_show(cl->flip);
 
    tb = elm_toolbar_add(win);
    ALIGN(tb, EVAS_HINT_FILL, 0);
@@ -967,8 +1002,6 @@ contact_list_new(Shotgun_Auth *auth, Shotgun_Settings *ss)
    elm_object_scale_set(tb, 0.75);
    evas_object_show(tb);
 
-   elm_flip_content_front_set(cl->flip, box);
-
    obj = elm_separator_add(win);
    elm_separator_horizontal_set(obj, EINA_TRUE);
    elm_box_pack_end(box, obj);
@@ -1016,7 +1049,6 @@ contact_list_new(Shotgun_Auth *auth, Shotgun_Settings *ss)
       ecore_event_handler_add(SHOTGUN_EVENT_MESSAGE, (Ecore_Event_Handler_Cb)event_message_cb,
                               cl);
 
-   evas_object_data_set(win, "contact-list", cl);
    {
       const char *color;
       int x;
@@ -1046,7 +1078,7 @@ contact_list_new(Shotgun_Auth *auth, Shotgun_Settings *ss)
       //INF("r, g, b: %d, %d, %d", cl->alert_colors[0], cl->alert_colors[1], cl->alert_colors[2]);
    }
 
-   evas_object_show(cl->flip);
+
    evas_object_resize(win, 300, 700);
    evas_object_show(win);
    return cl;

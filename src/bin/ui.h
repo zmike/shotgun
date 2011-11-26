@@ -55,6 +55,9 @@ void *alloca (size_t);
 #define EXPAND(X) WEIGHT((X), EVAS_HINT_EXPAND, EVAS_HINT_EXPAND)
 #define FILL(X) ALIGN((X), EVAS_HINT_FILL, EVAS_HINT_FILL)
 
+#define IF_NOT_ILLUME if ((!cl->settings.enable_illume) && (!cl->illume_box))
+#define IF_ILLUME if (cl->settings.enable_illume && cl->illume_box)
+
 extern int ui_log_dom;
 
 typedef struct Contact_List Contact_List;
@@ -73,6 +76,7 @@ typedef struct Shotgun_Settings
    Eina_Bool enable_account_info;
    Eina_Bool enable_last_account;
    Eina_Bool enable_logging;
+   Eina_Bool enable_illume;
    Eina_Bool disable_image_fetch;
    unsigned int allowed_image_age;
    unsigned int allowed_image_size;
@@ -81,6 +85,8 @@ typedef struct Shotgun_Settings
 struct Contact_List
 {
    Evas_Object *win; /* window */
+   Evas_Object *illume_box; /* horizontal box used in illume mode */
+   Evas_Object *illume_frame; /* list frame used in illume mode */
    Evas_Object *flip; /* flip for settings */
    Evas_Object *box; /* main box */
    Evas_Object *settings_box; /* settings box */
@@ -132,6 +138,7 @@ typedef struct
 {
    Contact_List *cl;
    Evas_Object *win;
+   Evas_Object *box;
    Evas_Object *toolbar;
    Evas_Object *pager;
    Eina_List *contacts;
