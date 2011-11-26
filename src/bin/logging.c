@@ -26,7 +26,7 @@ Eina_Bool
 logging_dir_create(Contact_List *cl)
 {
    snprintf(logdir, sizeof(logdir), "%s/logs/%s", util_configdir_get(), shotgun_jid_get(cl->account));
-   if (ecore_file_exists(logdir)) return EINA_TRUE;
+   if (ecore_file_is_dir(logdir)) return EINA_TRUE;
    return ecore_file_mkpath(logdir);
 }
 
@@ -36,7 +36,7 @@ logging_contact_init(Contact *c)
    if (c->logdir_exists) return EINA_TRUE;
 
    c->logdir = eina_stringshare_printf("%s/%s", logging_dir_get(), c->base->jid);
-   if (ecore_file_exists(c->logdir)) return ++c->logdir_exists;
+   if (ecore_file_is_dir(c->logdir)) return ++c->logdir_exists;
    return c->logdir_exists = ecore_file_mkpath(c->logdir);
 }
 
