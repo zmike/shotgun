@@ -14,6 +14,7 @@ _chat_conv_image_provider(Image *i, Evas_Object *obj __UNUSED__, Evas_Object *tt
    if (!elm_icon_memfile_set(ic, eina_binbuf_string_get(i->buf), eina_binbuf_length_get(i->buf), NULL, NULL))
      {
         /* an unloadable image is a useless image! */
+        i->cl->image_list = eina_list_remove(i->cl->image_list, i);
         eina_hash_del_by_key(i->cl->images, ecore_con_url_url_get(i->url));
         evas_object_del(ic);
         goto error;
@@ -56,6 +57,16 @@ error:
    return ret;
 }
 
+static int
+_chat_image_sort_cb(Image *a, Image *b)
+{
+   long long diff;
+   diff = a->timestamp - b->timestamp;
+   if (diff < 0) return -1;
+   if (!diff) return 0;
+   return 1;
+}
+
 void
 chat_conv_image_show(Contact *c, Evas_Object *obj, Elm_Entry_Anchor_Info *ev)
 {
@@ -86,14 +97,34 @@ void
 chat_image_add(Contact_List *cl, const char *url)
 {
    Image *i;
+   unsigned long long t;
+
+   t = (unsigned long long)time(NULL);
 
    i = eina_hash_find(cl->images, url);
-   if (i) return;
+   if (i)
+     {
+        if (i->buf)
+          {
+             i->timestamp = t;
+             ui_eet_image_ping(url, i->timestamp);
+          }
+        else
+          {
+             /* randomly deleted during cache pruning */
+             i->buf = ui_eet_image_get(url, t);
+             cl->image_size += eina_binbuf_length_get(i->buf);
+          }
+        chat_image_cleanup(i->cl);
+        return;
+     }
    if (ui_eet_dummy_check(url)) return;
    if (cl->settings.disable_image_fetch) return;
    i = calloc(1, sizeof(Image));
-   i->buf = ui_eet_image_get(url, (unsigned long long)time(NULL));
-   if (!i->buf)
+   i->buf = ui_eet_image_get(url, t);
+   if (i->buf)
+     cl->image_size += eina_binbuf_length_get(i->buf);
+   else
      {
         i->url = ecore_con_url_new(url);
         ecore_con_url_data_set(i->url, i);
@@ -102,6 +133,8 @@ chat_image_add(Contact_List *cl, const char *url)
    i->cl = cl;
    i->addr = url;
    eina_hash_add(cl->images, url, i);
+   cl->image_list = eina_list_sorted_insert(cl->image_list, (Eina_Compare_Cb)_chat_image_sort_cb, NULL);
+   chat_image_cleanup(i->cl);
 }
 
 void
@@ -140,16 +173,39 @@ chat_image_complete(void *d __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Url
 
         if (!strncasecmp(h, "image/", 6)) break;
         ui_eet_dummy_add(ecore_con_url_url_get(ev->url_con));
+        i->cl->image_list = eina_list_remove(i->cl->image_list, i);
         eina_hash_del_by_key(i->cl->images, ecore_con_url_url_get(ev->url_con));
         return ECORE_CALLBACK_RENEW;
      }
    if (ev->status != 200)
      {
+        i->cl->image_list = eina_list_remove(i->cl->image_list, i);
         eina_hash_del_by_key(i->cl->images, ecore_con_url_url_get(ev->url_con));
         return ECORE_CALLBACK_RENEW;
      }
    i->timestamp = (unsigned long long)time(NULL);
-   ui_eet_image_add(i->addr, i->buf, i->timestamp);
+   if (ui_eet_image_add(i->addr, i->buf, i->timestamp) == 1)
+     i->cl->image_size += eina_binbuf_length_get(i->buf);
+   chat_image_cleanup(i->cl);
    return ECORE_CALLBACK_RENEW;
 }
 
+void
+chat_image_cleanup(Contact_List *cl)
+{
+   Image *i;
+   Eina_List *l, *l2;
+
+   if (!cl->settings.allowed_image_size) return;
+   if (cl->settings.allowed_image_size < (cl->image_size / 1024 / 1024)) return;
+   EINA_LIST_FOREACH_SAFE(cl->image_list, l, l2, i)
+     {
+        if (!i->buf) continue;
+        /* only free the buffers here to avoid having to deal with multiple list entries */
+        cl->image_size -= eina_binbuf_length_get(i->buf);
+        eina_binbuf_free(i->buf);
+        i->buf = NULL;
+        if (cl->settings.allowed_image_size < (cl->image_size / 1024 / 1024))
+          return;
+     }
+}

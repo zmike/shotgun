@@ -27,6 +27,26 @@
    evas_object_show(ck); \
 } while (0)
 
+#define SETTINGS_SLIDER(LABEL, TOOLTIP, UNITS, MAX, CB) do { \
+   sl = elm_slider_add(cl->win); \
+   EXPAND(sl); \
+   FILL(sl); \
+   elm_slider_unit_format_set(sl, UNITS); \
+   elm_slider_min_max_set(sl, 0, MAX); \
+   elm_object_text_set(sl, LABEL); \
+   elm_object_tooltip_text_set(sl, TOOLTIP); \
+   elm_tooltip_size_restrict_disable(sl, EINA_TRUE); \
+   evas_object_smart_callback_add(sl, "delay,changed", (Evas_Smart_Cb)_settings_ ##CB## _change, cl); \
+   elm_box_pack_end(frbox, sl); \
+   evas_object_show(sl); \
+} while (0)
+
+static void
+_settings_image_size_change(Contact_List *cl, Evas_Object *obj, void *event_info __UNUSED__)
+{
+   cl->settings.allowed_image_size = elm_slider_value_get(obj);
+}
+
 static void
 _settings_image_age_change(Contact_List *cl, Evas_Object *obj, void *event_info __UNUSED__)
 {
@@ -112,17 +132,10 @@ settings_new(Contact_List *cl)
    SETTINGS_FRAME("Images");
    SETTINGS_CHECK("Disable automatic image fetching", disable_image_fetch, "Disables background fetching of images");
 
-   sl = elm_slider_add(cl->win);
-   EXPAND(sl);
-   FILL(sl);
-   elm_slider_unit_format_set(sl, "%1.0f days");
-   elm_slider_min_max_set(sl, 0, 60);
-   elm_object_text_set(sl, "Max image age");
-   elm_object_tooltip_text_set(sl, "Number of days to save linked images on disk before deleting them");
-   elm_tooltip_size_restrict_disable(sl, EINA_TRUE);
-   evas_object_smart_callback_add(sl, "delay,changed", (Evas_Smart_Cb)_settings_image_age_change, cl);
-   elm_box_pack_end(frbox, sl);
-   evas_object_show(sl);
+   SETTINGS_SLIDER("Max image age", "Number of days to save linked images on disk before deleting them",
+                   "%1.0f days", 60, image_age);
+   SETTINGS_SLIDER("Max image memory", "Total size of images to keep in memory",
+                   "%1.0f MB", 512, image_size);
 
    SETTINGS_FRAME("Messages");
    SETTINGS_CHECK("Focus chat window on message", enable_chat_focus, "Focus chat window whenever message is received");
@@ -137,5 +150,6 @@ settings_toggle(Contact_List *cl, Evas_Object *obj __UNUSED__, void *event_info 
 {
    if ((!cl->image_cleaner) && cl->settings.allowed_image_age)
      ui_eet_idler_start(cl);
+   chat_image_cleanup(cl);
    elm_flip_go(cl->flip, ELM_FLIP_ROTATE_Y_CENTER_AXIS);
 }

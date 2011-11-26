@@ -72,6 +72,7 @@ eet_ss_edd_new(void)
    ADD(enable_logging, UCHAR);
    ADD(disable_image_fetch, UCHAR);
    ADD(allowed_image_age, UINT);
+   ADD(allowed_image_size, UINT);
 #undef ADD
    return edd;
 }
@@ -488,14 +489,14 @@ ui_eet_dummy_check(const char *url)
    return EINA_FALSE;
 }
 
-void
+int
 ui_eet_image_add(const char *url, Eina_Binbuf *buf, unsigned long long timestamp)
 {
    const char *sha1;
    int lsize;
    char **list;
 
-   if (!images) return;
+   if (!images) return -1;
 
    sha1 = sha1_buffer(eina_binbuf_string_get(buf), eina_binbuf_length_get(buf));
    INF("Image: %s - %s", url, sha1);
@@ -505,7 +506,7 @@ ui_eet_image_add(const char *url, Eina_Binbuf *buf, unsigned long long timestamp
      {
         eina_stringshare_del(sha1);
         free(list);
-        return; /* should never happen */
+        return -1; /* should never happen */
      }
    list = eet_list(images, sha1, &lsize);
    if (lsize)
@@ -515,7 +516,7 @@ ui_eet_image_add(const char *url, Eina_Binbuf *buf, unsigned long long timestamp
         INF("Added new alias for image %s", sha1);
         eina_stringshare_del(sha1);
         free(list);
-        return;
+        return 0;
      }
 
    eet_write(images, sha1, eina_binbuf_string_get(buf), eina_binbuf_length_get(buf), 1);
@@ -523,6 +524,7 @@ ui_eet_image_add(const char *url, Eina_Binbuf *buf, unsigned long long timestamp
    eet_sync(images);
    image_cache_add(sha1, timestamp);
    INF("Added new image with length %zu: %s", eina_binbuf_length_get(buf), sha1);
+   return 1;
 }
 
 void
@@ -561,6 +563,19 @@ ui_eet_image_get(const char *url, unsigned long long timestamp)
    eina_stringshare_del(alias);
    free(img);
    return buf;
+}
+
+void
+ui_eet_image_ping(const char *url, unsigned long long timestamp)
+{
+   const char *alias;
+
+   if (!images) return;
+
+   alias = eet_alias_get(images, url);
+   image_cache_update(alias, timestamp);
+
+   eina_stringshare_del(alias);
 }
 
 Shotgun_Settings *

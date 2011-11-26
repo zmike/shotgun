@@ -75,6 +75,7 @@ typedef struct Shotgun_Settings
    Eina_Bool enable_logging;
    Eina_Bool disable_image_fetch;
    unsigned int allowed_image_age;
+   unsigned int allowed_image_size;
 } Shotgun_Settings;
 
 struct Contact_List
@@ -94,6 +95,8 @@ struct Contact_List
    Eina_List *chat_wins; /* list of all chat windows */
    Eina_Hash *users; /* hash of jid<->Contact */
    Eina_Hash *images; /* hash of img_url<->Image */
+   Eina_List *image_list; /* list of Images sorted by timestamp */
+   size_t image_size; /* current total size of images in memory (in bytes) */
    Ecore_Timer *status_timer; /* timer for sending text in status_entry */
 
    int alert_colors[3]; /* array of r/g/b for contact->animator */
@@ -189,6 +192,7 @@ void chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Boo
 
 void chat_image_add(Contact_List *cl, const char *url);
 void chat_image_free(Image *i);
+void chat_image_cleanup(Contact_List *cl);
 void chat_conv_image_show(Contact *c, Evas_Object *obj, Elm_Entry_Anchor_Info *ev);
 void chat_conv_image_hide(Contact *c, Evas_Object *obj, Elm_Entry_Anchor_Info *ev);
 Eina_Bool chat_image_data(void *d __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Url_Data *ev);
@@ -207,9 +211,10 @@ void contact_subscription_set(Contact *c, Shotgun_Presence_Type type, Shotgun_Us
 Eina_Bool ui_eet_init(Shotgun_Auth *auth);
 void ui_eet_dummy_add(const char *url);
 Eina_Bool ui_eet_dummy_check(const char *url);
-void ui_eet_image_add(const char *url, Eina_Binbuf *buf, unsigned long long timestamp);
+int ui_eet_image_add(const char *url, Eina_Binbuf *buf, unsigned long long timestamp);
 void ui_eet_image_del(const char *url);
 Eina_Binbuf *ui_eet_image_get(const char *url, unsigned long long timestamp);
+void ui_eet_image_ping(const char *url, unsigned long long timestamp);
 void ui_eet_shutdown(Shotgun_Auth *auth);
 Shotgun_Auth *ui_eet_auth_get(const char *name, const char *domain);
 void ui_eet_auth_set(Shotgun_Auth *auth, Shotgun_Settings *settings, Eina_Bool use_auth);
