@@ -1,5 +1,32 @@
 #include "ui.h"
 
+#define SETTINGS_FRAME(LABEL) do { \
+   fr = elm_frame_add(cl->win); \
+   EXPAND(fr); \
+   FILL(fr); \
+   elm_object_text_set(fr, LABEL); \
+   elm_box_pack_end(box, fr); \
+   evas_object_show(fr); \
+\
+   frbox = elm_box_add(cl->win); \
+   EXPAND(frbox); \
+   FILL(frbox); \
+   elm_object_content_set(fr, frbox); \
+   evas_object_show(frbox); \
+} while (0)
+
+#define SETTINGS_CHECK(LABEL, POINTER, TOOLTIP) do { \
+   ck = elm_check_add(cl->win); \
+   EXPAND(ck); \
+   FILL(ck); \
+   elm_object_text_set(ck, LABEL); \
+   elm_check_state_pointer_set(ck, &cl->settings.POINTER); \
+   elm_object_tooltip_text_set(ck, TOOLTIP); \
+   elm_tooltip_size_restrict_disable(ck, EINA_TRUE); \
+   elm_box_pack_end(frbox, ck); \
+   evas_object_show(ck); \
+} while (0)
+
 void
 settings_new(Contact_List *cl)
 {
@@ -40,106 +67,20 @@ settings_new(Contact_List *cl)
    elm_scroller_policy_set(scr, ELM_SCROLLER_POLICY_OFF, ELM_SCROLLER_POLICY_AUTO);
    evas_object_show(scr);
 
-   fr = elm_frame_add(cl->win);
-   EXPAND(fr);
-   FILL(fr);
-   elm_object_text_set(fr, "Account");
-   elm_box_pack_end(box, fr);
-   evas_object_show(fr);
+   SETTINGS_FRAME("Account");
 
-   frbox = elm_box_add(cl->win);
-   EXPAND(frbox);
-   FILL(frbox);
-   elm_object_content_set(fr, frbox);
-   evas_object_show(frbox);
-
-   ck = elm_check_add(cl->win);
-   EXPAND(ck);
-   FILL(ck);
-   elm_object_text_set(ck, "Save account info");
-   elm_check_state_pointer_set(ck, &cl->settings.enable_account_info);
-   elm_object_tooltip_text_set(ck, "Remember account name and password");
-   elm_tooltip_size_restrict_disable(ck, EINA_TRUE);
-   elm_box_pack_end(frbox, ck);
-   evas_object_show(ck);
-
-   ck = elm_check_add(cl->win);
-   EXPAND(ck);
-   FILL(ck);
-   elm_object_text_set(ck, "Remember last account");
-   elm_check_state_pointer_set(ck, &cl->settings.enable_last_account);
-   elm_object_tooltip_text_set(ck, "Automatically sign in with current account on next run");
-   elm_tooltip_size_restrict_disable(ck, EINA_TRUE);
-   elm_box_pack_end(frbox, ck);
-   evas_object_show(ck);
+   SETTINGS_CHECK("Save account info", enable_account_info, "Remember account name and password");
+   SETTINGS_CHECK("Remember last account", enable_last_account, "Automatically sign in with current account on next run");
 
 #ifdef HAVE_NOTIFY
-   fr = elm_frame_add(cl->win);
-   EXPAND(fr);
-   FILL(fr);
-   elm_object_text_set(fr, "DBus");
-   elm_box_pack_end(box, fr);
-   evas_object_show(fr);
-
-   frbox = elm_box_add(cl->win);
-   EXPAND(frbox);
-   FILL(frbox);
-   elm_object_content_set(fr, frbox);
-   evas_object_show(frbox);
-
-   ck = elm_check_add(cl->win);
-   EXPAND(ck);
-   FILL(ck);
-   elm_object_text_set(ck, "Disable notifications");
-   elm_check_state_pointer_set(ck, &cl->settings.disable_notify);
-   elm_object_tooltip_text_set(ck, "Disables use of notification popups");
-   elm_tooltip_size_restrict_disable(ck, EINA_TRUE);
-   elm_box_pack_end(frbox, ck);
-   evas_object_show(ck);
+   SETTINGS_FRAME("DBus");
+   SETTINGS_CHECK("Disable notifications", disable_notify, "Disables use of notification popups");
 #endif
 
-   fr = elm_frame_add(cl->win);
-   EXPAND(fr);
-   FILL(fr);
-   elm_object_text_set(fr, "Messages");
-   elm_box_pack_end(box, fr);
-   evas_object_show(fr);
-
-   frbox = elm_box_add(cl->win);
-   EXPAND(frbox);
-   FILL(frbox);
-   elm_object_content_set(fr, frbox);
-   evas_object_show(frbox);
-
-   ck = elm_check_add(cl->win);
-   EXPAND(ck);
-   FILL(ck);
-   elm_object_text_set(ck, "Focus chat window on message");
-   elm_check_state_pointer_set(ck, &cl->settings.enable_chat_focus);
-   elm_object_tooltip_text_set(ck, "Focus chat window whenever message is received");
-   elm_tooltip_size_restrict_disable(ck, EINA_TRUE);
-   elm_box_pack_end(frbox, ck);
-   evas_object_show(ck);
-
-   ck = elm_check_add(cl->win);
-   EXPAND(ck);
-   FILL(ck);
-   elm_object_text_set(ck, "Promote contact on message");
-   elm_check_state_pointer_set(ck, &cl->settings.enable_chat_promote);
-   elm_object_tooltip_text_set(ck, "Move contact to top of list when message is received");
-   elm_tooltip_size_restrict_disable(ck, EINA_TRUE);
-   elm_box_pack_end(frbox, ck);
-   evas_object_show(ck);
-
-   ck = elm_check_add(cl->win);
-   EXPAND(ck);
-   FILL(ck);
-   elm_object_text_set(ck, "Always select new chat tabs");
-   elm_check_state_pointer_set(ck, &cl->settings.enable_chat_newselect);
-   elm_object_tooltip_text_set(ck, "When a message is received which would open a new tab, make that tab active");
-   elm_tooltip_size_restrict_disable(ck, EINA_TRUE);
-   elm_box_pack_end(frbox, ck);
-   evas_object_show(ck);
+   SETTINGS_FRAME("Messages");
+   SETTINGS_CHECK("Focus chat window on message", enable_chat_focus, "Focus chat window whenever message is received");
+   SETTINGS_CHECK("Promote contact on message", enable_chat_promote, "Move contact to top of list when message is received");
+   SETTINGS_CHECK("Always select new chat tabs", enable_chat_newselect, "When a message is received which would open a new tab, make that tab active");
 }
 
 void
