@@ -28,6 +28,12 @@
 } while (0)
 
 static void
+_settings_image_age_change(Contact_List *cl, Evas_Object *obj, void *event_info __UNUSED__)
+{
+   cl->settings.allowed_image_age = elm_slider_value_get(obj);
+}
+
+static void
 _settings_logging_change(Contact_List *cl, Evas_Object *obj, void *event_info __UNUSED__)
 {
    Eina_List *l, *ll;
@@ -56,7 +62,7 @@ _settings_logging_change(Contact_List *cl, Evas_Object *obj, void *event_info __
 void
 settings_new(Contact_List *cl)
 {
-   Evas_Object *scr, *ic, *back, *box, *ck, *fr, *frbox;
+   Evas_Object *scr, *ic, *back, *box, *ck, *fr, *frbox, *sl;
 
    cl->settings_box = box = elm_box_add(cl->win);
    EXPAND(box);
@@ -103,6 +109,21 @@ settings_new(Contact_List *cl)
    SETTINGS_CHECK("Disable notifications", disable_notify, "Disables use of notification popups");
 #endif
 
+   SETTINGS_FRAME("Images");
+   SETTINGS_CHECK("Disable automatic image fetching", disable_image_fetch, "Disables background fetching of images");
+
+   sl = elm_slider_add(cl->win);
+   EXPAND(sl);
+   FILL(sl);
+   elm_slider_unit_format_set(sl, "%1.0f days");
+   elm_slider_min_max_set(sl, 0, 60);
+   elm_object_text_set(sl, "Max image age");
+   elm_object_tooltip_text_set(sl, "Number of days to save linked images on disk before deleting them");
+   elm_tooltip_size_restrict_disable(sl, EINA_TRUE);
+   evas_object_smart_callback_add(sl, "delay,changed", (Evas_Smart_Cb)_settings_image_age_change, cl);
+   elm_box_pack_end(frbox, sl);
+   evas_object_show(sl);
+
    SETTINGS_FRAME("Messages");
    SETTINGS_CHECK("Focus chat window on message", enable_chat_focus, "Focus chat window whenever message is received");
    SETTINGS_CHECK("Promote contact on message", enable_chat_promote, "Move contact to top of list when message is received");
@@ -114,5 +135,7 @@ settings_new(Contact_List *cl)
 void
 settings_toggle(Contact_List *cl, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
 {
+   if ((!cl->image_cleaner) && cl->settings.allowed_image_age)
+     ui_eet_idler_start(cl);
    elm_flip_go(cl->flip, ELM_FLIP_ROTATE_Y_CENTER_AXIS);
 }

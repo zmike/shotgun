@@ -73,6 +73,8 @@ typedef struct Shotgun_Settings
    Eina_Bool enable_account_info;
    Eina_Bool enable_last_account;
    Eina_Bool enable_logging;
+   Eina_Bool disable_image_fetch;
+   unsigned int allowed_image_age;
 } Shotgun_Settings;
 
 struct Contact_List
@@ -104,6 +106,7 @@ struct Contact_List
 #endif
 
    Shotgun_Settings settings;
+   Ecore_Idler *image_cleaner;
 
    /* fps for doing stuff to both list and grid views with the same function */
    Ecore_Data_Cb list_item_parent_get[2];
@@ -170,6 +173,7 @@ typedef struct
    Ecore_Con_Url *url;
    Eina_Binbuf *buf;
    const char *addr;
+   unsigned long long timestamp;
    Contact_List *cl;
 } Image;
 
@@ -203,8 +207,9 @@ void contact_subscription_set(Contact *c, Shotgun_Presence_Type type, Shotgun_Us
 Eina_Bool ui_eet_init(Shotgun_Auth *auth);
 void ui_eet_dummy_add(const char *url);
 Eina_Bool ui_eet_dummy_check(const char *url);
-void ui_eet_image_add(const char *url, Eina_Binbuf *buf);
-Eina_Binbuf *ui_eet_image_get(const char *url);
+void ui_eet_image_add(const char *url, Eina_Binbuf *buf, unsigned long long timestamp);
+void ui_eet_image_del(const char *url);
+Eina_Binbuf *ui_eet_image_get(const char *url, unsigned long long timestamp);
 void ui_eet_shutdown(Shotgun_Auth *auth);
 Shotgun_Auth *ui_eet_auth_get(const char *name, const char *domain);
 void ui_eet_auth_set(Shotgun_Auth *auth, Shotgun_Settings *settings, Eina_Bool use_auth);
@@ -212,6 +217,7 @@ void ui_eet_userinfo_add(Shotgun_Auth *auth, Shotgun_User_Info *info);
 Shotgun_User_Info *ui_eet_userinfo_get(Shotgun_Auth *auth, const char *jid);
 Shotgun_Settings *ui_eet_settings_get(Shotgun_Auth *auth);
 void ui_eet_settings_set(Shotgun_Auth *auth, Shotgun_Settings *ss);
+Eina_Bool ui_eet_idler_start(Contact_List *cl);
 
 #ifdef HAVE_DBUS
 void ui_dbus_signal_message_self(Contact_List *cl, const char *jid, const char *s);

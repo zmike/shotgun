@@ -12,6 +12,8 @@
 const char *sha1_buffer(const unsigned char *data, size_t len);
 
 static Eet_File *images = NULL;
+static Eet_Data_Descriptor *cleaner_edd = NULL;
+static Eet_Data_Descriptor *cache_edd = NULL;
 static Eet_File *dummies = NULL;
 
 typedef struct UI_Eet_Auth
@@ -21,6 +23,35 @@ typedef struct UI_Eet_Auth
    const char *resource;
    const char *server;
 } UI_Eet_Auth;
+
+typedef struct
+{
+   const char *sha1;
+   unsigned long long timestamp;
+} image_cache;
+
+typedef struct image_cache_list
+{
+   Eina_List *cache;
+} image_cache_list;
+
+static image_cache_list *icl = NULL;
+
+static Eet_Data_Descriptor *
+eet_image_cache_edd_new(void)
+{
+   Eet_Data_Descriptor *edd;
+   Eet_Data_Descriptor_Class eddc;
+   EET_EINA_FILE_DATA_DESCRIPTOR_CLASS_SET(&eddc, image_cache);
+   edd = eet_data_descriptor_stream_new(&eddc);
+#define ADD(name, type) \
+  EET_DATA_DESCRIPTOR_ADD_BASIC(edd, image_cache, #name, name, EET_T_##type)
+
+   ADD(sha1, INLINED_STRING);
+   ADD(timestamp, ULONG_LONG);
+#undef ADD
+   return edd;
+}
 
 static Eet_Data_Descriptor *
 eet_ss_edd_new(void)
@@ -39,6 +70,8 @@ eet_ss_edd_new(void)
    ADD(enable_account_info, UCHAR);
    ADD(enable_last_account, UCHAR);
    ADD(enable_logging, UCHAR);
+   ADD(disable_image_fetch, UCHAR);
+   ADD(allowed_image_age, UINT);
 #undef ADD
    return edd;
 }
@@ -77,6 +110,93 @@ eet_userinfo_edd_new(void)
    return edd;
 }
 
+static int
+image_cache_compare(image_cache *a, image_cache *b)
+{
+   long long diff;
+   diff = a->timestamp - b->timestamp;
+   if (diff < 0) return -1;
+   if (!diff) return 0;
+   return 1;
+}
+
+static void
+image_cache_add(const char *sha1, unsigned long long timestamp)
+{
+   image_cache *ic;
+   if (!icl) return;
+   ic = malloc(sizeof(image_cache));
+   ic->sha1 = eina_stringshare_ref(sha1);
+   ic->timestamp = timestamp;
+   icl->cache = eina_list_sorted_insert(icl->cache, (Eina_Compare_Cb)image_cache_compare, ic);
+}
+
+static void
+image_cache_del(const char *sha1)
+{
+   Eina_List *l, *l2;
+   image_cache *ic;
+
+   if (!icl) return;
+   EINA_LIST_FOREACH_SAFE(icl->cache, l, l2, ic)
+     {
+        if (ic->sha1 == sha1) continue;
+        icl->cache = eina_list_remove_list(icl->cache, l);
+        return;
+     }
+}
+
+static void
+image_cache_update(const char *sha1, unsigned long long timestamp)
+{
+   image_cache *ic;
+   Eina_List *l;
+
+   if (!icl) return;
+   EINA_LIST_FOREACH(icl->cache, l, ic)
+     {
+        if (ic->sha1 != sha1) continue;
+        ic->timestamp = timestamp;
+        break;
+     }
+   icl->cache = eina_list_sort(icl->cache, eina_list_count(icl->cache), (Eina_Compare_Cb)image_cache_compare);
+}
+
+static Eina_Bool
+image_cleaner_cb(Contact_List *cl)
+{
+   unsigned long long now;
+   image_cache *ic;
+   Eina_List *l, *l2;
+   int cleaned = 0;
+   if ((!cleaner_edd) || (!cache_edd) || (!cl->settings.allowed_image_age))
+     {
+        cl->image_cleaner = NULL;
+        return EINA_FALSE;
+     }
+
+   now = (unsigned long long)time(NULL);
+   now -= cl->settings.allowed_image_age * 24 * 60 * 60;
+   EINA_LIST_FOREACH_SAFE(icl->cache, l, l2, ic)
+     {
+        /* only clean up to 3 entries at a time to ensure responsiveness */
+        if (cleaned >= 3) break;
+        if (ic->timestamp >= now)
+          {
+             /* stop the idler for now to avoid pointless spinning */
+             ecore_timer_add(24 * 60 * 60, (Ecore_Task_Cb)ui_eet_idler_start, cl);
+             cl->image_cleaner = NULL;
+             return EINA_FALSE;
+          }
+        eet_delete(images, ic->sha1);
+        icl->cache = eina_list_remove_list(icl->cache, l);
+        eina_stringshare_del(ic->sha1);
+        free(ic);
+        cleaned++;
+     }
+   return EINA_TRUE;
+}
+
 Eina_Bool
 ui_eet_init(Shotgun_Auth *auth)
 {
@@ -92,6 +212,24 @@ ui_eet_init(Shotgun_Auth *auth)
         snprintf(buf, sizeof(buf), "%s/images.eet", home);
         images = eet_open(buf, EET_FILE_MODE_READ_WRITE);
         if (!images) ERR("Could not open image cache file!");
+        else
+          {
+             Eet_Data_Descriptor_Class eddc;
+
+             cache_edd = eet_image_cache_edd_new();
+             EET_EINA_FILE_DATA_DESCRIPTOR_CLASS_SET(&eddc, image_cache_list);
+             cleaner_edd = eet_data_descriptor_file_new(&eddc);
+             EET_DATA_DESCRIPTOR_ADD_LIST(cleaner_edd, image_cache_list, "cache", cache, cache_edd);
+             icl = eet_data_read(images, cleaner_edd, "image_cache");
+             if (!icl)
+               {
+                  /* super old image cache file, better to just delete it and start over */
+                  eet_close(images);
+                  ecore_file_unlink(buf);
+                  images = eet_open(buf, EET_FILE_MODE_READ_WRITE);
+                  if (!images) ERR("Could not open image cache file!");
+               }
+          }
      }
    if (!dummies)
      {
@@ -125,8 +263,26 @@ void
 ui_eet_shutdown(Shotgun_Auth *auth)
 {
    if (!auth) return;
-   if (images) eet_close(images);
+   if (images)
+     {
+        if (icl)
+          {
+             image_cache *ic;
+             eet_data_write(images, cleaner_edd, "image_cache", icl, 1);
+             EINA_LIST_FREE(icl->cache, ic)
+               {
+                  eina_stringshare_del(ic->sha1);
+                  free(ic);
+               }
+             free(icl);
+          }
+        eet_close(images);
+     }
    if (dummies) eet_close(dummies);
+   if (cleaner_edd) eet_data_descriptor_free(cleaner_edd);
+   if (cache_edd) eet_data_descriptor_free(cache_edd);
+   images = dummies = NULL;
+   cleaner_edd = cache_edd = NULL;
    eet_close(shotgun_data_get(auth));
    eet_shutdown();
 }
@@ -333,7 +489,7 @@ ui_eet_dummy_check(const char *url)
 }
 
 void
-ui_eet_image_add(const char *url, Eina_Binbuf *buf)
+ui_eet_image_add(const char *url, Eina_Binbuf *buf, unsigned long long timestamp)
 {
    const char *sha1;
    int lsize;
@@ -365,15 +521,28 @@ ui_eet_image_add(const char *url, Eina_Binbuf *buf)
    eet_write(images, sha1, eina_binbuf_string_get(buf), eina_binbuf_length_get(buf), 1);
    eet_alias(images, url, sha1, 0);
    eet_sync(images);
+   image_cache_add(sha1, timestamp);
    INF("Added new image with length %zu: %s", eina_binbuf_length_get(buf), sha1);
 }
 
+void
+ui_eet_image_del(const char *url)
+{
+   const char *alias;
+   if (!images) return;
+   alias = eet_alias_get(images, url);
+   eet_delete(images, alias);
+   image_cache_del(alias);
+   eina_stringshare_del(alias);
+}
+
 Eina_Binbuf *
-ui_eet_image_get(const char *url)
+ui_eet_image_get(const char *url, unsigned long long timestamp)
 {
    size_t size;
    unsigned char *img;
    Eina_Binbuf *buf = NULL;
+   const char *alias;
    char **list;
    int lsize;
 
@@ -384,9 +553,12 @@ ui_eet_image_get(const char *url)
    free(list);
 
    img = eet_read(images, url, (int*)&size);
+   alias = eet_alias_get(images, url);
    buf = eina_binbuf_new(); /* FIXME: eina_binbuf_managed_new */
    eina_binbuf_append_length(buf, img, size);
+   image_cache_update(alias, timestamp);
 
+   eina_stringshare_del(alias);
    free(img);
    return buf;
 }
@@ -413,4 +585,12 @@ ui_eet_settings_set(Shotgun_Auth *auth, Shotgun_Settings *ss)
    edd = eet_ss_edd_new();
    eet_data_write(ef, edd, "settings", ss, 0);
    eet_data_descriptor_free(edd);
+}
+
+Eina_Bool
+ui_eet_idler_start(Contact_List *cl)
+{
+   if (!images) return EINA_FALSE;
+   cl->image_cleaner = ecore_idler_add((Ecore_Task_Cb)image_cleaner_cb, cl);
+   return EINA_FALSE;
 }

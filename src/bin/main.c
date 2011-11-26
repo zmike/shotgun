@@ -31,6 +31,7 @@ con(void *d __UNUSED__, int type __UNUSED__, Shotgun_Auth *auth)
    cl = contact_list_new(auth, ss);
    free(ss);
    logging_dir_create(cl);
+   if (cl->settings.allowed_image_age) ui_eet_idler_start(cl);
 #ifdef HAVE_DBUS
    ui_dbus_init(cl);
 #endif

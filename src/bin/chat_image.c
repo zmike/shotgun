@@ -90,8 +90,9 @@ chat_image_add(Contact_List *cl, const char *url)
    i = eina_hash_find(cl->images, url);
    if (i) return;
    if (ui_eet_dummy_check(url)) return;
+   if (cl->settings.disable_image_fetch) return;
    i = calloc(1, sizeof(Image));
-   i->buf = ui_eet_image_get(url);
+   i->buf = ui_eet_image_get(url, (unsigned long long)time(NULL));
    if (!i->buf)
      {
         i->url = ecore_con_url_new(url);
@@ -147,7 +148,8 @@ chat_image_complete(void *d __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Url
         eina_hash_del_by_key(i->cl->images, ecore_con_url_url_get(ev->url_con));
         return ECORE_CALLBACK_RENEW;
      }
-   ui_eet_image_add(i->addr, i->buf);
+   i->timestamp = (unsigned long long)time(NULL);
+   ui_eet_image_add(i->addr, i->buf, i->timestamp);
    return ECORE_CALLBACK_RENEW;
 }
 
