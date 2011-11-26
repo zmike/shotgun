@@ -32,6 +32,7 @@ dbus.c \
 eet.c \
 events.c \
 getpass_x.c \
+logging.c \
 main.c \
 settings.c \
 sha1.c \

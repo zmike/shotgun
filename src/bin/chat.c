@@ -84,12 +84,22 @@ chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me)
 #endif
      }
    elm_entry_entry_append(e, buf);
+   if (c->log)
+     {
+        /* switch <ps> for \n to be more readable */
+        len--;
+        while (buf[len] != '>') len--;
+        fwrite(buf, sizeof(char), len, c->log);
+        fwrite("\n", sizeof(char), 1, c->log);
+     }
    elm_entry_cursor_end_set(e);
    if (c->list->settings.enable_chat_focus)
      elm_win_activate(c->chat_window->win);
    if (c->list->settings.enable_chat_promote)
      /* FIXME: gengrid doesn't have item promote */
-     if (c->list->list_item_promote[c->list->mode]) c->list->list_item_promote[c->list->mode](c->list_item);
+     if (c->list->list_item_promote[c->list->mode])
+       /* FIXME: FIXME: fuck gengrid */
+       c->list->list_item_promote[c->list->mode](c->list_item);
 }
 
 void
@@ -447,6 +457,14 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
    Shotgun_Event_Presence *pres;
    const char *icon = (c->info && c->info->photo.size) ? NULL : "shotgun/userunknown";
 
+   if (c->list->settings.enable_logging)
+     {
+        if (!c->log)
+          {
+             logging_contact_init(c);
+             logging_contact_file_refresh(c);
+          }
+     }
    win = cw->win;
    c->chat_window = cw;
    cw->contacts = eina_list_append(cw->contacts, c);

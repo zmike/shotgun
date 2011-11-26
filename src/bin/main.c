@@ -30,6 +30,7 @@ con(void *d __UNUSED__, int type __UNUSED__, Shotgun_Auth *auth)
    ss = ui_eet_settings_get(auth);
    cl = contact_list_new(auth, ss);
    free(ss);
+   logging_dir_create(cl);
 #ifdef HAVE_DBUS
    ui_dbus_init(cl);
 #endif

@@ -72,6 +72,7 @@ typedef struct Shotgun_Settings
    Eina_Bool enable_chat_newselect;
    Eina_Bool enable_account_info;
    Eina_Bool enable_last_account;
+   Eina_Bool enable_logging;
 } Shotgun_Settings;
 
 struct Contact_List
@@ -157,8 +158,11 @@ struct Contact
    Evas_Object *animated; /* animated object for status */
    Ecore_Animator *animator; /* animator for status */
    Contact_List *list; /* the owner list */
+   FILE *log; /* log of contact */
+   const char *logdir; /* directory where contact's logs are stored */
    Eina_Bool tooltip_changed : 1; /* when set, tooltip_label will be re-created */
    Eina_Bool ignore_resource : 1; /* when set, priority will be ignored and messages will be sent to all resources */
+   Eina_Bool logdir_exists : 1; /* true only if a contact has an existing log directory */
 };
 
 typedef struct
@@ -228,6 +232,12 @@ void ui_azy_shutdown(Contact_List *cl);
 Eina_Bool event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev);
 Eina_Bool event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence *ev);
 Eina_Bool event_message_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Message *msg);
+
+const char *logging_dir_get(void);
+Eina_Bool logging_dir_create(Contact_List *cl);
+Eina_Bool logging_contact_init(Contact *c);
+Eina_Bool logging_contact_file_refresh(Contact *c);
+void logging_contact_file_close(Contact *c);
 
 void settings_new(Contact_List *cl);
 void settings_toggle(Contact_List *cl, Evas_Object *obj, void *event_info);

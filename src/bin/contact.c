@@ -98,6 +98,8 @@ contact_free(Contact *c)
    shotgun_user_info_free(c->info);
    eina_stringshare_del(c->last_conv);
    eina_stringshare_del(c->tooltip_label);
+   eina_stringshare_del(c->logdir);
+   if (c->log) fclose(c->log);
    free(c);
 }
 

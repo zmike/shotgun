@@ -27,6 +27,32 @@
    evas_object_show(ck); \
 } while (0)
 
+static void
+_settings_logging_change(Contact_List *cl, Evas_Object *obj, void *event_info __UNUSED__)
+{
+   Eina_List *l, *ll;
+   const char *dir;
+   Chat_Window *cw;
+   Contact *c;
+
+   if (!elm_check_state_get(obj))
+     {
+        /* close existing logs */
+        EINA_LIST_FOREACH(cl->users_list, l, c)
+          logging_contact_file_close(c);
+        return;
+     }
+
+   dir = logging_dir_get();
+   if (!dir[0]) logging_dir_create(cl);
+   EINA_LIST_FOREACH(cl->chat_wins, l, cw)
+     {
+        EINA_LIST_FOREACH(cw->contacts, ll, c)
+          /* open logs for all open chats */
+          logging_contact_file_refresh(c);
+     }
+}
+
 void
 settings_new(Contact_List *cl)
 {
@@ -81,6 +107,8 @@ settings_new(Contact_List *cl)
    SETTINGS_CHECK("Focus chat window on message", enable_chat_focus, "Focus chat window whenever message is received");
    SETTINGS_CHECK("Promote contact on message", enable_chat_promote, "Move contact to top of list when message is received");
    SETTINGS_CHECK("Always select new chat tabs", enable_chat_newselect, "When a message is received which would open a new tab, make that tab active");
+   SETTINGS_CHECK("Log messages to disk", enable_logging, "All messages sent or received will appear in ~/.config/shotgun/logs");
+   evas_object_smart_callback_add(ck, "changed", (Evas_Smart_Cb)_settings_logging_change, cl);
 }
 
 void
