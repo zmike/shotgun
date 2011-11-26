@@ -123,13 +123,23 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
              pres->priority = ev->priority;
              pres->status = ev->status;
 
-             eina_stringshare_replace(&pres->description, NULL);
+             eina_stringshare_del(pres->description);
              if (ev->description && ev->description[0])
-               pres->description = eina_stringshare_ref(ev->description);
+               {
+                  pres->description = ev->description;
+                  ev->description = NULL;
+               }
+             else
+               pres->description = NULL;
 
-             eina_stringshare_replace(&pres->photo, NULL);
+             eina_stringshare_del(pres->photo);
              if (ev->photo && ev->photo[0])
-               pres->photo = eina_stringshare_ref(ev->photo);
+               {
+                  pres->photo = ev->photo;
+                  ev->photo = NULL;
+               }
+             else
+               pres->photo = NULL;
 
              pres->vcard = ev->vcard;
              break;
@@ -164,7 +174,8 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
                {
                   eina_stringshare_del(pres->photo);
                   pres->photo = eina_stringshare_ref(ev->photo);
-               }             pres->vcard = ev->vcard;
+               }
+             pres->vcard = ev->vcard;
              /* must sort! */
              c->plist = eina_list_sort(c->plist, 0, (Eina_Compare_Cb)_list_sort_cb);
           }
@@ -193,43 +204,9 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
         c->cur = pres;
      }
 
-   c->status = c->cur->status;
-   /* if status description exists and isn't the same as current status description */
-   if (c->status_line && (c->description != c->cur->description))
-     {
-        elm_entry_entry_set(c->status_line, "");
-        if (c->cur->description) elm_entry_entry_append(c->status_line, c->cur->description);
-     }
-   c->description = c->cur->description;
-   c->priority = c->cur->priority;
-   /* if offline view or contact has a subscription, create/update list item */
-   if (cl->view || (c->base->subscription > SHOTGUN_USER_SUBSCRIPTION_NONE))
-     {
-        c->tooltip_changed = EINA_TRUE;
-        /* if no list item, create */
-        if (!c->list_item)
-          {
-             contact_list_user_add(cl, c);
-             /* if vcard available, fetch */
-             if (ev->vcard)
-               {
-                  c->info = ui_eet_userinfo_get(cl->account, c->base->jid);
-                  if (c->info) cl->list_item_update[cl->mode](c->list_item);
-                  if ((!c->info) || (c->cur && c->info &&
-                      ((c->info->photo.sha1 != c->cur->photo) || (c->cur->photo && (!c->info->photo.data)))))
-                    shotgun_iq_vcard_get(ev->account, c->base->jid);
-               }
-          }
-        /* otherwise, update */
-        else
-          {
-             /* if vcard available and (not retrieved || not most recent) */
-             if (ev->vcard && ((!c->info) || (c->cur && c->info &&
-                 ((c->info->photo.sha1 != c->cur->photo) || (c->cur->photo && (!c->info->photo.data))))))
-               shotgun_iq_vcard_get(ev->account, c->base->jid);
-             cl->list_item_update[cl->mode](c->list_item);
-          }
-     }
+   if (!c->force_resource)
+     contact_presence_set(c, c->cur);
+
    return EINA_TRUE;
 }
 

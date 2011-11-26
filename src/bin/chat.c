@@ -302,7 +302,9 @@ _chat_resource_force(Contact *c, Evas_Object *obj __UNUSED__, Elm_Object_Item *e
         if (*s) s++;
         else s = c->base->jid;
         if (!memcmp(res, s, strlen(s))) continue;
-        c->force_resource = pres->jid;
+        eina_stringshare_del(c->force_resource);
+        c->force_resource = eina_stringshare_ref(pres->jid);
+        contact_presence_set(c, pres);
         break;
      }
    elm_radio_state_value_set(radio, elm_menu_item_index_get(ev));

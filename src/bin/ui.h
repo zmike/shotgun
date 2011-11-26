@@ -205,6 +205,8 @@ void chat_conv_image_hide(Contact *c, Evas_Object *obj, Elm_Entry_Anchor_Info *e
 Eina_Bool chat_image_data(void *d __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Url_Data *ev);
 Eina_Bool chat_image_complete(void *d __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Url_Complete *ev);
 
+Shotgun_Event_Presence *contact_presence_get(Contact *c);
+void contact_presence_set(Contact *c, Shotgun_Event_Presence *cur);
 const char *contact_name_get(Contact *c);
 void contact_jids_menu_del(Contact *c, const char *jid);
 void contact_free(Contact *c);

@@ -237,6 +237,58 @@ contact_chat_window_close(Contact *c)
    else chat_window_free(cw, NULL, NULL);
 }
 
+Shotgun_Event_Presence *
+contact_presence_get(Contact *c)
+{
+   Eina_List *l;
+   Shotgun_Event_Presence *p;
+
+   if (!c->force_resource) return c->cur;
+   if (c->cur->jid == c->force_resource) return c->cur;
+   EINA_LIST_FOREACH(c->plist, l, p)
+     if (p->jid == c->force_resource) return p;
+   return NULL;
+}
+
+void
+contact_presence_set(Contact *c, Shotgun_Event_Presence *cur)
+{
+   Contact_List *cl = c->list;
+
+   if (!cur) return;
+   c->status = cur->status;
+   /* if status description exists and isn't the same as current status description */
+   if (c->status_line && (c->description != cur->description))
+     {
+        elm_entry_entry_set(c->status_line, "");
+        if (cur->description) elm_entry_entry_append(c->status_line, cur->description);
+     }
+   c->description = cur->description;
+   c->priority = cur->priority;
+   /* if offline view or contact has a subscription, create/update list item */
+   if ((!cl->view) && (c->base->subscription == SHOTGUN_USER_SUBSCRIPTION_NONE)) return;
+
+   c->tooltip_changed = EINA_TRUE;
+   /* if no list item, create */
+   if (!c->list_item)
+     {
+        if (c->cur->vcard)
+          c->info = ui_eet_userinfo_get(cl->account, c->base->jid);
+        contact_list_user_add(cl, c);
+     }
+   /* otherwise, update */
+   else
+     {
+        /* if vcard available and (not retrieved || not most recent) */
+        cl->list_item_update[cl->mode](c->list_item);
+     }
+   /* if vcard available, fetch */
+   if (c->cur->vcard && ((!c->info) || (cur && c->info &&
+       ((c->info->photo.sha1 != cur->photo) || (cur->photo && (!c->info->photo.data))))))
+     shotgun_iq_vcard_get(cl->account, c->base->jid);
+
+}
+
 void
 contact_subscription_set(Contact *c, Shotgun_Presence_Type type, Shotgun_User_Subscription sub)
 {
