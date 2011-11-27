@@ -188,7 +188,6 @@ _contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_
       evas_object_show(o);
       elm_entry_cursor_begin_set(o);
       elm_entry_select_all(o);
-      elm_object_focus_set(o, 1);
 
       elm_naviframe_item_push(p, "Contact's Name (Alias):", b, b2, o, NULL);
    }
