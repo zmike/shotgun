@@ -133,7 +133,7 @@ chat_image_add(Contact_List *cl, const char *url)
    i->cl = cl;
    i->addr = url;
    eina_hash_add(cl->images, url, i);
-   cl->image_list = eina_list_sorted_insert(cl->image_list, (Eina_Compare_Cb)_chat_image_sort_cb, NULL);
+   cl->image_list = eina_list_sorted_insert(cl->image_list, (Eina_Compare_Cb)_chat_image_sort_cb, i);
    chat_image_cleanup(i->cl);
 }
 
