@@ -75,19 +75,28 @@ chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me)
    snprintf(buf, len, "<color=#%s>%s <b>%s:</b></color> %s<ps>", color, timebuf, from, s);
    free(s);
 
+#ifdef HAVE_NOTIFY
    if (!me)
      {
+        Eina_Bool notify = EINA_FALSE;
         //if (!contact_chat_window_current(c))
-#ifdef HAVE_NOTIFY
-        if (!elm_win_focus_get(c->chat_window->win))
-          ui_dbus_notify(c->list, elm_icon_object_get(elm_object_item_content_part_get(c->list_item, "elm.swallow.end")), from, msg);
+        if (!elm_win_focus_get(c->chat_window->win)) notify = EINA_TRUE;
         else
           {
-             if (!contact_chat_window_current(c))
-               ui_dbus_notify(c->list, elm_icon_object_get(elm_object_item_content_part_get(c->list_item, "elm.swallow.end")), from, msg);
+             if (!contact_chat_window_current(c)) notify = EINA_TRUE;
           }
-#endif
+        if (notify)
+          {
+             Evas_Object *img;
+
+             img = evas_object_image_add(evas_object_evas_get(c->list->win));
+             evas_object_image_memfile_set(img, c->info->photo.data, c->info->photo.size, NULL, NULL);
+             evas_object_image_scale_hint_set(img, EVAS_IMAGE_SCALE_HINT_STATIC);
+             ui_dbus_notify(c->list, img, from, msg);
+             evas_object_del(img);
+          }
      }
+#endif
    elm_entry_entry_append(e, buf);
    if (c->log)
      {
