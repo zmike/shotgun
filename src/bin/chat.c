@@ -576,7 +576,8 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
    else
      contact_chat_window_animator_add(c);
 
-   elm_win_activate(cw->win);
+   if (c->list->settings.enable_chat_focus)
+     elm_win_activate(cw->win);
 }
 
 void
