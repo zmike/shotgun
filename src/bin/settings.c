@@ -160,7 +160,7 @@ settings_new(Contact_List *cl)
 }
 
 void
-settings_toggle(Contact_List *cl, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
+settings_toggle(Contact_List *cl, Evas_Object *obj __UNUSED__, void *event_info)
 {
    if ((!cl->image_cleaner) && cl->settings.allowed_image_age)
      ui_eet_idler_start(cl);
@@ -172,5 +172,6 @@ settings_toggle(Contact_List *cl, Evas_Object *obj __UNUSED__, void *event_info 
         else
           elm_object_text_set(cl->illume_frame, "Contacts");
      }
+   if (event_info) elm_toolbar_item_selected_set(event_info, EINA_FALSE);
    elm_flip_go(cl->flip, ELM_FLIP_ROTATE_Y_CENTER_AXIS);
 }

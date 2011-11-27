@@ -61,12 +61,6 @@ _contact_list_user_del(Contact *c)
 }
 
 static void
-_contact_list_close(Contact_List *cl, Evas_Object *obj __UNUSED__, void *ev  __UNUSED__)
-{
-   evas_object_del(cl->win);
-}
-
-static void
 _contact_list_click_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, void *ev)
 {
    Contact *c;
@@ -478,6 +472,8 @@ _contact_list_list_add(Contact_List *cl)
                                   (Evas_Object_Event_Cb)_contact_list_rightclick_cb, cl);
 }
 
+
+/* FIXME: gengrid is too sucky to use
 static void
 _contact_list_grid_add(Contact_List *cl)
 {
@@ -516,6 +512,7 @@ _contact_list_mode_toggle(Contact_List *cl, Evas_Object *obj __UNUSED__, void *e
           contact_list_user_add(cl, c);
      }
 }
+*/
 
 static void
 _contact_list_show_toggle(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_Item *ev __UNUSED__)
@@ -923,15 +920,9 @@ contact_list_new(Shotgun_Auth *auth, Shotgun_Settings *ss)
    tb = elm_toolbar_add(win);
    ALIGN(tb, EVAS_HINT_FILL, 0);
    elm_toolbar_align_set(tb, 0);
-   it = elm_toolbar_item_append(tb, NULL, "Shotgun", NULL, NULL);
-   elm_toolbar_item_menu_set(it, 1);
-   elm_toolbar_menu_parent_set(tb, win);
+   it = elm_toolbar_item_append(tb, NULL, "Settings", (Evas_Smart_Cb)settings_toggle, cl);
    elm_box_pack_end(box, tb);
    evas_object_show(tb);
-   menu = elm_toolbar_item_menu_get(it);
-   elm_menu_item_add(menu, NULL, "refresh", "Toggle View Mode", (Evas_Smart_Cb)_contact_list_mode_toggle, cl);
-   elm_menu_item_add(menu, NULL, "edit", "Settings", (Evas_Smart_Cb)settings_toggle, cl);
-   elm_menu_item_add(menu, NULL, "close", "Quit", (Evas_Smart_Cb)_contact_list_close, cl);
 
    it = elm_toolbar_item_append(tb, NULL, "Status", NULL, NULL);
    elm_toolbar_item_menu_set(it, 1);
