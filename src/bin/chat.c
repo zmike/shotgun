@@ -91,7 +91,6 @@ chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me)
 
              img = evas_object_image_add(evas_object_evas_get(c->list->win));
              evas_object_image_memfile_set(img, c->info->photo.data, c->info->photo.size, NULL, NULL);
-             evas_object_image_scale_hint_set(img, EVAS_IMAGE_SCALE_HINT_STATIC);
              ui_dbus_notify(c->list, img, from, msg);
              evas_object_del(img);
           }
