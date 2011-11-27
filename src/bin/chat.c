@@ -13,10 +13,15 @@ _chat_conv_anchor_click(Contact *c, Evas_Object *obj __UNUSED__, Elm_Entry_Ancho
            size_t size;
 
            browser = getenv("BROWSER");
-           if (!browser) return;
+           if (!browser)
+             {
+                DBG("No BROWSER found in env, not opening");
+                return;
+             }
            size = sizeof(char) * (strlen(ev->name) + strlen(browser) + 1) + 1;
            cmd = alloca(size);
            snprintf(cmd, size, "%s %s", browser, ev->name);
+           DBG("Running BROWSER command: %s", cmd);
            ecore_exe_run(cmd, NULL);
            return;
         }
