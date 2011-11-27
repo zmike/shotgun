@@ -118,6 +118,18 @@ chat_message_status(Contact *c __UNUSED__, Shotgun_Event_Message *msg)
 }
 
 static void
+_chat_window_focus(Chat_Window *cw, Evas_Object *obj __UNUSED__, void *ev __UNUSED__)
+{
+   Evas_Object *panes;
+   Contact *c;
+
+   panes = elm_pager_content_top_get(cw->pager);
+   c = evas_object_data_get(panes, "contact");
+   if (!c) return;
+   elm_object_focus_set(c->chat_input, EINA_TRUE);
+}
+
+static void
 _chat_window_send_cb(Contact *c, Evas_Object *obj, void *ev __UNUSED__)
 {
    char *s;
@@ -368,6 +380,7 @@ chat_window_new(Contact_List *cl)
         cw->win = win = elm_win_add(NULL, "chat-window", ELM_WIN_BASIC);
         evas_object_smart_callback_add(win, "delete,request", (Evas_Smart_Cb)chat_window_free, cw);
      }
+   evas_object_smart_callback_add(win, "focus,in", (Evas_Smart_Cb)_chat_window_focus, cw);
    evas_object_event_callback_add(win, EVAS_CALLBACK_KEY_DOWN, (Evas_Object_Event_Cb)_chat_window_key, cw);
    e = evas_object_evas_get(win);
    ctrl = evas_key_modifier_mask_get(e, "Control");
