@@ -83,6 +83,7 @@ void
 settings_new(Contact_List *cl)
 {
    Evas_Object *scr, *ic, *back, *box, *ck, *fr, *frbox, *sl;
+   int init;
 
    cl->settings_box = box = elm_box_add(cl->win);
    EXPAND(box);
@@ -131,12 +132,24 @@ settings_new(Contact_List *cl)
    SETTINGS_CHECK("Disable notifications", disable_notify, "Disables use of notification popups");
 #endif
 
-   SETTINGS_FRAME("Images");
+   init = ecore_con_url_init();
+   if (init)
+     SETTINGS_FRAME("Images");
+   else
+     SETTINGS_FRAME("Images (DISABLED: REQUIRES CURL SUPPORT IN ECORE)");
    SETTINGS_CHECK("Disable automatic image fetching", disable_image_fetch, "Disables background fetching of images");
-   SETTINGS_SLIDER("Max image age", "Number of days to save linked images on disk before deleting them",
-                   "%1.0f days", 60, image_age);
-   SETTINGS_SLIDER("Max image memory", "Total size of images to keep in memory",
-                   "%1.0f MB", 512, image_size);
+   if (init)
+     {
+        SETTINGS_SLIDER("Max image age", "Number of days to save linked images on disk before deleting them",
+                        "%1.0f days", 60, image_age);
+        SETTINGS_SLIDER("Max image memory", "Total size of images to keep in memory",
+                        "%1.0f MB", 512, image_size);
+     }
+   else
+     {
+        elm_check_state_set(ck, EINA_TRUE);
+        elm_object_disabled_set(ck, EINA_TRUE);
+     }
 
    SETTINGS_FRAME("Messages");
    SETTINGS_CHECK("Focus chat window on message", enable_chat_focus, "Focus chat window whenever message is received");

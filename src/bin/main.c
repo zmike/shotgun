@@ -66,7 +66,6 @@ main(int argc, char *argv[])
 
    eina_init();
    ecore_app_args_set(argc, (const char**)argv);
-   ecore_con_url_init();
    shotgun_init();
    elm_init(argc, argv);
 
