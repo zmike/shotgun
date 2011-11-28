@@ -19,6 +19,7 @@ _contact_list_free_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj __U
    EINA_LIST_FREE(cl->users_list, c)
      contact_free(c);
 
+   if (cl->logs_refresh) ecore_timer_del(cl->logs_refresh);
    shotgun_disconnect(cl->account);
    ui_eet_auth_set(cl->account, &cl->settings, EINA_FALSE);
    ui_eet_settings_set(cl->account, &cl->settings);

@@ -116,6 +116,7 @@ struct Contact_List
 
    Shotgun_Settings settings;
    Ecore_Idler *image_cleaner;
+   Ecore_Timer *logs_refresh;
 
    /* fps for doing stuff to both list and grid views with the same function */
    Ecore_Data_Cb list_item_parent_get[2];

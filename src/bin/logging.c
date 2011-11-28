@@ -2,7 +2,6 @@
 #include <time.h>
 
 static char logdir[4096];
-static Ecore_Timer *logs_refresh = NULL;
 
 static Eina_Bool
 _logging_timer(Contact_List *cl)
@@ -12,7 +11,7 @@ _logging_timer(Contact_List *cl)
 
    EINA_LIST_FOREACH(cl->users_list, l, c)
      if (c->log) logging_contact_file_refresh(c);
-   ecore_timer_interval_set(logs_refresh, 24 * 60 * 60);
+   ecore_timer_interval_set(cl->logs_refresh, 24 * 60 * 60);
    return EINA_TRUE;
 }
 
@@ -51,7 +50,7 @@ logging_contact_file_refresh(Contact *c)
    t = ecore_time_unix_get();
    tt = localtime(&t);
    strftime(ti, sizeof(ti), "%Y-%m-%d.txt", tt);
-   if (!logs_refresh)
+   if (!c->list->logs_refresh)
      {
         tt->tm_sec = 59;
         tt->tm_min = 59;
@@ -59,7 +58,7 @@ logging_contact_file_refresh(Contact *c)
         tt->tm_wday = tt->tm_yday = 0;
         t2 = mktime(tt);
         /* create job to refresh log files on turn of day */
-        logs_refresh = ecore_timer_add(difftime(t2, t) + 1.0, (Ecore_Task_Cb)_logging_timer, c->list);
+        c->list->logs_refresh = ecore_timer_add(difftime(t2, t) + 1.0, (Ecore_Task_Cb)_logging_timer, c->list);
      }
    snprintf(buf, sizeof(buf), "%s/%s", c->logdir, ti);
    c->log = fopen(buf, "a+");
