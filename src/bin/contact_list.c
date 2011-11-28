@@ -893,6 +893,7 @@ contact_list_new(Shotgun_Auth *auth, Shotgun_Settings *ss)
    cl->flip = elm_flip_add(win);
    EXPAND(cl->flip);
    FILL(cl->flip);
+   elm_win_resize_object_add(win, cl->flip);
 
    IF_ILLUME
      {
@@ -907,7 +908,6 @@ contact_list_new(Shotgun_Auth *auth, Shotgun_Settings *ss)
    else
      {
         EXPAND(box);
-        elm_win_resize_object_add(win, box);
      }
    evas_object_show(box);
 

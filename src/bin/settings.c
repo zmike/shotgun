@@ -88,7 +88,6 @@ settings_new(Contact_List *cl)
    cl->settings_box = box = elm_box_add(cl->win);
    EXPAND(box);
    FILL(box);
-   elm_win_resize_object_add(cl->win, box);
    elm_flip_content_back_set(cl->flip, box);
    evas_object_show(box);
 
