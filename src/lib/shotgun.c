@@ -24,8 +24,7 @@ disc(Shotgun_Auth *auth, int type __UNUSED__, Ecore_Con_Event_Server_Del *ev)
    INF("Disconnected");
    ecore_con_server_del(auth->svr);
    auth->svr = NULL;
-   auth->ev_del = NULL;
-   ecore_event_add(SHOTGUN_EVENT_DISCONNECT, auth, shotgun_fake_free, NULL);
+   shotgun_disconnect(auth);
    return EINA_FALSE;
 }
 
@@ -252,6 +251,8 @@ shotgun_disconnect(Shotgun_Auth *auth)
    auth->ev_error = NULL;
    auth->ev_upgrade = NULL;
    auth->svr = NULL;
+   auth->state = 0;
+   memset(&auth->features, 0, sizeof(auth->features));
 }
 
 void
