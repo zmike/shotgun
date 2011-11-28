@@ -2,6 +2,7 @@
 
 int ui_log_dom = -1;
 static Ecore_Event_Handler *dh = NULL;
+static Ecore_Event_Handler *ch = NULL;
 
 static Eina_Bool
 con_state(void *d __UNUSED__, int type __UNUSED__, Shotgun_Auth *auth __UNUSED__)
@@ -12,35 +13,51 @@ con_state(void *d __UNUSED__, int type __UNUSED__, Shotgun_Auth *auth __UNUSED__
 
 
 static Eina_Bool
-disc(void *d __UNUSED__, int type __UNUSED__, Shotgun_Auth *auth __UNUSED__)
+disc(Contact_List *cl, int type __UNUSED__, Shotgun_Auth *auth __UNUSED__)
 {
+   Eina_List *l;
+   Contact *c;
    INF("Disconnected");
-   ecore_main_loop_quit();
+   if (!cl)
+     {
+        ecore_main_loop_quit();
+        return ECORE_CALLBACK_RENEW;
+     }
+   EINA_LIST_FOREACH(cl->users_list, l, c)
+     contact_presence_clear(c);
+   shotgun_connect(cl->account);
    return ECORE_CALLBACK_RENEW;
 }
 
 static Eina_Bool
-con(void *d __UNUSED__, int type __UNUSED__, Shotgun_Auth *auth)
+con(void *data, int type __UNUSED__, Shotgun_Auth *auth)
 {
-   Contact_List *cl;
+   Contact_List *cl = data;
    Shotgun_Settings *ss;
    INF("Connected!");
-   shotgun_iq_roster_get(auth);
-   shotgun_presence_set(auth, SHOTGUN_USER_STATUS_CHAT, "testing SHOTGUN!", 1);
-   shotgun_presence_send(auth);
-   ss = ui_eet_settings_get(auth);
-   cl = contact_list_new(auth, ss);
-   free(ss);
-   logging_dir_create(cl);
-   if (cl->settings.allowed_image_age) ui_eet_idler_start(cl);
+   /* don't mess up already-created list */
+   if (!cl)
+     {
+        shotgun_presence_set(auth, SHOTGUN_USER_STATUS_CHAT, "testing SHOTGUN!", 1);
+        ss = ui_eet_settings_get(auth);
+        cl = contact_list_new(auth, ss);
+        free(ss);
+        ecore_event_handler_data_set(dh, cl);
+        ecore_event_handler_data_set(ch, cl);
+        logging_dir_create(cl);
+        if (cl->settings.allowed_image_age) ui_eet_idler_start(cl);
 #ifdef HAVE_DBUS
-   ui_dbus_init(cl);
+        ui_dbus_init(cl);
 #endif
 #ifdef HAVE_AZY
-   ui_azy_init(cl);
-   if (ui_azy_connect(cl))
-     ecore_timer_add(24 * 60 * 60, (Ecore_Task_Cb)ui_azy_connect, cl);
+        ui_azy_init(cl);
+        if (ui_azy_connect(cl))
+          ecore_timer_add(24 * 60 * 60, (Ecore_Task_Cb)ui_azy_connect, cl);
 #endif
+     }
+   shotgun_iq_roster_get(auth);
+   shotgun_presence_send(auth);
+
    return ECORE_CALLBACK_RENEW;
 }
 
@@ -73,7 +90,7 @@ main(int argc, char *argv[])
    //eina_log_domain_level_set("ecore_con", EINA_LOG_LEVEL_DBG);
    ecore_event_handler_add(ECORE_CON_EVENT_URL_DATA, (Ecore_Event_Handler_Cb)chat_image_data, NULL);
    ecore_event_handler_add(ECORE_CON_EVENT_URL_COMPLETE, (Ecore_Event_Handler_Cb)chat_image_complete, NULL);
-   ecore_event_handler_add(SHOTGUN_EVENT_CONNECT, (Ecore_Event_Handler_Cb)con, NULL);
+   ch = ecore_event_handler_add(SHOTGUN_EVENT_CONNECT, (Ecore_Event_Handler_Cb)con, NULL);
    ecore_event_handler_add(SHOTGUN_EVENT_CONNECTION_STATE, (Ecore_Event_Handler_Cb)con_state, NULL);
    dh = ecore_event_handler_add(SHOTGUN_EVENT_DISCONNECT, (Ecore_Event_Handler_Cb)disc, NULL);
 

@@ -386,3 +386,21 @@ contact_subscription_set(Contact *c, Shotgun_Presence_Type type, Shotgun_User_Su
      }
    c->base->subscription = sub;
 }
+
+void
+contact_presence_clear(Contact *c)
+{
+   Shotgun_Event_Presence *p;
+   if (!c) return;
+
+   EINA_LIST_FREE(c->plist, p)
+     shotgun_event_presence_free(p);
+   shotgun_event_presence_free(c->cur);
+   c->cur = NULL;
+   eina_stringshare_del(c->force_resource);
+   c->force_resource = NULL;
+   c->tooltip_changed = EINA_TRUE;
+   c->description = NULL;
+   c->status = 0;
+   c->priority = 0;
+}
