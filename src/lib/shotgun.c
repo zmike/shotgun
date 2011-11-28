@@ -238,6 +238,8 @@ void
 shotgun_disconnect(Shotgun_Auth *auth)
 {
    if (!auth) return;
+   if (auth->svr_name)
+     ecore_event_add(SHOTGUN_EVENT_DISCONNECT, auth, shotgun_fake_free, NULL);
    if (auth->ev_add) ecore_event_handler_del(auth->ev_add);
    if (auth->ev_del) ecore_event_handler_del(auth->ev_del);
    if (auth->ev_data) ecore_event_handler_del(auth->ev_data);
@@ -256,7 +258,6 @@ void
 shotgun_free(Shotgun_Auth *auth)
 {
    if (!auth) return;
-   shotgun_disconnect(auth);
    eina_stringshare_del(auth->user);
    eina_stringshare_del(auth->from);
    eina_stringshare_del(auth->resource);
@@ -264,6 +265,8 @@ shotgun_free(Shotgun_Auth *auth)
    eina_stringshare_del(auth->svr_name);
    eina_stringshare_del(auth->bind);
    eina_stringshare_del(auth->desc);
+   auth->svr_name = NULL;
+   shotgun_disconnect(auth);
    if (auth->buf) eina_strbuf_free(auth->buf);
    free(auth);
 }
