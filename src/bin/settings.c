@@ -123,8 +123,9 @@ settings_new(Contact_List *cl)
    SETTINGS_CHECK("Save account info", enable_account_info, "Remember account name and password");
    SETTINGS_CHECK("Remember last account", enable_last_account, "Automatically sign in with current account on next run");
 
-   SETTINGS_FRAME("Appearance");
+   SETTINGS_FRAME("Application");
    SETTINGS_CHECK("Enable single window mode", enable_illume, "Use a single window for the application - REQUIRES RESTART (embedded friendly)");
+   SETTINGS_CHECK("Disable automatic reconnect", disable_reconnect, "Disable automatic reconnection when disconnected");
 
 #ifdef HAVE_NOTIFY
    SETTINGS_FRAME("DBus");

@@ -42,7 +42,8 @@ con(void *data, int type __UNUSED__, Shotgun_Auth *auth)
         ss = ui_eet_settings_get(auth);
         cl = contact_list_new(auth, ss);
         free(ss);
-        ecore_event_handler_data_set(dh, cl);
+        if (!cl->settings.disable_reconnect)
+          ecore_event_handler_data_set(dh, cl);
         ecore_event_handler_data_set(ch, cl);
         logging_dir_create(cl);
         if (cl->settings.allowed_image_age) ui_eet_idler_start(cl);

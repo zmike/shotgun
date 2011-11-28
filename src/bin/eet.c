@@ -74,6 +74,7 @@ eet_ss_edd_new(void)
    ADD(disable_image_fetch, UCHAR);
    ADD(allowed_image_age, UINT);
    ADD(allowed_image_size, UINT);
+   ADD(disable_reconnect, UCHAR);
 #undef ADD
    return edd;
 }

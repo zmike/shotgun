@@ -78,6 +78,7 @@ typedef struct Shotgun_Settings
    Eina_Bool enable_logging;
    Eina_Bool enable_illume;
    Eina_Bool disable_image_fetch;
+   Eina_Bool disable_reconnect;
    unsigned int allowed_image_age;
    unsigned int allowed_image_size;
 } Shotgun_Settings;
