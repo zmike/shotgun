@@ -80,7 +80,10 @@ _contact_list_click_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, void *ev)
 static void
 _contact_list_remove_cb(Elm_Object_Item *it, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
 {
-   _contact_list_user_del(elm_object_item_data_get(it));
+   Contact *c = elm_object_item_data_get(it);
+
+   if (shotgun_connection_state_get(c->list->account) != SHOTGUN_CONNECTION_STATE_CONNECTED) return;
+   _contact_list_user_del(c);
 }
 
 static void
@@ -90,6 +93,7 @@ _contact_list_subscribe_cb(Elm_Object_Item *it, Evas_Object *obj __UNUSED__, voi
    Eina_Bool s;
 
    c = elm_object_item_data_get(it);
+   if (shotgun_connection_state_get(c->list->account) != SHOTGUN_CONNECTION_STATE_CONNECTED) return;
    s = (c->base->subscription == SHOTGUN_USER_SUBSCRIPTION_FROM) ? EINA_TRUE : EINA_FALSE;
    shotgun_presence_subscription_set(c->list->account, c->base->jid, s);
 }
@@ -149,6 +153,7 @@ _contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_
 
    elm_toolbar_item_selected_set(ev, EINA_FALSE);
    if (cl->pager) return;
+   if (shotgun_connection_state_get(cl->account) != SHOTGUN_CONNECTION_STATE_CONNECTED) return;
    cl->pager = p = elm_naviframe_add(cl->win);
    WEIGHT(p, EVAS_HINT_EXPAND, 0);
    FILL(p);
@@ -241,8 +246,9 @@ _contact_list_del_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_
    Contact *c;
 
    c = elm_object_item_data_get(cl->list_selected_item_get[cl->mode](cl->list));
-   _contact_list_user_del(c);
    elm_toolbar_item_selected_set(ev, EINA_FALSE);
+   if (shotgun_connection_state_get(c->list->account) != SHOTGUN_CONNECTION_STATE_CONNECTED) return;
+   _contact_list_user_del(c);
 }
 
 static void
@@ -254,7 +260,9 @@ _contact_list_rightclick_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *o
    Contact *c;
    const char *name;
    char buf[128];
+
    if (ev->button != 3) return;
+   if (shotgun_connection_state_get(cl->account) != SHOTGUN_CONNECTION_STATE_CONNECTED) return;
 
 /* FIXME: HACKS!! */
    if (cl->mode)
@@ -520,6 +528,7 @@ _contact_list_show_toggle(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Too
    Eina_List *l;
    Contact *c;
 
+   if (shotgun_connection_state_get(cl->account) != SHOTGUN_CONNECTION_STATE_CONNECTED) return;
    cl->view++;
    EINA_LIST_FOREACH(cl->users_list, l, c)
      {
@@ -538,6 +547,7 @@ _contact_list_status_changed(Contact_List *cl, Evas_Object *obj __UNUSED__, void
 static Eina_Bool
 _contact_list_status_send(Contact_List *cl)
 {
+   if (shotgun_connection_state_get(cl->account) != SHOTGUN_CONNECTION_STATE_CONNECTED) return EINA_FALSE;
    shotgun_presence_send(cl->account);
 #ifdef HAVE_DBUS
    ui_dbus_signal_status_self(cl);
@@ -555,6 +565,7 @@ _contact_list_status_menu(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Obj
    Evas_Object *radio;
    Shotgun_User_Status val;
 
+   if (shotgun_connection_state_get(cl->account) != SHOTGUN_CONNECTION_STATE_CONNECTED) return;
    radio = (Evas_Object*)elm_object_item_content_get(it);
    val = elm_radio_state_value_get(radio);
    if ((Shotgun_User_Status)elm_radio_value_get(radio) == val) return;
@@ -569,6 +580,7 @@ _contact_list_status_menu(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Obj
 static void
 _contact_list_status_priority(Contact_List *cl, Evas_Object *obj, void *ev __UNUSED__)
 {
+   if (shotgun_connection_state_get(cl->account) != SHOTGUN_CONNECTION_STATE_CONNECTED) return;
    shotgun_presence_priority_set(cl->account, elm_spinner_value_get(obj));
    if (cl->status_timer) ecore_timer_delay(cl->status_timer, 3);
    else
@@ -583,6 +595,7 @@ _contact_list_status_message(Contact_List *cl, Evas_Object *obj, void *ev __UNUS
 {
    char *s;
 
+   if (shotgun_connection_state_get(cl->account) != SHOTGUN_CONNECTION_STATE_CONNECTED) return;
    s = elm_entry_markup_to_utf8(elm_entry_entry_get(obj));
    shotgun_presence_desc_set(cl->account, s);
    free(s);

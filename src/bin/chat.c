@@ -148,6 +148,9 @@ _chat_window_send_cb(Contact *c, Evas_Object *obj, void *ev __UNUSED__)
    char *s;
    const char *jid, *txt;
 
+   /* FIXME: add popup error or something */
+   if (shotgun_connection_state_get(c->list->account) != SHOTGUN_CONNECTION_STATE_CONNECTED) return;
+
    txt = elm_entry_entry_get(obj);
    if ((!txt) || (!txt[0])) return;
 

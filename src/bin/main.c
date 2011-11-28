@@ -25,6 +25,13 @@ disc(Contact_List *cl, int type __UNUSED__, Shotgun_Auth *auth __UNUSED__)
      }
    EINA_LIST_FOREACH(cl->users_list, l, c)
      contact_presence_clear(c);
+   if (cl->pager)
+     {
+        evas_object_del(cl->pager);
+        cl->pager_entries = eina_list_free(cl->pager_entries);
+        cl->pager = NULL;
+        cl->pager_state = 0;
+     }
    shotgun_connect(cl->account);
    return ECORE_CALLBACK_RENEW;
 }
