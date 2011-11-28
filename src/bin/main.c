@@ -1,6 +1,7 @@
 #include "ui.h"
 
 int ui_log_dom = -1;
+static Ecore_Event_Handler *dh = NULL;
 
 static Eina_Bool
 con_state(void *d __UNUSED__, int type __UNUSED__, Shotgun_Auth *auth __UNUSED__)
@@ -56,14 +57,6 @@ main(int argc, char *argv[])
    Shotgun_Auth *auth;
    char *getpass_x(const char *prompt);
 
-   if ((argc != 4) && (argc != 1) && (argc != 2))
-     {
-        fprintf(stderr, "Usage: %s [server] [username] [domain]\n", argv[0]);
-        fprintf(stderr, "Usage example: %s talk.google.com my_username gmail.com\n", argv[0]);
-        fprintf(stderr, "Usage example (with saved account): %s\n", argv[0]);
-        return 1;
-     }
-
    eina_init();
    ecore_app_args_set(argc, (const char**)argv);
    shotgun_init();
@@ -82,7 +75,7 @@ main(int argc, char *argv[])
    ecore_event_handler_add(ECORE_CON_EVENT_URL_COMPLETE, (Ecore_Event_Handler_Cb)chat_image_complete, NULL);
    ecore_event_handler_add(SHOTGUN_EVENT_CONNECT, (Ecore_Event_Handler_Cb)con, NULL);
    ecore_event_handler_add(SHOTGUN_EVENT_CONNECTION_STATE, (Ecore_Event_Handler_Cb)con_state, NULL);
-   ecore_event_handler_add(SHOTGUN_EVENT_DISCONNECT, (Ecore_Event_Handler_Cb)disc, NULL);
+   dh = ecore_event_handler_add(SHOTGUN_EVENT_DISCONNECT, (Ecore_Event_Handler_Cb)disc, NULL);
 
    if (argc < 3)
      auth = ui_eet_auth_get(NULL, NULL);
