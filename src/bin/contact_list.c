@@ -701,7 +701,7 @@ _contact_list_window_key(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj 
              elm_flip_go(cl->flip, ELM_FLIP_ROTATE_Y_CENTER_AXIS);
              return;
           }
-        _contact_list_add_pager_cb_prev(cl, NULL, NULL);
+        settings_toggle(cl, NULL, NULL);
      }
    else if (!strcmp(ev->keyname, "q"))
      evas_object_del(cl->win);
