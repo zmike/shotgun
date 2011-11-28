@@ -35,6 +35,13 @@ typedef struct image_cache_list
    Eina_List *cache;
 } image_cache_list;
 
+typedef struct Shotgun_Presence
+{
+   const char *desc;
+   Shotgun_User_Status status;
+   int priority;
+} Shotgun_Presence;
+
 static image_cache_list *icl = NULL;
 
 static Eet_Data_Descriptor *
@@ -75,6 +82,7 @@ eet_ss_edd_new(void)
    ADD(allowed_image_age, UINT);
    ADD(allowed_image_size, UINT);
    ADD(disable_reconnect, UCHAR);
+   ADD(enable_presence_save, UCHAR);
 #undef ADD
    return edd;
 }
@@ -109,6 +117,23 @@ eet_userinfo_edd_new(void)
    ADD(full_name, INLINED_STRING);
    ADD(photo.type, INLINED_STRING);
    ADD(photo.sha1, INLINED_STRING);
+#undef ADD
+   return edd;
+}
+
+static Eet_Data_Descriptor *
+eet_presence_edd_new(void)
+{
+   Eet_Data_Descriptor *edd;
+   Eet_Data_Descriptor_Class eddc;
+   EET_EINA_FILE_DATA_DESCRIPTOR_CLASS_SET(&eddc, Shotgun_Presence);
+   edd = eet_data_descriptor_stream_new(&eddc);
+#define ADD(name, type) \
+  EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Shotgun_Presence, #name, name, EET_T_##type)
+
+   ADD(desc, INLINED_STRING);
+   ADD(status, UINT);
+   ADD(priority, INT);
 #undef ADD
    return edd;
 }
@@ -610,4 +635,38 @@ ui_eet_idler_start(Contact_List *cl)
    if (!images) return EINA_FALSE;
    cl->image_cleaner = ecore_idler_add((Ecore_Task_Cb)image_cleaner_cb, cl);
    return EINA_FALSE;
+}
+
+void
+ui_eet_presence_set(Shotgun_Auth *auth)
+{
+   Eet_Data_Descriptor *edd;
+   Eet_File *ef = shotgun_data_get(auth);
+   Shotgun_Presence p;
+   char buf[4096];
+
+   if (snprintf(buf, sizeof(buf), "%s/presence", shotgun_jid_get(auth)) < 1) return;
+   edd = eet_presence_edd_new();
+   p.desc = shotgun_presence_get(auth, &p.status, &p.priority);
+   eet_data_write(ef, edd, buf, &p, 0);
+   eet_data_descriptor_free(edd);
+}
+
+Eina_Bool
+ui_eet_presence_get(Shotgun_Auth *auth)
+{
+   Eet_Data_Descriptor *edd;
+   Eet_File *ef = shotgun_data_get(auth);
+   Shotgun_Presence *p;
+   char buf[4096];
+
+   if (snprintf(buf, sizeof(buf), "%s/presence", shotgun_jid_get(auth)) < 1) return EINA_FALSE;
+   edd = eet_presence_edd_new();
+   p = eet_data_read(ef, edd, buf);
+   eet_data_descriptor_free(edd);
+   shotgun_presence_desc_manage(auth, p->desc);
+   shotgun_presence_priority_set(auth, p->priority);
+   shotgun_presence_status_set(auth, p->status);
+   free(p);
+   return EINA_TRUE;
 }

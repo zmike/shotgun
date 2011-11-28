@@ -45,10 +45,14 @@ con(void *data, int type __UNUSED__, Shotgun_Auth *auth)
    /* don't mess up already-created list */
    if (!cl)
      {
-        shotgun_presence_set(auth, SHOTGUN_USER_STATUS_CHAT, "testing SHOTGUN!", 1);
+        Eina_Bool set = EINA_TRUE;
         ss = ui_eet_settings_get(auth);
         cl = contact_list_new(auth, ss);
         free(ss);
+        if (cl->settings.enable_presence_save)
+          set = !ui_eet_presence_get(auth);
+        if (set)
+          shotgun_presence_set(auth, SHOTGUN_USER_STATUS_CHAT, "testing SHOTGUN!", 1);
         if (!cl->settings.disable_reconnect)
           ecore_event_handler_data_set(dh, cl);
         ecore_event_handler_data_set(ch, cl);
@@ -136,6 +140,7 @@ main(int argc, char *argv[])
    ecore_main_loop_begin();
 
    elm_shutdown();
+   ui_eet_presence_set(auth);
    ui_eet_shutdown(auth);
 
    return 0;

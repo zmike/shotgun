@@ -79,6 +79,7 @@ typedef struct Shotgun_Settings
    Eina_Bool enable_illume;
    Eina_Bool disable_image_fetch;
    Eina_Bool disable_reconnect;
+   Eina_Bool enable_presence_save;
    unsigned int allowed_image_age;
    unsigned int allowed_image_size;
 } Shotgun_Settings;
@@ -237,6 +238,8 @@ Shotgun_User_Info *ui_eet_userinfo_get(Shotgun_Auth *auth, const char *jid);
 Shotgun_Settings *ui_eet_settings_get(Shotgun_Auth *auth);
 void ui_eet_settings_set(Shotgun_Auth *auth, Shotgun_Settings *ss);
 Eina_Bool ui_eet_idler_start(Contact_List *cl);
+void ui_eet_presence_set(Shotgun_Auth *auth);
+Eina_Bool ui_eet_presence_get(Shotgun_Auth *auth);
 
 #ifdef HAVE_DBUS
 void ui_dbus_signal_message_self(Contact_List *cl, const char *jid, const char *s);

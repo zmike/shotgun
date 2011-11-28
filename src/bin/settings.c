@@ -122,6 +122,7 @@ settings_new(Contact_List *cl)
    SETTINGS_FRAME("Account");
    SETTINGS_CHECK("Save account info", enable_account_info, "Remember account name and password");
    SETTINGS_CHECK("Remember last account", enable_last_account, "Automatically sign in with current account on next run");
+   SETTINGS_CHECK("Remember last presence", enable_presence_save, "Automatically set last-used presence on next sign in");
 
    SETTINGS_FRAME("Application");
    SETTINGS_CHECK("Enable single window mode", enable_illume, "Use a single window for the application - REQUIRES RESTART (embedded friendly)");
