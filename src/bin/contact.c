@@ -75,9 +75,9 @@ const char *
 contact_name_get(Contact *c)
 {
    if (!c) return NULL;
-   if (c->base->name)
+   if (c->base->name && c->base->name[0])
      return c->base->name;
-   if (c->info && c->info->full_name)
+   if (c->info && c->info->full_name && c->info->full_name[0])
      return c->info->full_name;
    return c->base->jid;
 }
