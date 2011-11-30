@@ -141,6 +141,10 @@ S: <stream:features>
              }
            break;
         }
+   if (auth->features.sasl_digest_md5)
+     INF("Selected DIGEST-MD5 auth mechanism");
+   else
+     INF("Selected PLAIN auth mechanism");
    /* lots more auth mechanisms here but who cares */
    return EINA_TRUE;
 }
