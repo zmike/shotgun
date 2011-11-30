@@ -166,7 +166,7 @@ struct Contact
    void *list_item; /* the grid/list item object */
    Chat_Window *chat_window; /* the chat window for the contact (if open) */
    Evas_Object *chat_panes; /* box in the chat window belonging to contact */
-   Elm_Toolbar_Item *chat_tb_item; /* contact's toolbar item */
+   Elm_Object_Item *chat_tb_item; /* contact's toolbar item */
    Evas_Object *chat_buffer; /* chat buffer of the conversation */
    Evas_Object *chat_input; /* input entry for the conversation */
    Evas_Object *chat_jid_menu; /* menu object for the submenu in the chat window */

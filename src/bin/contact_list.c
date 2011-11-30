@@ -147,7 +147,7 @@ _contact_list_add_pager_cb_prev(Contact_List *cl, Evas_Object *obj __UNUSED__, v
 }
 
 static void
-_contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_Item *ev)
+_contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Object_Item *ev)
 {
    Evas_Object *p, *b, *b2, *o, *i;
 
@@ -241,7 +241,7 @@ _contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_
 }
 
 static void
-_contact_list_del_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_Item *ev)
+_contact_list_del_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Object_Item *ev)
 {
    Contact *c;
 
@@ -523,7 +523,7 @@ _contact_list_mode_toggle(Contact_List *cl, Evas_Object *obj __UNUSED__, void *e
 */
 
 static void
-_contact_list_show_toggle(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Toolbar_Item *ev __UNUSED__)
+_contact_list_show_toggle(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Object_Item *ev __UNUSED__)
 {
    Eina_List *l;
    Contact *c;
@@ -833,7 +833,7 @@ Contact_List *
 contact_list_new(Shotgun_Auth *auth, Shotgun_Settings *ss)
 {
    Evas_Object *win, *obj, *tb, *radio, *box, *menu, *entry, *fr;
-   Elm_Toolbar_Item *it;
+   Elm_Object_Item *it;
    Contact_List *cl;
    Evas *e;
    Evas_Modifier_Mask ctrl, shift, alt;

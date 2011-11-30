@@ -185,7 +185,7 @@ _chat_window_close_cb(Chat_Window *cw, Evas_Object *obj __UNUSED__, const char *
 }
 
 static void
-_chat_window_longpress(Chat_Window *cw __UNUSED__, Evas_Object *obj __UNUSED__, Elm_Toolbar_Item *it)
+_chat_window_longpress(Chat_Window *cw __UNUSED__, Evas_Object *obj __UNUSED__, Elm_Object_Item *it)
 {
    contact_chat_window_close(elm_toolbar_item_data_get(it));
 }
@@ -300,7 +300,7 @@ _chat_resource_ignore_toggle(Contact *c, Evas_Object *obj __UNUSED__, Elm_Object
 }
 
 static void
-_chat_window_otherclick(Elm_Toolbar_Item *it, Evas_Object *obj __UNUSED__, const char *emission, const char *source __UNUSED__)
+_chat_window_otherclick(Elm_Object_Item *it, Evas_Object *obj __UNUSED__, const char *emission, const char *source __UNUSED__)
 {
    Contact *c;
    int button;
@@ -318,7 +318,7 @@ _chat_window_key(Chat_Window *cw, Evas *e __UNUSED__, Evas_Object *obj __UNUSED_
    //DBG("%s", ev->keyname);
    if (!strcmp(ev->keyname, "Tab"))
      {
-        Elm_Toolbar_Item *cur, *new, *smart;
+        Elm_Object_Item *cur, *new, *smart;
         Contact *c;
         double timer;
         static double throttle;
@@ -371,7 +371,7 @@ _chat_window_key(Chat_Window *cw, Evas *e __UNUSED__, Evas_Object *obj __UNUSED_
 }
 
 static void
-_chat_window_switch(Contact *c, Evas_Object *obj __UNUSED__, Elm_Toolbar_Item *it)
+_chat_window_switch(Contact *c, Evas_Object *obj __UNUSED__, Elm_Object_Item *it)
 {
    if (elm_pager_content_top_get(c->chat_window->pager) == c->chat_panes) return;
    contact_chat_window_animator_del(c);
