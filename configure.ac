@@ -150,7 +150,7 @@ if test "x$want_enotify" != "xno"; then
    PKG_CHECK_MODULES([enotify],
       [enotify >= 1.0.0],
       [
-       AC_DEFINE(HAVE_NOTIFY, 1, [DBUS Notification support])
+##       AC_DEFINE(HAVE_NOTIFY, 1, [DBUS Notification support])
        have_enotify="yes"
       ],
       [have_enotify="no"]
