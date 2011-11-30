@@ -464,9 +464,9 @@ _contact_list_list_add(Contact_List *cl)
 
    cl->list = list = elm_genlist_add(cl->win);
    cl->mode = EINA_FALSE;
-   elm_gen_always_select_mode_set(list, EINA_FALSE);
+   elm_genlist_always_select_mode_set(list, EINA_FALSE);
    elm_genlist_reorder_mode_set(list, EINA_TRUE);
-   elm_gen_bounce_set(list, EINA_FALSE, EINA_FALSE);
+   elm_genlist_bounce_set(list, EINA_FALSE, EINA_FALSE);
    elm_genlist_scroller_policy_set(list, ELM_SCROLLER_POLICY_OFF, ELM_SCROLLER_POLICY_AUTO);
    EXPAND(list);
    FILL(list);
@@ -490,9 +490,9 @@ _contact_list_grid_add(Contact_List *cl)
 
    cl->list = grid = elm_gengrid_add(cl->win);
    cl->mode = EINA_TRUE;
-   elm_gen_always_select_mode_set(grid, EINA_FALSE);
+   elm_gengrid_always_select_mode_set(grid, EINA_FALSE);
    elm_gengrid_item_size_set(grid, 75, 100);
-   elm_gen_bounce_set(grid, EINA_FALSE, EINA_FALSE);
+   elm_gengrid_bounce_set(grid, EINA_FALSE, EINA_FALSE);
    EXPAND(grid);
    FILL(grid);
    l = elm_box_children_get(cl->box);
@@ -982,8 +982,8 @@ contact_list_new(Shotgun_Auth *auth, Shotgun_Settings *ss)
    //cl->list_at_xy_item_get[1] = (Ecore_Data_Cb)elm_gengrid_at_xy_item_get;
    cl->list_selected_item_get[0] = (Ecore_Data_Cb)elm_genlist_selected_item_get;
    cl->list_selected_item_get[1] = (Ecore_Data_Cb)elm_gengrid_selected_item_get;
-   cl->list_item_parent_get[0] = (Ecore_Data_Cb)elm_gen_item_widget_get;
-   cl->list_item_parent_get[1] = (Ecore_Data_Cb)elm_gen_item_widget_get;
+   cl->list_item_parent_get[0] = (Ecore_Data_Cb)elm_genlist_item_genlist_get;
+   cl->list_item_parent_get[1] = (Ecore_Data_Cb)elm_genlist_item_genlist_get;
    cl->list_item_del[0] = (Ecore_Cb)elm_genlist_item_del;
    cl->list_item_del[1] = (Ecore_Cb)elm_gengrid_item_del;
    cl->list_item_update[0] = (Ecore_Cb)elm_genlist_item_update;
