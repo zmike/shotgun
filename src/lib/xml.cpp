@@ -292,9 +292,9 @@ S: <failure xmlns="urn:ietf:params:xml:ns:xmpp-sasl"><not-authorized/></failure
              //goto error;
           }
         node = doc.first_child();
-        if (strcmp(node.name(), "challenge")) return EINA_FALSE;
+        if (strcmp(node.name(), "challenge")) return 0;
         b64 = (char*)shotgun_base64_decode(node.child_value(), strlen(node.child_value()), &len);
-        if (!b64) return EINA_FALSE;
+        if (!b64) return 0;
         b64[len] = 0;
         //INF("Decoded: %s", b64);
         auth->features.auth_digestmd5 = eina_hash_string_superfast_new(free);
@@ -336,7 +336,7 @@ error:
         eina_hash_free(auth->features.auth_digestmd5);
         auth->features.auth_digestmd5 = NULL;
         free(b64);
-        return EINA_FALSE;
+        return 0;
      }
    if (auth->features.sasl_digestmd5 && auth->features.auth_digestmd5)
      {
