@@ -141,7 +141,7 @@ S: <stream:features>
              }
            break;
         }
-   if (auth->features.sasl_digest_md5)
+   if (auth->features.sasl_digestmd5)
      INF("Selected DIGEST-MD5 auth mechanism");
    else
      INF("Selected PLAIN auth mechanism");
