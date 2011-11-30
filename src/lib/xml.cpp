@@ -192,6 +192,8 @@ S: <stream:stream
 
    node = stream.child("bind");
    if (!node.empty()) auth->features.bind = EINA_TRUE;
+   node = stream.child("session");
+   if (!node.empty()) auth->features.session = EINA_TRUE;
    /* something something */
    return EINA_TRUE;
 }
@@ -722,8 +724,12 @@ xml_iq_read(Shotgun_Auth *auth, char *xml, size_t size)
       case SHOTGUN_IQ_TYPE_SET:
         if (!strcmp(str, XML_NS_ROSTER))
           return xml_iq_roster_read(auth, node);
-      default:
+        INF("UNHANDLED SET NS: %s", str);
         break;
+      default:
+        str = doc.first_child().child_value();
+        ERR("ERROR: %s", str ?: "NO ERROR RETURNED!");
+        auth->error = eina_stringshare_add(str);
      }
    return NULL;
 }

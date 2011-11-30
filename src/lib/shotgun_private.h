@@ -80,6 +80,7 @@ struct Shotgun_Auth
    int priority;
 
    const char *pass; /* NOT ALLOCATED! */
+   const char *error; /* stringshared */
 
    Eina_Strbuf *buf;
 
@@ -97,6 +98,7 @@ struct Shotgun_Auth
       Eina_Bool sasl_oauth2 : 1;
       Eina_Bool sasl_gtoken : 1;
       Eina_Bool bind : 1;
+      Eina_Bool session : 1;
    } features;
    Shotgun_Connection_State state;
    void *data;

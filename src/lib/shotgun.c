@@ -266,6 +266,7 @@ shotgun_free(Shotgun_Auth *auth)
    eina_stringshare_del(auth->svr_name);
    eina_stringshare_del(auth->bind);
    eina_stringshare_del(auth->desc);
+   eina_stringshare_del(auth->error);
    auth->svr_name = NULL;
    shotgun_disconnect(auth);
    if (auth->buf) eina_strbuf_free(auth->buf);
