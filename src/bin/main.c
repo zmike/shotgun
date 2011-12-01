@@ -125,9 +125,11 @@ main(int argc, char *argv[])
 
    if (!auth)
      {
-        fprintf(stderr, "Usage: %s [server] [username] [domain]\n", argv[0]);
+        fprintf(stderr, "Usage: %s [--(enable|disable)-illume] [server] [username] [domain]\n", argv[0]);
         fprintf(stderr, "Usage example: %s talk.google.com my_username gmail.com\n", argv[0]);
         fprintf(stderr, "Usage example (with saved account): %s\n", argv[0]);
+        fprintf(stderr, "Usage example (with saved account): %s my_username gmail.com\n", argv[0]);
+        fprintf(stderr, "Usage example (with saved account): %s my_username@gmail.com\n", argv[0]);
         return 1;
      }
 
