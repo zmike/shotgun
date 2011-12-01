@@ -45,11 +45,17 @@ event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev)
       case SHOTGUN_IQ_EVENT_TYPE_INFO:
         {
            Shotgun_User_Info *info = ev->ev;
+           Evas_Object *img = NULL;
 
            c = eina_hash_find(cl->users, info->jid);
            if (!c)
              {
                 ERR("WTF!");
+                break;
+             }
+           if (util_userinfo_eq(c->info, ev->ev))
+             {
+                INF("User info for %s unchanged, not updating cache", c->base->jid);
                 break;
              }
            shotgun_user_info_free(c->info);
@@ -60,9 +66,15 @@ event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev)
              }
            c->info = info;
            ev->ev = NULL;
-           if (c->list_item && (info->photo.data || info->full_name)) cl->list_item_update[cl->mode](c->list_item);
-
-           ui_eet_userinfo_add(cl->account, info);
+           if (info->photo.size)
+             {
+                img = evas_object_image_add(evas_object_evas_get(c->list->win));
+                evas_object_image_memfile_set(img, info->photo.data, info->photo.size, NULL, NULL);
+             }
+           ui_eet_userinfo_add(cl->account, img, info);
+           if (img) evas_object_del(img);
+           if (c->list_item && (info->photo.size || info->full_name))
+             cl->list_item_update[cl->mode](c->list_item);
            break;
         }
       default:
@@ -194,7 +206,7 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
                   /* if vcard available and (not retrieved || not most recent) */
                   if (ev->vcard && ((!c->info) || (c->cur && c->info &&
                       ((c->info->photo.sha1 != c->cur->photo) ||
-                       (c->cur->photo && (!c->info->photo.data))))))
+                       (c->cur->photo && (!c->info->photo.size))))))
                     shotgun_iq_vcard_get(ev->account, c->base->jid);
                   return ECORE_CALLBACK_RENEW;
                }

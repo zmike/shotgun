@@ -1,5 +1,19 @@
 #include "ui.h"
 
+Eina_Bool
+util_userinfo_eq(Shotgun_User_Info *a, Shotgun_User_Info *b)
+{
+   if ((!a) && (!b)) return EINA_TRUE;
+   if ((!a) || (!b)) return EINA_FALSE;
+   if (a->jid != b->jid)
+     {
+        ERR("jid matching failure: %s||%s", a->jid, b->jid);
+        return EINA_FALSE;
+     }
+   if (a->full_name != b->full_name) return EINA_FALSE;
+   return a->photo.sha1 == b->photo.sha1;
+}
+
 const char *
 util_configdir_get(void)
 {

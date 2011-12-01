@@ -233,7 +233,7 @@ void ui_eet_image_ping(const char *url, unsigned long long timestamp);
 void ui_eet_shutdown(Shotgun_Auth *auth);
 Shotgun_Auth *ui_eet_auth_get(const char *name, const char *domain);
 void ui_eet_auth_set(Shotgun_Auth *auth, Shotgun_Settings *settings, Eina_Bool use_auth);
-void ui_eet_userinfo_add(Shotgun_Auth *auth, Shotgun_User_Info *info);
+Eina_Bool ui_eet_userinfo_add(Shotgun_Auth *auth, Evas_Object *img, Shotgun_User_Info *info);
 Shotgun_User_Info *ui_eet_userinfo_get(Shotgun_Auth *auth, const char *jid);
 Shotgun_Settings *ui_eet_settings_get(Shotgun_Auth *auth);
 void ui_eet_settings_set(Shotgun_Auth *auth, Shotgun_Settings *ss);
@@ -270,6 +270,7 @@ void logging_contact_file_close(Contact *c);
 void settings_new(Contact_List *cl);
 void settings_toggle(Contact_List *cl, Evas_Object *obj, void *event_info);
 
+Eina_Bool util_userinfo_eq(Shotgun_User_Info *a, Shotgun_User_Info *b);
 const char *util_configdir_get(void);
 Eina_Bool util_configdir_create(void);
 

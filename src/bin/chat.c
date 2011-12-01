@@ -480,7 +480,16 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
    c->chat_tb_item = it = elm_toolbar_item_append(cw->toolbar, icon, contact_name_get(c), (Evas_Smart_Cb)_chat_window_switch, c);
    obj = elm_toolbar_item_object_get(it);
    edje_object_signal_callback_add(obj, "elm,action,click,*", "elm", (Edje_Signal_Cb)_chat_window_otherclick, it);
-   if (!icon) elm_toolbar_item_icon_memfile_set(it, c->info->photo.data, c->info->photo.size, NULL, NULL);
+   if (!icon)
+     {
+        /* FIXME: eet_file_get() */
+        char buf[4096], buf2[1024];
+
+        snprintf(buf, sizeof(buf), "%s/shotgun.eet", util_configdir_get());
+        snprintf(buf2, sizeof(buf2), "%s/%s/img", shotgun_jid_get(c->list->account), c->base->jid);
+        if (!elm_toolbar_item_icon_file_set(it, buf, buf2))
+          elm_toolbar_item_icon_set(it, "shotgun/userunknown");
+     }
    elm_win_title_set(cw->win, contact_name_get(c));
 
    c->chat_panes = panes = elm_panes_add(win);

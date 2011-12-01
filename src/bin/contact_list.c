@@ -369,8 +369,16 @@ _it_content_get(Contact *c, Evas_Object *obj, const char *part)
    evas_object_size_hint_aspect_set(ic, EVAS_ASPECT_CONTROL_VERTICAL, 1, 1);
    if (!strcmp(part, "elm.swallow.end"))
      {
-        if (c->info && c->info->photo.data)
-          elm_icon_memfile_set(ic, c->info->photo.data, c->info->photo.size, NULL, NULL);
+        if (c->info && c->info->photo.size)
+          {
+             /* FIXME: eet_file_get() */
+             char buf[4096], buf2[1024];
+
+             snprintf(buf, sizeof(buf), "%s/shotgun.eet", util_configdir_get());
+             snprintf(buf2, sizeof(buf2), "%s/%s/img", shotgun_jid_get(c->list->account), c->base->jid);
+             if (!elm_icon_file_set(ic, buf, buf2))
+               elm_icon_standard_set(ic, "shotgun/userunknown");
+          }
         else
           elm_icon_standard_set(ic, "shotgun/userunknown");
         evas_object_show(ic);

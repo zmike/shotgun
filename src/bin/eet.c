@@ -441,13 +441,15 @@ ui_eet_auth_set(Shotgun_Auth *auth, Shotgun_Settings *settings, Eina_Bool use_au
 #endif
 }
 
-void
-ui_eet_userinfo_add(Shotgun_Auth *auth, Shotgun_User_Info *info)
+Eina_Bool
+ui_eet_userinfo_add(Shotgun_Auth *auth, Evas_Object *img, Shotgun_User_Info *info)
 {
    char buf[1024];
    const char *jid;
+   void *img_data;
    Eet_Data_Descriptor *edd;
    Eet_File *ef = shotgun_data_get(auth);
+   int w, h;
 
    jid = shotgun_jid_get(auth);
    edd = eet_userinfo_edd_new();
@@ -456,14 +458,19 @@ ui_eet_userinfo_add(Shotgun_Auth *auth, Shotgun_User_Info *info)
      {
         ERR("Failed to write userinfo for %s!", info->jid);
         eet_data_descriptor_free(edd);
-        return;
+        return EINA_FALSE;
      }
    INF("Wrote encrypted userinfo for %s to disk", info->jid);
-   if (!info->photo.data) return;
+   if ((!info->photo.data) || (!img)) return EINA_TRUE;
    snprintf(buf, sizeof(buf), "%s/%s/img", jid, info->jid);
-   eet_write(ef, buf, info->photo.data, info->photo.size, 1);
+   img_data = evas_object_image_data_get(img, EINA_FALSE);
+   EINA_SAFETY_ON_NULL_RETURN_VAL(img_data, EINA_FALSE);
+   evas_object_image_size_get(img, &w, &h);
+   eet_data_image_write(ef, buf, img_data, w, h, evas_object_image_alpha_get(img), 5, 100, 0);
    eet_sync(ef);
    eet_data_descriptor_free(edd);
+   info->photo.size = w * h * sizeof(int);
+   return EINA_TRUE;
 }
 
 Shotgun_User_Info *
@@ -474,21 +481,20 @@ ui_eet_userinfo_get(Shotgun_Auth *auth, const char *jid)
    Eet_Data_Descriptor *edd;
    Shotgun_User_Info *info;
    Eet_File *ef = shotgun_data_get(auth);
+   unsigned int w, h;
 
    edd = eet_userinfo_edd_new();
    me = shotgun_jid_get(auth);
    snprintf(buf, sizeof(buf), "%s/%s", me, jid);
    info = eet_data_read_cipher(ef, edd, buf, shotgun_password_get(auth));
-   if (!info)
-     {
-        INF("Userinfo for %s does not exist", jid);
-        eet_data_descriptor_free(edd);
-        return NULL;
-     }
-   snprintf(buf, sizeof(buf), "%s/%s/img", me, jid);
-   info->photo.data = eet_read(ef, buf, (int*)&info->photo.size);
    eet_data_descriptor_free(edd);
-   INF("Read encrypted userinfo for %s from disk", jid);
+   if (info)
+     INF("Read encrypted userinfo for %s from disk", jid);
+   else
+     INF("Userinfo for %s does not exist", jid);
+   snprintf(buf, sizeof(buf), "%s/%s/img", me, jid);
+   if (eet_data_image_header_read(ef, buf, &w, &h, NULL, NULL, NULL, NULL))
+     info->photo.size = w * h * sizeof(int);
    return info;
 }
 
