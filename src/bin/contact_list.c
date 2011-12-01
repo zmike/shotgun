@@ -309,13 +309,13 @@ _contact_list_rightclick_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *o
 }
 
 static char *
-_it_label_get_grid(Contact *c, Evas_Object *obj __UNUSED__, const char *part __UNUSED__)
+_it_text_get_grid(Contact *c, Evas_Object *obj __UNUSED__, const char *part __UNUSED__)
 {
    return strdup(contact_name_get(c));
 }
 
 static char *
-_it_label_get_list(Contact *c, Evas_Object *obj __UNUSED__, const char *part)
+_it_text_get_list(Contact *c, Evas_Object *obj __UNUSED__, const char *part)
 {
    int ret;
    if (!strcmp(part, "elm.text"))
@@ -727,7 +727,7 @@ contact_list_user_add(Contact_List *cl, Contact *c)
    static Elm_Genlist_Item_Class glit = {
         .item_style = "double_label",
         .func = {
-             .label_get = (Elm_Genlist_Item_Label_Get_Cb)_it_label_get_list,
+             .text_get = (Elm_Genlist_Item_Text_Get_Cb)_it_text_get_list,
              .content_get = (Elm_Genlist_Item_Content_Get_Cb)_it_content_get,
              .state_get = (Elm_Genlist_Item_State_Get_Cb)_it_state_get,
              .del = (Elm_Genlist_Item_Del_Cb)_it_del
@@ -736,7 +736,7 @@ contact_list_user_add(Contact_List *cl, Contact *c)
    static Elm_Gengrid_Item_Class ggit = {
         .item_style = "default",
         .func = {
-             .label_get = (Elm_Gengrid_Item_Label_Get_Cb)_it_label_get_grid,
+             .text_get = (Elm_Gengrid_Item_Text_Get_Cb)_it_text_get_grid,
              .content_get = (Elm_Gengrid_Item_Content_Get_Cb)_it_content_get,
              .state_get = (Elm_Gengrid_Item_State_Get_Cb)_it_state_get,
              .del = (Elm_Gengrid_Item_Del_Cb)_it_del
