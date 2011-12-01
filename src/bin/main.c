@@ -83,7 +83,7 @@ int
 main(int argc, char *argv[])
 {
    char *pass;
-   Shotgun_Auth *auth;
+   Shotgun_Auth *auth = NULL;
    char *getpass_x(const char *prompt);
 
    eina_init();
@@ -106,12 +106,22 @@ main(int argc, char *argv[])
    ecore_event_handler_add(SHOTGUN_EVENT_CONNECTION_STATE, (Ecore_Event_Handler_Cb)con_state, NULL);
    dh = ecore_event_handler_add(SHOTGUN_EVENT_DISCONNECT, (Ecore_Event_Handler_Cb)disc, NULL);
 
-   if (argc < 3)
-     auth = ui_eet_auth_get(NULL, NULL);
-   else if (argc == 3)
-     auth = ui_eet_auth_get(argv[1], argv[2]);
-   else
-     auth = shotgun_new(argv[1], argv[2], argv[3]);
+   switch (argc)
+     {
+      case 1:
+        auth = ui_eet_auth_get(NULL, NULL);
+        break;
+      case 2:
+        auth = ui_eet_auth_get(argv[1], NULL);
+        break;
+      case 3:
+        auth = ui_eet_auth_get(argv[1], argv[2]);
+        break;
+      case 4:
+        auth = shotgun_new(argv[1], argv[2], argv[3]);
+      default:
+        break;
+     }
 
    if (!auth)
      {

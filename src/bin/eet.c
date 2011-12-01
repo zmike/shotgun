@@ -373,13 +373,16 @@ ui_eet_auth_get(const char *name, const char *domain)
    jid = eet_read(ef, "last_account", &size);
    if ((!jid) || (jid[size - 1]))
      {
-        if ((!name) && (!domain))
+        if (!name)
           {
              eet_close(ef);
              ERR("Could not read name of last account!");
              return NULL;
           }
-        snprintf(buf, sizeof(buf), "%s@%s", name, domain);
+        if (domain)
+          snprintf(buf, sizeof(buf), "%s@%s", name, domain);
+        else
+          jid = (char*)name;
      }
    else
      return _ui_eet_auth_get(ef, jid);
