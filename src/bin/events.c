@@ -68,7 +68,7 @@ event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev)
       default:
         ERR("WTF!");
      }
-   return EINA_TRUE;
+   return ECORE_CALLBACK_RENEW;
 }
 
 static int
@@ -89,7 +89,7 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
    if (p) jid = strndupa(ev->jid, p - ev->jid);
    else jid = (char*)ev->jid;
    c = eina_hash_find(cl->users, jid);
-   if (!c) return EINA_TRUE;
+   if (!c) return ECORE_CALLBACK_RENEW;
 
    if (!ev->status)
      {
@@ -196,7 +196,7 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
                       ((c->info->photo.sha1 != c->cur->photo) ||
                        (c->cur->photo && (!c->info->photo.data))))))
                     shotgun_iq_vcard_get(ev->account, c->base->jid);
-                  return EINA_TRUE;
+                  return ECORE_CALLBACK_RENEW;
                }
              c->plist = eina_list_remove(c->plist, pres);
              c->plist = eina_list_sorted_insert(c->plist, (Eina_Compare_Cb)_list_sort_cb, c->cur);
@@ -207,7 +207,7 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
    if (!c->force_resource)
      contact_presence_set(c, c->cur);
 
-   return EINA_TRUE;
+   return ECORE_CALLBACK_RENEW;
 }
 
 Eina_Bool
@@ -221,7 +221,7 @@ event_message_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Message *m
    p = strchr(jid, '/');
    if (p) *p = 0;
    c = eina_hash_find(cl->users, jid);
-   if (!c) return EINA_TRUE;
+   if (!c) return ECORE_CALLBACK_RENEW;
 
    if (msg->msg)
      {
@@ -242,5 +242,5 @@ event_message_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Message *m
    if (c->chat_window && msg->status)
      chat_message_status(c, msg);
 
-   return EINA_TRUE;
+   return ECORE_CALLBACK_RENEW;
 }
