@@ -450,11 +450,14 @@ ui_eet_userinfo_add(Shotgun_Auth *auth, Evas_Object *img, Shotgun_User_Info *inf
    Eet_Data_Descriptor *edd;
    Eet_File *ef = shotgun_data_get(auth);
    int w, h;
+   Eina_Bool success;
 
    jid = shotgun_jid_get(auth);
    edd = eet_userinfo_edd_new();
    snprintf(buf, sizeof(buf), "%s/%s", jid, info->jid);
-   if (!eet_data_write_cipher(ef, edd, buf, shotgun_password_get(auth), info, 0))
+   success = eet_data_write_cipher(ef, edd, buf, shotgun_password_get(auth), info, 0);
+   eet_data_descriptor_free(edd);
+   if (!success)
      {
         ERR("Failed to write userinfo for %s!", info->jid);
         eet_data_descriptor_free(edd);
@@ -464,12 +467,13 @@ ui_eet_userinfo_add(Shotgun_Auth *auth, Evas_Object *img, Shotgun_User_Info *inf
    if ((!info->photo.data) || (!img)) return EINA_TRUE;
    snprintf(buf, sizeof(buf), "%s/%s/img", jid, info->jid);
    img_data = evas_object_image_data_get(img, EINA_FALSE);
-   EINA_SAFETY_ON_NULL_RETURN_VAL(img_data, EINA_FALSE);
-   evas_object_image_size_get(img, &w, &h);
-   eet_data_image_write(ef, buf, img_data, w, h, evas_object_image_alpha_get(img), 5, 100, 0);
+   if (img_data)
+     {
+        evas_object_image_size_get(img, &w, &h);
+        eet_data_image_write(ef, buf, img_data, w, h, evas_object_image_alpha_get(img), 5, 100, 0);
+        info->photo.size = w * h * sizeof(int);
+     }
    eet_sync(ef);
-   eet_data_descriptor_free(edd);
-   info->photo.size = w * h * sizeof(int);
    return EINA_TRUE;
 }
 
