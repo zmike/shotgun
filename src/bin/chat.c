@@ -89,10 +89,15 @@ chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me)
           {
              Evas_Object *img = NULL;
 
-             if (c->info)
+             if (c->info && c->info->photo.size)
                {
+                  /* FIXME: eet_file_get() */
+                  char buf[4096], buf2[1024];
+
+                  snprintf(buf, sizeof(buf), "%s/shotgun.eet", util_configdir_get());
+                  snprintf(buf2, sizeof(buf2), "%s/%s/img", shotgun_jid_get(c->list->account), c->base->jid);
                   img = evas_object_image_add(evas_object_evas_get(c->list->win));
-                  evas_object_image_memfile_set(img, c->info->photo.data, c->info->photo.size, NULL, NULL);
+                  evas_object_image_file_set(img, buf, buf2);
                }
              ui_dbus_notify(c->list, img, from, msg);
              if (img) evas_object_del(img);
