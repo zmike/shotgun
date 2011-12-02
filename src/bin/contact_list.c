@@ -372,11 +372,10 @@ _it_content_get(Contact *c, Evas_Object *obj, const char *part)
         if (c->info && c->info->photo.size)
           {
              /* FIXME: eet_file_get() */
-             char buf[4096], buf2[1024];
+             char buf[1024];
 
-             snprintf(buf, sizeof(buf), "%s/shotgun.eet", util_configdir_get());
-             snprintf(buf2, sizeof(buf2), "%s/%s/img", shotgun_jid_get(c->list->account), c->base->jid);
-             if (!elm_icon_file_set(ic, buf, buf2))
+             snprintf(buf, sizeof(buf), "%s/%s/img", shotgun_jid_get(c->list->account), c->base->jid);
+             if (!elm_icon_file_set(ic, eet_file_get(shotgun_data_get(c->list->account)), buf))
                elm_icon_standard_set(ic, "shotgun/userunknown");
           }
         else

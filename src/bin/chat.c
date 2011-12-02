@@ -91,13 +91,11 @@ chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me)
 
              if (c->info && c->info->photo.size)
                {
-                  /* FIXME: eet_file_get() */
-                  char buf[4096], buf2[1024];
+                  char buf[1024];
 
-                  snprintf(buf, sizeof(buf), "%s/shotgun.eet", util_configdir_get());
-                  snprintf(buf2, sizeof(buf2), "%s/%s/img", shotgun_jid_get(c->list->account), c->base->jid);
+                  snprintf(buf, sizeof(buf), "%s/%s/img", shotgun_jid_get(c->list->account), c->base->jid);
                   img = evas_object_image_add(evas_object_evas_get(c->list->win));
-                  evas_object_image_file_set(img, buf, buf2);
+                  evas_object_image_file_set(img, eet_file_get(shotgun_data_get(c->list->account)), buf);
                }
              ui_dbus_notify(c->list, img, from, msg);
              if (img) evas_object_del(img);
@@ -488,11 +486,10 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
    if (!icon)
      {
         /* FIXME: eet_file_get() */
-        char buf[4096], buf2[1024];
+        char buf[1024];
 
-        snprintf(buf, sizeof(buf), "%s/shotgun.eet", util_configdir_get());
-        snprintf(buf2, sizeof(buf2), "%s/%s/img", shotgun_jid_get(c->list->account), c->base->jid);
-        if (!elm_toolbar_item_icon_file_set(it, buf, buf2))
+        snprintf(buf, sizeof(buf), "%s/%s/img", shotgun_jid_get(c->list->account), c->base->jid);
+        if (!elm_toolbar_item_icon_file_set(it, eet_file_get(shotgun_data_get(c->list->account)), buf))
           elm_toolbar_item_icon_set(it, "shotgun/userunknown");
      }
    elm_win_title_set(cw->win, contact_name_get(c));
