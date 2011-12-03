@@ -373,6 +373,7 @@ ui_eet_auth_get(const char *name, const char *domain)
    jid = eet_read(ef, "last_account", &size);
    if ((!jid) || (jid[size - 1]))
      {
+        jid = NULL;
         if (!name)
           {
              eet_close(ef);
@@ -384,6 +385,7 @@ ui_eet_auth_get(const char *name, const char *domain)
         else
           jid = (char*)name;
      }
+   if (!jid) return _ui_eet_auth_get(ef, buf);
    return _ui_eet_auth_get(ef, jid);
 }
 
