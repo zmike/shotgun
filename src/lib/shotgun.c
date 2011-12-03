@@ -223,6 +223,15 @@ shotgun_init(void)
 Eina_Bool
 shotgun_connect(Shotgun_Auth *auth)
 {
+   if ((!auth->user) || (!auth->from) || (!auth->svr_name)) return EINA_FALSE;
+   if (auth->changed)
+     {
+        eina_stringshare_printf("%s@%s/%s", auth->user, auth->from, auth->resource);
+        eina_stringshare_printf("%s@%s", auth->user, auth->from);
+        auth->changed = EINA_FALSE;
+     }
+   else if (!auth->jid) eina_stringshare_printf("%s@%s/%s", auth->user, auth->from, auth->resource);
+   else if (!auth->base_jid) eina_stringshare_printf("%s@%s", auth->user, auth->from);
    auth->ev_add = ecore_event_handler_add(ECORE_CON_EVENT_SERVER_ADD, (Ecore_Event_Handler_Cb)shotgun_login_con, auth);
    auth->ev_del = ecore_event_handler_add(ECORE_CON_EVENT_SERVER_DEL, (Ecore_Event_Handler_Cb)disc, NULL);
    auth->ev_data = ecore_event_handler_add(ECORE_CON_EVENT_SERVER_DATA, (Ecore_Event_Handler_Cb)data, auth);
@@ -277,17 +286,14 @@ Shotgun_Auth *
 shotgun_new(const char *svr_name, const char *username, const char *domain)
 {
    Shotgun_Auth *auth;
-   EINA_SAFETY_ON_NULL_RETURN_VAL(username, NULL);
-   EINA_SAFETY_ON_NULL_RETURN_VAL(domain, NULL);
-   EINA_SAFETY_ON_NULL_RETURN_VAL(svr_name, NULL);
 
    auth = calloc(1, sizeof(Shotgun_Auth));
-   auth->user = eina_stringshare_add(username);
-   auth->from = eina_stringshare_add(domain);
+   if (username) auth->user = eina_stringshare_add(username);
+   if (domain) auth->from = eina_stringshare_add(domain);
    auth->resource = eina_stringshare_add("SHOTGUN!");
-   auth->jid = eina_stringshare_printf("%s@%s/%s", auth->user, auth->from, auth->resource);
-   auth->base_jid = eina_stringshare_printf("%s@%s", auth->user, auth->from);
-   auth->svr_name = eina_stringshare_add(svr_name);
+   if (username && domain) auth->jid = eina_stringshare_printf("%s@%s/%s", auth->user, auth->from, auth->resource);
+   if (username && domain) auth->base_jid = eina_stringshare_printf("%s@%s", auth->user, auth->from);
+   if (svr_name) auth->svr_name = eina_stringshare_add(svr_name);
    return auth;
 }
 
@@ -296,6 +302,13 @@ shotgun_connection_state_get(Shotgun_Auth *auth)
 {
    EINA_SAFETY_ON_NULL_RETURN_VAL(auth, 0);
    return auth->state;
+}
+
+void
+shotgun_username_set(Shotgun_Auth *auth, const char *username)
+{
+   eina_stringshare_replace(&auth->user, username);
+   auth->changed = EINA_TRUE;
 }
 
 const char *
@@ -322,12 +335,25 @@ shotgun_password_get(Shotgun_Auth *auth)
    return auth->pass;
 }
 
+void
+shotgun_domain_set(Shotgun_Auth *auth, const char *domain)
+{
+   eina_stringshare_replace(&auth->from, domain);
+   auth->changed = EINA_TRUE;
+}
+
 const char *
 shotgun_domain_get(Shotgun_Auth *auth)
 {
    EINA_SAFETY_ON_NULL_RETURN_VAL(auth, NULL);
 
    return auth->from;
+}
+
+void
+shotgun_servername_set(Shotgun_Auth *auth, const char *svr_name)
+{
+   eina_stringshare_replace(&auth->svr_name, svr_name);
 }
 
 const char *

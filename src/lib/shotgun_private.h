@@ -69,6 +69,7 @@ typedef enum
 
 struct Shotgun_Auth
 {
+   Eina_Bool changed : 1; /* user or from changed */
    const char *from; /* domain name of account */
    const char *user; /* username */
    const char *resource; /* identifier for "location" of user */
