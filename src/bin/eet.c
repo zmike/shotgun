@@ -384,9 +384,7 @@ ui_eet_auth_get(const char *name, const char *domain)
         else
           jid = (char*)name;
      }
-   else
-     return _ui_eet_auth_get(ef, jid);
-   return _ui_eet_auth_get(ef, buf);
+   return _ui_eet_auth_get(ef, jid);
 }
 
 void
@@ -623,11 +621,13 @@ ui_eet_settings_get(Shotgun_Auth *auth)
 {
    Eet_Data_Descriptor *edd;
    Eet_File *ef = shotgun_data_get(auth);
-   Shotgun_Settings *ss;
+   Shotgun_Settings *ss = shotgun_settings_get(auth);
 
+   if (ss) return ss;
    edd = eet_ss_edd_new();
    ss = eet_data_read(ef, edd, "settings");
    eet_data_descriptor_free(edd);
+   shotgun_settings_set(auth, ss);
    return ss;
 }
 
