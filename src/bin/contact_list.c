@@ -856,7 +856,11 @@ contact_list_new(Shotgun_Auth *auth, Shotgun_Settings *ss)
    if (ss) memcpy(&cl->settings, ss, sizeof(Shotgun_Settings));
    else
      {
-        switch (argc)
+        int x, dash = 0;
+        /* don't count --enable/disable args */
+        for (x = 1; x < argc; x++)
+          if (argv[x][0] == '-') dash++;
+        switch (argc - dash)
           {
            case 1:
              cl->settings.enable_last_account = EINA_TRUE;
