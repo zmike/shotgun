@@ -278,6 +278,7 @@ shotgun_free(Shotgun_Auth *auth)
    eina_stringshare_del(auth->error);
    auth->svr_name = NULL;
    shotgun_disconnect(auth);
+   free(auth->settings);
    if (auth->buf) eina_strbuf_free(auth->buf);
    free(auth);
 }
@@ -390,6 +391,20 @@ shotgun_data_get(Shotgun_Auth *auth)
 {
    EINA_SAFETY_ON_NULL_RETURN_VAL(auth, NULL);
    return auth->data;
+}
+
+void
+shotgun_settings_set(Shotgun_Auth *auth, void *settings)
+{
+   EINA_SAFETY_ON_NULL_RETURN(auth);
+   auth->settings = settings;
+}
+
+void *
+shotgun_settings_get(Shotgun_Auth *auth)
+{
+   EINA_SAFETY_ON_NULL_RETURN_VAL(auth, NULL);
+   return auth->settings;
 }
 
 void

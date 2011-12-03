@@ -213,6 +213,8 @@ void shotgun_servername_set(Shotgun_Auth *auth, const char *svr_name);
 const char *shotgun_servername_get(Shotgun_Auth *auth);
 const char *shotgun_jid_get(Shotgun_Auth *auth);
 const char *shotgun_jid_full_get(Shotgun_Auth *auth);
+void shotgun_settings_set(Shotgun_Auth *auth, void *settings);
+void *shotgun_settings_get(Shotgun_Auth *auth);
 void shotgun_data_set(Shotgun_Auth *auth, void *data);
 void *shotgun_data_get(Shotgun_Auth *auth);
 

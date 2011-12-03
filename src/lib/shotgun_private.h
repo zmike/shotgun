@@ -103,6 +103,7 @@ struct Shotgun_Auth
    } features;
    Shotgun_Connection_State state;
    void *data;
+   void *settings;
 };
 
 extern int shotgun_log_dom;
