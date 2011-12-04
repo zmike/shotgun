@@ -876,6 +876,7 @@ contact_list_init(UI_WIN *ui, Shotgun_Auth *auth)
         evas_object_show(box);
 
         elm_flip_content_front_set(cl->flip, box);
+        IF_ILLUME elm_object_text_set(ui->illume_frame, "Contacts");
         settings_new((UI_WIN*)cl);
      }
    cl->settings->settings_exist = EINA_TRUE;
