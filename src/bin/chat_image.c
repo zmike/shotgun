@@ -119,7 +119,7 @@ chat_image_add(Contact_List *cl, const char *url)
         return;
      }
    if (ui_eet_dummy_check(url)) return;
-   if (cl->settings.disable_image_fetch) return;
+   if (cl->settings->disable_image_fetch) return;
    i = calloc(1, sizeof(Image));
    i->buf = ui_eet_image_get(url, t);
    if (i->buf)
@@ -196,8 +196,8 @@ chat_image_cleanup(Contact_List *cl)
    Image *i;
    Eina_List *l, *l2;
 
-   if (!cl->settings.allowed_image_size) return;
-   if (cl->settings.allowed_image_size < (cl->image_size / 1024 / 1024)) return;
+   if (!cl->settings->allowed_image_size) return;
+   if (cl->settings->allowed_image_size < (cl->image_size / 1024 / 1024)) return;
    EINA_LIST_FOREACH_SAFE(cl->image_list, l, l2, i)
      {
         if (!i->buf) continue;
@@ -205,7 +205,7 @@ chat_image_cleanup(Contact_List *cl)
         cl->image_size -= eina_binbuf_length_get(i->buf);
         eina_binbuf_free(i->buf);
         i->buf = NULL;
-        if (cl->settings.allowed_image_size < (cl->image_size / 1024 / 1024))
+        if (cl->settings->allowed_image_size < (cl->image_size / 1024 / 1024))
           return;
      }
 }

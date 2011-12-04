@@ -1,14 +1,14 @@
 #include "ui.h"
 
 #define SETTINGS_FRAME(LABEL) do { \
-   fr = elm_frame_add(cl->win); \
+   fr = elm_frame_add(ui->win); \
    EXPAND(fr); \
    FILL(fr); \
    elm_object_text_set(fr, LABEL); \
    elm_box_pack_end(box, fr); \
    evas_object_show(fr); \
 \
-   frbox = elm_box_add(cl->win); \
+   frbox = elm_box_add(ui->win); \
    EXPAND(frbox); \
    FILL(frbox); \
    elm_object_content_set(fr, frbox); \
@@ -16,11 +16,11 @@
 } while (0)
 
 #define SETTINGS_CHECK(LABEL, POINTER, TOOLTIP) do { \
-   ck = elm_check_add(cl->win); \
+   ck = elm_check_add(ui->win); \
    EXPAND(ck); \
    FILL(ck); \
    elm_object_text_set(ck, LABEL); \
-   elm_check_state_pointer_set(ck, &cl->settings.POINTER); \
+   elm_check_state_pointer_set(ck, &ui->settings->POINTER); \
    elm_object_tooltip_text_set(ck, TOOLTIP); \
    elm_tooltip_size_restrict_disable(ck, EINA_TRUE); \
    elm_box_pack_end(frbox, ck); \
@@ -28,7 +28,7 @@
 } while (0)
 
 #define SETTINGS_SLIDER(LABEL, TOOLTIP, UNITS, MAX, CB) do { \
-   sl = elm_slider_add(cl->win); \
+   sl = elm_slider_add(ui->win); \
    EXPAND(sl); \
    FILL(sl); \
    elm_slider_unit_format_set(sl, UNITS); \
@@ -36,21 +36,21 @@
    elm_object_text_set(sl, LABEL); \
    elm_object_tooltip_text_set(sl, TOOLTIP); \
    elm_tooltip_size_restrict_disable(sl, EINA_TRUE); \
-   evas_object_smart_callback_add(sl, "delay,changed", (Evas_Smart_Cb)_settings_ ##CB## _change, cl); \
+   evas_object_smart_callback_add(sl, "delay,changed", (Evas_Smart_Cb)_settings_ ##CB## _change, ui); \
    elm_box_pack_end(frbox, sl); \
    evas_object_show(sl); \
 } while (0)
 
 static void
-_settings_image_size_change(Contact_List *cl, Evas_Object *obj, void *event_info __UNUSED__)
+_settings_image_size_change(UI_WIN *ui, Evas_Object *obj, void *event_info __UNUSED__)
 {
-   cl->settings.allowed_image_size = elm_slider_value_get(obj);
+   ui->settings->allowed_image_size = elm_slider_value_get(obj);
 }
 
 static void
-_settings_image_age_change(Contact_List *cl, Evas_Object *obj, void *event_info __UNUSED__)
+_settings_image_age_change(UI_WIN *ui, Evas_Object *obj, void *event_info __UNUSED__)
 {
-   cl->settings.allowed_image_age = elm_slider_value_get(obj);
+   ui->settings->allowed_image_age = elm_slider_value_get(obj);
 }
 
 static void
@@ -80,36 +80,44 @@ _settings_logging_change(Contact_List *cl, Evas_Object *obj, void *event_info __
 }
 
 void
-settings_new(Contact_List *cl)
+settings_new(UI_WIN *ui)
 {
    Evas_Object *scr, *ic, *back, *box, *ck, *fr, *frbox, *sl;
    int init;
+   Contact_List *cl;
+   Login_Window *lw;
 
-   cl->settings_box = box = elm_box_add(cl->win);
+   IF_UI_IS_LOGIN(ui) lw = (Login_Window*)ui;
+   else cl = (Contact_List*)ui;
+
+   ui->settings_box = box = elm_box_add(ui->win);
    EXPAND(box);
    FILL(box);
-   elm_flip_content_back_set(cl->flip, box);
+   elm_flip_content_back_set(ui->flip, box);
    evas_object_show(box);
 
-   ic = elm_icon_add(cl->win);
+   ic = elm_icon_add(ui->win);
    elm_icon_standard_set(ic, "back");
    evas_object_show(ic);
-   back = elm_button_add(cl->win);
+   back = elm_button_add(ui->win);
    elm_object_content_set(back, ic);
-   elm_object_tooltip_text_set(back, "Return to contact list");
+   IF_UI_IS_LOGIN(ui)
+     elm_object_tooltip_text_set(back, "Return to login");
+   else
+     elm_object_tooltip_text_set(back, "Return to contact list");
    elm_tooltip_size_restrict_disable(back, EINA_TRUE);
    WEIGHT(back, 0, 0);
    ALIGN(back, 0, 0);
    elm_box_pack_end(box, back);
-   evas_object_smart_callback_add(back, "clicked", (Evas_Smart_Cb)settings_toggle, cl);
+   evas_object_smart_callback_add(back, "clicked", (Evas_Smart_Cb)settings_toggle, ui);
    evas_object_show(back);
 
-   scr = elm_scroller_add(cl->win);
+   scr = elm_scroller_add(ui->win);
    EXPAND(scr);
    FILL(scr);
    elm_box_pack_end(box, scr);
 
-   box = elm_box_add(cl->win);
+   box = elm_box_add(ui->win);
    EXPAND(box);
    FILL(box);
    evas_object_show(box);
@@ -121,8 +129,11 @@ settings_new(Contact_List *cl)
 
    SETTINGS_FRAME("Account");
    SETTINGS_CHECK("Save account info", enable_account_info, "Remember account name and password");
+   IF_UI_IS_LOGIN(ui) elm_object_disabled_set(ck, EINA_TRUE);
    SETTINGS_CHECK("Remember last account", enable_last_account, "Automatically sign in with current account on next run");
+   IF_UI_IS_LOGIN(ui) elm_object_disabled_set(ck, EINA_TRUE);
    SETTINGS_CHECK("Remember last presence", enable_presence_save, "Automatically set last-used presence on next sign in");
+   IF_UI_IS_LOGIN(ui) elm_object_disabled_set(ck, EINA_TRUE);
 
    SETTINGS_FRAME("Application");
    SETTINGS_CHECK("Enable single window mode", enable_illume, "Use a single window for the application - REQUIRES RESTART (embedded friendly)");
@@ -157,22 +168,76 @@ settings_new(Contact_List *cl)
    SETTINGS_CHECK("Promote contact on message", enable_chat_promote, "Move contact to top of list when message is received");
    SETTINGS_CHECK("Always select new chat tabs", enable_chat_newselect, "When a message is received which would open a new tab, make that tab active");
    SETTINGS_CHECK("Log messages to disk", enable_logging, "All messages sent or received will appear in ~/.config/shotgun/logs");
-   evas_object_smart_callback_add(ck, "changed", (Evas_Smart_Cb)_settings_logging_change, cl);
+   IF_UI_IS_LOGIN(ui) elm_object_disabled_set(ck, EINA_TRUE);
+   IF_UI_IS_NOT_LOGIN(ui) evas_object_smart_callback_add(ck, "changed", (Evas_Smart_Cb)_settings_logging_change, cl);
 }
 
 void
-settings_toggle(Contact_List *cl, Evas_Object *obj __UNUSED__, void *event_info)
+settings_toggle(UI_WIN *ui, Evas_Object *obj __UNUSED__, void *event_info)
 {
-   if ((!cl->image_cleaner) && cl->settings.allowed_image_age)
-     ui_eet_idler_start(cl);
-   chat_image_cleanup(cl);
-   IF_ILLUME
+   Contact_List *cl;
+   Login_Window *lw;
+
+   IF_UI_IS_LOGIN(ui) lw = (Login_Window*)ui;
+   else cl = (Contact_List*)ui;
+
+   IF_UI_IS_NOT_LOGIN(ui)
      {
-        if (elm_flip_front_get(cl->flip))
-          elm_object_text_set(cl->illume_frame, "Settings");
-        else
-          elm_object_text_set(cl->illume_frame, "Contacts");
+        if ((!cl->image_cleaner) && cl->settings->allowed_image_age)
+          ui_eet_idler_start(cl);
+        chat_image_cleanup(cl);
      }
-   if (event_info) elm_toolbar_item_selected_set(event_info, EINA_FALSE);
-   elm_flip_go(cl->flip, ELM_FLIP_ROTATE_Y_CENTER_AXIS);
+   IF_ILLUME(ui)
+     {
+        if (elm_flip_front_get(ui->flip))
+          elm_object_text_set(ui->illume_frame, "Settings");
+        else
+          elm_object_text_set(ui->illume_frame, "Contacts");
+     }
+   IF_UI_IS_NOT_LOGIN(ui)
+     {
+        if (event_info) elm_toolbar_item_selected_set(event_info, EINA_FALSE);
+     }
+   elm_flip_go(ui->flip, ELM_FLIP_ROTATE_Y_CENTER_AXIS);
+}
+
+void
+settings_finagle(UI_WIN *ui)
+{
+   int argc, x;
+   char **argv;
+   Shotgun_Settings *ss;
+
+   ss = ui_eet_settings_get(ui->account);
+   ecore_app_args_get(&argc, &argv);
+   if (ss) ui->settings = ss;
+   else
+     {
+        int x, dash = 0;
+
+        ss = ui->settings = calloc(1, sizeof(Shotgun_Settings));
+        /* don't count --enable/disable args */
+        for (x = 1; x < argc; x++)
+          if (argv[x][0] == '-') dash++;
+        switch (argc - dash)
+          {
+           case 1:
+             ui->settings->enable_last_account = EINA_TRUE;
+           case 3:
+             ui->settings->enable_account_info = EINA_TRUE;
+           default:
+             break;
+          }
+        shotgun_settings_set(ui->account, ss);
+     }
+
+   ss->ui = ui;
+   for (x = 1; x < argc; x++)
+     {
+        if ((!strcmp(argv[x], "--illume")) || (!strcmp(argv[x], "--enable-illume")))
+          ui->settings->enable_illume = EINA_TRUE;
+        if (!strcmp(argv[x], "--disable-illume"))
+          ui->settings->enable_illume = EINA_FALSE;
+     }
+   INF("ILLUME: %s", ui->settings->enable_illume ? "ENABLED" : "DISABLED");
 }

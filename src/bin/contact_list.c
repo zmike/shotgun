@@ -20,8 +20,11 @@ _contact_list_free_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj __U
      contact_free(c);
 
    if (cl->logs_refresh) ecore_timer_del(cl->logs_refresh);
-   ui_eet_auth_set(cl->account, &cl->settings, EINA_FALSE);
-   ui_eet_settings_set(cl->account, &cl->settings);
+
+   ui_eet_presence_set(cl->account);
+   ui_eet_settings_set(cl->account, cl->settings);
+   ui_eet_auth_set(cl->account, cl->settings, EINA_FALSE);
+   ui_eet_shutdown(cl->account);
 
    free(cl);
    ecore_main_loop_quit();
@@ -722,7 +725,7 @@ _contact_list_window_key(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj 
              elm_flip_go(cl->flip, ELM_FLIP_ROTATE_Y_CENTER_AXIS);
              return;
           }
-        settings_toggle(cl, NULL, NULL);
+        settings_toggle((UI_WIN*)cl, NULL, NULL);
      }
    else if (!strcmp(ev->keyname, "q"))
      evas_object_del(cl->win);
@@ -837,109 +840,45 @@ contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev)
 }
 
 Contact_List *
-contact_list_new(Shotgun_Auth *auth, Shotgun_Settings *ss)
+contact_list_init(UI_WIN *ui, Shotgun_Auth *auth)
 {
-   Evas_Object *win, *obj, *tb, *radio, *box, *menu, *entry, *fr;
+   Evas_Object *win, *obj, *tb, *radio, *box, *menu, *entry;
    Elm_Object_Item *it;
    Contact_List *cl;
-   Evas *e;
-   Evas_Modifier_Mask ctrl, shift, alt;
-   int argc, x;
-   char **argv;
-
-   ecore_app_args_get(&argc, &argv);
-   elm_policy_set(ELM_POLICY_QUIT, ELM_POLICY_QUIT_LAST_WINDOW_CLOSED);
 
    cl = calloc(1, sizeof(Contact_List));
    cl->account = auth;
 
-   if (ss) memcpy(&cl->settings, ss, sizeof(Shotgun_Settings));
+   if (ui)
+     memcpy(cl, ui, sizeof(UI_WIN));
    else
      {
-        int x, dash = 0;
-        /* don't count --enable/disable args */
-        for (x = 1; x < argc; x++)
-          if (argv[x][0] == '-') dash++;
-        switch (argc - dash)
-          {
-           case 1:
-             cl->settings.enable_last_account = EINA_TRUE;
-           case 3:
-             cl->settings.enable_account_info = EINA_TRUE;
-           default:
-             break;
-          }
+        /* straight to list from launch */
+        ui_win_init((UI_WIN*)cl);
      }
 
-   for (x = 1; x < argc; x++)
-     {
-        if ((!strcmp(argv[x], "--illume")) || (!strcmp(argv[x], "--enable-illume")))
-          cl->settings.enable_illume = EINA_TRUE;
-        if (!strcmp(argv[x], "--disable-illume"))
-          cl->settings.enable_illume = EINA_FALSE;
-     }
+   win = cl->win;
+   cl->type = 0;
+   elm_win_title_set(win, cl->settings->enable_illume ? "Shotgun" : "Contacts");
 
-   INF("ILLUME: %s", cl->settings.enable_illume ? "ENABLED" : "DISABLED");
-   cl->win = win = elm_win_add(NULL, cl->settings.enable_illume ? "Shotgun" : "Contacts", ELM_WIN_BASIC);
-   elm_win_title_set(win, cl->settings.enable_illume ? "Shotgun" : "Contacts");
-   elm_win_autodel_set(win, 1);
-   e = evas_object_evas_get(win);
-   ctrl = evas_key_modifier_mask_get(e, "Control");
-   shift = evas_key_modifier_mask_get(e, "Shift");
-   alt = evas_key_modifier_mask_get(e, "Alt");
    evas_object_event_callback_add(win, EVAS_CALLBACK_FREE, (Evas_Object_Event_Cb)_contact_list_free_cb, cl);
    evas_object_event_callback_add(win, EVAS_CALLBACK_KEY_DOWN, (Evas_Object_Event_Cb)_contact_list_window_key, cl);
-   1 | evas_object_key_grab(win, "Escape", 0, ctrl | shift | alt, 1); /* worst warn_unused ever. */
-   1 | evas_object_key_grab(win, "q", ctrl, shift | alt, 1); /* worst warn_unused ever. */
 
-   obj = elm_bg_add(win);
-   EXPAND(obj);
-   FILL(obj);
-   elm_win_resize_object_add(win, obj);
-   evas_object_show(obj);
-
-   if (cl->settings.enable_illume)
-     {
-        cl->illume_box = box = elm_box_add(win);
+   if (!ui) box = cl->box;
+   else
+     {/* from login */
+        cl->box = box = elm_box_add(win);
         elm_box_homogeneous_set(box, EINA_FALSE);
-        elm_box_horizontal_set(box, EINA_TRUE);
-        EXPAND(box);
-        FILL(box);
-        elm_win_resize_object_add(win, box);
+        IF_ILLUME(cl)
+          WEIGHT(box, 0, EVAS_HINT_EXPAND);
+        else
+          EXPAND(box);
         evas_object_show(box);
 
-        cl->illume_frame = fr = elm_frame_add(win);
-        EXPAND(fr);
-        FILL(fr);
-        elm_object_text_set(fr, "Contacts");
-        elm_box_pack_end(box, fr);
+        elm_flip_content_front_set(cl->flip, box);
+        settings_new((UI_WIN*)cl);
      }
-
-   cl->flip = elm_flip_add(win);
-   EXPAND(cl->flip);
-   FILL(cl->flip);
-   elm_win_resize_object_add(win, cl->flip);
-
-   IF_ILLUME
-     {
-        elm_object_content_set(fr, cl->flip);
-        evas_object_show(fr);
-     }
-
-   cl->box = box = elm_box_add(win);
-   elm_box_homogeneous_set(box, EINA_FALSE);
-   IF_ILLUME
-     WEIGHT(box, 0, EVAS_HINT_EXPAND);
-   else
-     {
-        EXPAND(box);
-     }
-   evas_object_show(box);
-
-   elm_flip_content_front_set(cl->flip, box);
-
-   settings_new(cl);
-   evas_object_show(cl->flip);
+   cl->settings->settings_exist = EINA_TRUE;
 
    tb = elm_toolbar_add(win);
    ALIGN(tb, EVAS_HINT_FILL, 0);

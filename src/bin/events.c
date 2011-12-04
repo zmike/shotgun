@@ -242,7 +242,7 @@ event_message_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Message *m
           {
              if (!cl->chat_wins) chat_window_new(cl);
              c->chat_window = cw = eina_list_data_get(cl->chat_wins);
-             chat_window_chat_new(c, cw, cl->settings.enable_chat_newselect);
+             chat_window_chat_new(c, cw, cl->settings->enable_chat_newselect);
           }
         else if (!contact_chat_window_current(c))
           contact_chat_window_animator_add(c);

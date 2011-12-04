@@ -55,11 +55,15 @@ void *alloca (size_t);
 #define EXPAND(X) WEIGHT((X), EVAS_HINT_EXPAND, EVAS_HINT_EXPAND)
 #define FILL(X) ALIGN((X), EVAS_HINT_FILL, EVAS_HINT_FILL)
 
-#define IF_NOT_ILLUME if ((!cl->settings.enable_illume) && (!cl->illume_box))
-#define IF_ILLUME if (cl->settings.enable_illume && cl->illume_box)
+#define IF_NOT_ILLUME(X) if ((!(X)->settings->enable_illume) && (!(X)->illume_box))
+#define IF_ILLUME(X) if ((X)->settings->enable_illume && (X)->illume_box)
+
+#define IF_UI_IS_LOGIN(X) if (((UI_WIN*)(X))->type)
+#define IF_UI_IS_NOT_LOGIN(X) if (!((UI_WIN*)(X))->type)
 
 extern int ui_log_dom;
 
+typedef struct Login_Window Login_Window;
 typedef struct Contact_List Contact_List;
 typedef struct Contact Contact;
 
@@ -69,6 +73,7 @@ typedef void *(*Contact_List_At_XY_Item_Get)(void *list, Evas_Coord x, Evas_Coor
 
 typedef struct Shotgun_Settings
 {
+   Eina_Bool settings_exist;
    Eina_Bool disable_notify;
    Eina_Bool enable_chat_focus;
    Eina_Bool enable_chat_promote;
@@ -82,10 +87,57 @@ typedef struct Shotgun_Settings
    Eina_Bool enable_presence_save;
    unsigned int allowed_image_age;
    unsigned int allowed_image_size;
+
+   void *ui;
 } Shotgun_Settings;
+
+typedef struct UI_WIN
+{
+   unsigned char type;
+   Shotgun_Auth *account; /* user's account */
+   Shotgun_Settings *settings;
+
+   Evas_Object *win; /* window */
+   Evas_Object *illume_box; /* horizontal box used in illume mode */
+   Evas_Object *illume_frame; /* list frame used in illume mode */
+   Evas_Object *flip; /* flip for settings */
+   Evas_Object *box; /* main box */
+   Evas_Object *settings_box; /* settings box */
+} UI_WIN;
+
+struct Login_Window
+{
+   unsigned char type;
+   Shotgun_Auth *account; /* user's account */
+   Shotgun_Settings *settings;
+
+   Evas_Object *win; /* window */
+   Evas_Object *illume_box; /* horizontal box used in illume mode */
+   Evas_Object *illume_frame; /* list frame used in illume mode */
+   Evas_Object *flip; /* flip for settings */
+   Evas_Object *box; /* main box */
+   Evas_Object *settings_box; /* settings box */
+
+   Evas_Object *label;
+   Evas_Object *icon;
+   Evas_Map *icon_map;
+   Evas_Object *server;
+   Evas_Object *domain;
+   Evas_Object *username;
+   Evas_Object *password;
+
+   Ecore_Event_Handler *evh;
+   Ecore_Event_Handler *evh2;
+   unsigned int spin_pos;
+   Ecore_Animator *spinner;
+};
 
 struct Contact_List
 {
+   unsigned char type;
+   Shotgun_Auth *account; /* user's account */
+   Shotgun_Settings *settings;
+
    Evas_Object *win; /* window */
    Evas_Object *illume_box; /* horizontal box used in illume mode */
    Evas_Object *illume_frame; /* list frame used in illume mode */
@@ -116,7 +168,6 @@ struct Contact_List
    E_DBus_Object *dbus_object;
 #endif
 
-   Shotgun_Settings settings;
    Ecore_Idler *image_cleaner;
    Ecore_Timer *logs_refresh;
 
@@ -134,7 +185,6 @@ struct Contact_List
         Ecore_Event_Handler *presence;
         Ecore_Event_Handler *message;
    } event_handlers;
-   Shotgun_Auth *account; /* user's account */
 };
 
 typedef struct
@@ -190,7 +240,7 @@ typedef struct
    Contact_List *cl;
 } Image;
 
-Contact_List *contact_list_new(Shotgun_Auth *auth, Shotgun_Settings *ss);
+Contact_List *contact_list_init(UI_WIN *ui, Shotgun_Auth *auth);
 void contact_list_user_add(Contact_List *cl, Contact *c);
 void contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev);
 
@@ -232,7 +282,7 @@ Eina_Binbuf *ui_eet_image_get(const char *url, unsigned long long timestamp);
 void ui_eet_image_ping(const char *url, unsigned long long timestamp);
 void ui_eet_shutdown(Shotgun_Auth *auth);
 Shotgun_Auth *ui_eet_auth_get(const char *name, const char *domain);
-void ui_eet_auth_set(Shotgun_Auth *auth, Shotgun_Settings *settings, Eina_Bool use_auth);
+void ui_eet_auth_set(Shotgun_Auth *auth, Shotgun_Settings *ss, Eina_Bool use_auth);
 Eina_Bool ui_eet_userinfo_add(Shotgun_Auth *auth, Evas_Object *img, Shotgun_User_Info *info);
 Shotgun_User_Info *ui_eet_userinfo_get(Shotgun_Auth *auth, const char *jid);
 Shotgun_Settings *ui_eet_settings_get(Shotgun_Auth *auth);
@@ -267,11 +317,15 @@ Eina_Bool logging_contact_init(Contact *c);
 Eina_Bool logging_contact_file_refresh(Contact *c);
 void logging_contact_file_close(Contact *c);
 
-void settings_new(Contact_List *cl);
-void settings_toggle(Contact_List *cl, Evas_Object *obj, void *event_info);
+void settings_new(UI_WIN *ui);
+void settings_toggle(UI_WIN *ui, Evas_Object *obj __UNUSED__, void *event_info);
+void settings_finagle(UI_WIN *ui);
 
 Eina_Bool util_userinfo_eq(Shotgun_User_Info *a, Shotgun_User_Info *b);
 const char *util_configdir_get(void);
 Eina_Bool util_configdir_create(void);
+
+void login_new(void);
+void ui_win_init(UI_WIN *ui);
 
 #endif /* __UI_H */

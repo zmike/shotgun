@@ -70,6 +70,7 @@ eet_ss_edd_new(void)
 #define ADD(name, type) \
   EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Shotgun_Settings, #name, name, EET_T_##type)
 
+   ADD(settings_exist, UCHAR);
    ADD(disable_notify, UCHAR);
    ADD(enable_chat_focus, UCHAR);
    ADD(enable_chat_promote, UCHAR);
@@ -197,14 +198,14 @@ image_cleaner_cb(Contact_List *cl)
    image_cache *ic;
    Eina_List *l, *l2;
    int cleaned = 0;
-   if ((!cleaner_edd) || (!cache_edd) || (!cl->settings.allowed_image_age))
+   if ((!cleaner_edd) || (!cache_edd) || (!cl->settings->allowed_image_age))
      {
         cl->image_cleaner = NULL;
         return EINA_FALSE;
      }
 
    now = (unsigned long long)ecore_time_unix_get();
-   now -= cl->settings.allowed_image_age * 24 * 60 * 60;
+   now -= cl->settings->allowed_image_age * 24 * 60 * 60;
    EINA_LIST_FOREACH_SAFE(icl->cache, l, l2, ic)
      {
         /* only clean up to 3 entries at a time to ensure responsiveness */
@@ -339,6 +340,7 @@ _ui_eet_auth_get(Eet_File *ef, const char *jid)
         snprintf(buf, sizeof(buf), "%s/pw", shotgun_jid_get(auth));
         p = eet_read_cipher(ef, buf, &size, shotgun_jid_get(auth));
         if (p) shotgun_password_set(auth, p);
+        free(p);
         shotgun_data_set(auth, ef);
      }
    else
@@ -377,7 +379,7 @@ ui_eet_auth_get(const char *name, const char *domain)
         if (!name)
           {
              eet_close(ef);
-             ERR("Could not read name of last account!");
+             INF("last_account not set");
              return NULL;
           }
         if (domain)
@@ -394,7 +396,7 @@ ui_eet_auth_get(const char *name, const char *domain)
 }
 
 void
-ui_eet_auth_set(Shotgun_Auth *auth, Shotgun_Settings *settings, Eina_Bool use_auth)
+ui_eet_auth_set(Shotgun_Auth *auth, Shotgun_Settings *ss, Eina_Bool use_auth)
 {
    Eet_File *ef;
    const char *s, *jid;
@@ -402,6 +404,7 @@ ui_eet_auth_set(Shotgun_Auth *auth, Shotgun_Settings *settings, Eina_Bool use_au
    Eet_Data_Descriptor *edd;
    UI_Eet_Auth a;
 
+   if (!ss) return;
    ef = shotgun_data_get(auth);
    jid = shotgun_jid_get(auth);
    a.username = shotgun_username_get(auth);
@@ -409,13 +412,13 @@ ui_eet_auth_set(Shotgun_Auth *auth, Shotgun_Settings *settings, Eina_Bool use_au
    a.resource = shotgun_resource_get(auth);
    a.server = shotgun_servername_get(auth);
 
-   if (settings->enable_last_account)
+   if (ss->enable_last_account)
      eet_write(ef, "last_account", jid, strlen(jid) + 1, 0);
    else
      eet_delete(ef, "last_account");
 
    snprintf(buf, sizeof(buf), "%s/pw", jid);
-   if (!settings->enable_account_info)
+   if (!ss->enable_account_info)
      {
         eet_delete(ef, buf);
         return;
@@ -428,6 +431,7 @@ ui_eet_auth_set(Shotgun_Auth *auth, Shotgun_Settings *settings, Eina_Bool use_au
    if (!use_auth)
      {
         s = shotgun_password_get(auth);
+        if (!s) return;
         /* feeble attempt at ciphering, but at least it isn't plaintext */
         eet_write_cipher(ef, buf, s, strlen(s) + 1, 0, jid);
         return;
@@ -643,6 +647,7 @@ ui_eet_settings_set(Shotgun_Auth *auth, Shotgun_Settings *ss)
    Eet_Data_Descriptor *edd;
    Eet_File *ef = shotgun_data_get(auth);
 
+   if (!ss) return;
    edd = eet_ss_edd_new();
    eet_data_write(ef, edd, "settings", ss, 0);
    eet_data_descriptor_free(edd);

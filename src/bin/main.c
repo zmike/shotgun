@@ -37,27 +37,25 @@ disc(Contact_List *cl, int type __UNUSED__, Shotgun_Auth *auth __UNUSED__)
 }
 
 static Eina_Bool
-con(void *data, int type __UNUSED__, Shotgun_Auth *auth)
+con(Contact_List *cl, int type __UNUSED__, Shotgun_Auth *auth)
 {
-   Contact_List *cl = data;
    Shotgun_Settings *ss;
    INF("Connected!");
-   /* don't mess up already-created list */
-   if (!cl)
-     {
+
+   ss = shotgun_settings_get(auth);
+   if ((!cl) || (cl->type))
+     {/* don't mess up already-created list on reconnect */
         Eina_Bool set = EINA_TRUE;
-        ss = ui_eet_settings_get(auth);
-        cl = contact_list_new(auth, ss);
-        free(ss);
-        if (cl->settings.enable_presence_save)
+        cl = contact_list_init(ss ? ss->ui : NULL, auth);
+        if (cl->settings->enable_presence_save)
           set = !ui_eet_presence_get(auth);
         if (set)
           shotgun_presence_set(auth, SHOTGUN_USER_STATUS_CHAT, "testing SHOTGUN!", 1);
-        if (!cl->settings.disable_reconnect)
+        if (!cl->settings->disable_reconnect)
           ecore_event_handler_data_set(dh, cl);
         ecore_event_handler_data_set(ch, cl);
         logging_dir_create(cl);
-        if (cl->settings.allowed_image_age) ui_eet_idler_start(cl);
+        if (cl->settings->allowed_image_age) ui_eet_idler_start(cl);
 #ifdef HAVE_DBUS
         ui_dbus_init(cl);
 #endif
@@ -66,6 +64,7 @@ con(void *data, int type __UNUSED__, Shotgun_Auth *auth)
         if (ui_azy_connect(cl))
           ecore_timer_add(24 * 60 * 60, (Ecore_Task_Cb)ui_azy_connect, cl);
 #endif
+
      }
    shotgun_iq_roster_get(auth);
    shotgun_presence_send(auth);
@@ -90,6 +89,7 @@ main(int argc, char *argv[])
    ecore_app_args_set(argc, (const char**)argv);
    shotgun_init();
    elm_init(argc, argv);
+   elm_policy_set(ELM_POLICY_QUIT, ELM_POLICY_QUIT_LAST_WINDOW_CLOSED);
 
    ui_log_dom = eina_log_domain_register("shotgun_ui", EINA_COLOR_LIGHTRED);
    eina_log_domain_level_set("shotgun_ui", EINA_LOG_LEVEL_DBG);
@@ -106,24 +106,47 @@ main(int argc, char *argv[])
    ecore_event_handler_add(SHOTGUN_EVENT_CONNECTION_STATE, (Ecore_Event_Handler_Cb)con_state, NULL);
    dh = ecore_event_handler_add(SHOTGUN_EVENT_DISCONNECT, (Ecore_Event_Handler_Cb)disc, NULL);
 
-   switch (argc)
+   switch (argc - 1)
      {
-      case 1:
+      case 0:
         auth = ui_eet_auth_get(NULL, NULL);
         break;
-      case 2:
+      case 1:
         auth = ui_eet_auth_get(argv[1], NULL);
         break;
-      case 3:
+      case 2:
         auth = ui_eet_auth_get(argv[1], argv[2]);
         break;
-      case 4:
+      case 3:
         auth = shotgun_new(argv[1], argv[2], argv[3]);
       default:
         break;
      }
 
-   if (!auth)
+   if (auth)
+     {
+        if (!shotgun_password_get(auth))
+          {
+             pass = getpass_x("Password: ");
+             if (!pass)
+               {
+                  ERR("No password entered!");
+                  return 1;
+               }
+             shotgun_password_set(auth, pass);
+          }
+        if (!ui_eet_init(auth))
+          {
+             CRI("Could not initialize eet backend!");
+             return 1;
+          }
+        shotgun_connect(auth);
+     }
+   else
+     login_new();
+
+   ecore_main_loop_begin();
+#if 0
      {
         fprintf(stderr, "Usage: %s [--(enable|disable)-illume] [server] [username] [domain]\n", argv[0]);
         fprintf(stderr, "Usage example: %s talk.google.com my_username gmail.com\n", argv[0]);
@@ -132,28 +155,9 @@ main(int argc, char *argv[])
         fprintf(stderr, "Usage example (with saved account): %s my_username@gmail.com\n", argv[0]);
         return 1;
      }
-
-   if (!shotgun_password_get(auth))
-     {
-        pass = getpass_x("Password: ");
-        if (!pass)
-          {
-             ERR("No password entered!");
-             return 1;
-          }
-        shotgun_password_set(auth, pass);
-     }
-   if (!ui_eet_init(auth))
-     {
-        CRI("Could not initialize eet backend!");
-        return 1;
-     }
-   shotgun_connect(auth);
-   ecore_main_loop_begin();
+#endif
 
    elm_shutdown();
-   ui_eet_presence_set(auth);
-   ui_eet_shutdown(auth);
 
    return 0;
 }

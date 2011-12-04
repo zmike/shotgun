@@ -112,9 +112,9 @@ chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me)
         fwrite("\n", sizeof(char), 1, c->log);
      }
    elm_entry_cursor_end_set(e);
-   if (c->list->settings.enable_chat_focus)
+   if (c->list->settings->enable_chat_focus)
      elm_win_activate(c->chat_window->win);
-   if (c->list->settings.enable_chat_promote)
+   if (c->list->settings->enable_chat_promote)
      /* FIXME: gengrid doesn't have item promote */
      if (c->list->list_item_promote[c->list->mode])
        /* FIXME: FIXME: fuck gengrid */
@@ -361,7 +361,7 @@ _chat_window_key(Chat_Window *cw, Evas *e __UNUSED__, Evas_Object *obj __UNUSED_
           }
         if (new && (new != cur)) elm_toolbar_item_selected_set(new, EINA_TRUE);
      }
-   IF_ILLUME
+   IF_ILLUME(cl)
      {
         if (!strcmp(ev->keyname, "w"))
           _chat_window_close_cb(cw, NULL, NULL);
@@ -395,7 +395,7 @@ chat_window_new(Contact_List *cl)
 
    cw = calloc(1, sizeof(Chat_Window));
 
-   IF_ILLUME
+   IF_ILLUME(cl)
      cw->win = win = cl->win;
    else
      {
@@ -412,7 +412,7 @@ chat_window_new(Contact_List *cl)
    1 | evas_object_key_grab(win, "Tab", ctrl, alt, 1); /* worst warn_unused ever. */
    1 | evas_object_key_grab(win, "Tab", ctrl | shift, alt, 1); /* worst warn_unused ever. */
 
-   IF_NOT_ILLUME
+   IF_NOT_ILLUME(cl)
      {
         1 | evas_object_key_grab(win, "Escape", 0, ctrl | shift | alt, 1); /* worst warn_unused ever. */
         evas_object_resize(win, 550, 330);
@@ -430,7 +430,7 @@ chat_window_new(Contact_List *cl)
    EXPAND(box);
    FILL(box);
    elm_win_resize_object_add(win, box);
-   IF_ILLUME
+   IF_ILLUME(cl)
      elm_box_pack_end(cl->illume_box, box);
    evas_object_show(box);
 
@@ -452,12 +452,12 @@ chat_window_new(Contact_List *cl)
    elm_object_style_set(pg, "slide");
    evas_object_show(pg);
 
-   IF_NOT_ILLUME
+   IF_NOT_ILLUME(cl)
      elm_win_activate(win);
 
    cw->cl = cl;
    cl->chat_wins = eina_list_append(cl->chat_wins, cw);
-   IF_ILLUME
+   IF_ILLUME(cl)
      evas_object_resize(cw->win, 850, 700);
 }
 
@@ -469,7 +469,7 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
    void *it;
    const char *icon = (c->info && c->info->photo.size) ? NULL : "shotgun/userunknown";
 
-   if (c->list->settings.enable_logging)
+   if (c->list->settings->enable_logging)
      {
         if (!c->log)
           {
@@ -601,7 +601,7 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
    else
      contact_chat_window_animator_add(c);
 
-   if (c->list->settings.enable_chat_focus)
+   if (c->list->settings->enable_chat_focus)
      elm_win_activate(cw->win);
 }
 
@@ -627,7 +627,7 @@ chat_window_free(Chat_Window *cw, Evas_Object *obj __UNUSED__, const char *ev __
           }
         memset(&c->chat_window, 0, sizeof(void*) * 9);
      }
-   IF_ILLUME
+   IF_ILLUME(cl)
      {
         Evas *e;
         Evas_Modifier_Mask ctrl, shift, alt;
