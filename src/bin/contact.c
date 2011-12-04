@@ -367,7 +367,10 @@ contact_presence_set(Contact *c, Shotgun_Event_Presence *cur)
    /* if vcard available, fetch */
    if (c->cur->vcard && ((!c->info) || (cur && c->info &&
        ((c->info->photo.sha1 != cur->photo) || (cur->photo && (!c->info->photo.size))))))
-     shotgun_iq_vcard_get(cl->account, c->base->jid);
+     {
+        INF("VCARD for %s not current; fetching.", c->base->jid);
+        shotgun_iq_vcard_get(cl->account, c->base->jid);
+     }
 
 }
 

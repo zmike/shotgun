@@ -207,7 +207,10 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
                   if (ev->vcard && ((!c->info) || (c->cur && c->info &&
                       ((c->info->photo.sha1 != c->cur->photo) ||
                        (c->cur->photo && (!c->info->photo.size))))))
-                    shotgun_iq_vcard_get(ev->account, c->base->jid);
+                    {
+                       INF("VCARD for %s not current; fetching.", c->base->jid);
+                       shotgun_iq_vcard_get(ev->account, c->base->jid);
+                    }
                   return ECORE_CALLBACK_RENEW;
                }
              c->plist = eina_list_remove(c->plist, pres);
