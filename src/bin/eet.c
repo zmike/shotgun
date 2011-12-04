@@ -387,7 +387,6 @@ ui_eet_auth_get(const char *name, const char *domain)
      }
    else
      {
-        jid[0] = 0;
         strncpy(buf, jid, sizeof(buf));
         free(jid);
      }
