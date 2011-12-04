@@ -79,6 +79,29 @@ _settings_logging_change(Contact_List *cl, Evas_Object *obj, void *event_info __
      }
 }
 
+static void
+_settings_chat_typing_change(Contact_List *cl, Evas_Object *obj, void *event_info __UNUSED__)
+{
+   Eina_List *l, *ll;
+   Chat_Window *cw;
+   Contact *c;
+
+   if (!elm_check_state_get(obj))
+     {
+        EINA_LIST_FOREACH(cl->chat_wins, l, cw)
+          {
+             EINA_LIST_FOREACH(cw->contacts, ll, c)
+               evas_object_smart_callback_del(c->chat_input, "changed,user", (Evas_Smart_Cb)contact_chat_window_typing);
+          }
+        return;
+     }
+   EINA_LIST_FOREACH(cl->chat_wins, l, cw)
+     {
+        EINA_LIST_FOREACH(cw->contacts, ll, c)
+          evas_object_smart_callback_add(c->chat_input, "changed,user", (Evas_Smart_Cb)contact_chat_window_typing, c);
+     }
+}
+
 void
 settings_new(UI_WIN *ui)
 {
@@ -164,6 +187,8 @@ settings_new(UI_WIN *ui)
      }
 
    SETTINGS_FRAME("Messages");
+   SETTINGS_CHECK("Send keyboard events", enable_chat_typing, "Send additional notifications to contacts when you start or stop typing to them");
+   IF_UI_IS_NOT_LOGIN(ui) evas_object_smart_callback_add(ck, "changed", (Evas_Smart_Cb)_settings_chat_typing_change, cl);
    SETTINGS_CHECK("Focus chat window on message", enable_chat_focus, "Focus chat window whenever message is received");
    SETTINGS_CHECK("Promote contact on message", enable_chat_promote, "Move contact to top of list when message is received");
    SETTINGS_CHECK("Always select new chat tabs", enable_chat_newselect, "When a message is received which would open a new tab, make that tab active");

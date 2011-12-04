@@ -71,6 +71,32 @@ _contact_chat_window_animator_switch(Contact *c)
    return EINA_TRUE;
 }
 
+static Eina_Bool
+_contact_chat_window_typing_cb(Contact *c)
+{
+   if (!c->cur)
+     {
+        c->sms_timer = NULL;
+        return EINA_FALSE;
+     }
+
+   if (c->sms == SHOTGUN_MESSAGE_STATUS_COMPOSING)
+     {
+        c->sms = SHOTGUN_MESSAGE_STATUS_PAUSED;
+        /* be courteous and don't leave the fucking 'composing' status set forever */
+        ecore_timer_interval_set(c->sms_timer, SMS_TIMER_INTERVAL_PAUSED);
+     }
+   else
+     {
+        c->sms = SHOTGUN_MESSAGE_STATUS_INACTIVE;
+        ecore_timer_del(c->sms_timer);
+        c->sms_timer = NULL;
+     }
+
+   shotgun_message_send(c->list->account, c->base->jid, NULL, c->sms);
+   return EINA_TRUE;
+}
+
 const char *
 contact_name_get(Contact *c)
 {
@@ -94,6 +120,7 @@ contact_free(Contact *c)
    if (c->list_item)
      c->list->list_item_del[c->list->mode](c->list_item);
    if (c->tooltip_timer) ecore_timer_del(c->tooltip_timer);
+   if (c->sms_timer) ecore_timer_del(c->sms_timer);
    shotgun_user_free(c->base);
    shotgun_user_info_free(c->info);
    eina_stringshare_del(c->last_conv);
@@ -224,6 +251,12 @@ contact_chat_window_close(Contact *c)
    elm_toolbar_item_del(c->chat_tb_item);
    evas_object_del(c->chat_panes);
    memset(&c->chat_window, 0, sizeof(void*) * 9);
+   if (c->sms_timer)
+     {
+        ecore_timer_del(c->sms_timer);
+        c->sms_timer = NULL;
+        shotgun_message_send(c->list->account, c->base->jid, NULL, SHOTGUN_MESSAGE_STATUS_INACTIVE);
+     }
 
    cw->contacts = eina_list_remove(cw->contacts, c);
    if (!current) return;
@@ -406,4 +439,37 @@ contact_presence_clear(Contact *c)
    c->description = NULL;
    c->status = 0;
    c->priority = 0;
+}
+
+/* this should never be called unless the user has explicitly added/deleted text
+ * eg. sending a message should not trigger it
+ */
+void
+contact_chat_window_typing(Contact *c, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
+{
+   const char *txt;
+   Shotgun_Message_Status sms = 0;
+
+   if (!c->cur) return;
+   txt = elm_entry_entry_get(c->chat_input);
+   if ((!txt) || (!txt[0]))
+     sms = SHOTGUN_MESSAGE_STATUS_INACTIVE;
+   else
+     sms = SHOTGUN_MESSAGE_STATUS_COMPOSING;
+
+   if (c->sms == sms)
+     {
+        /* still composing, reset timer */
+        if (c->sms_timer && (sms == SHOTGUN_MESSAGE_STATUS_COMPOSING))
+          ecore_timer_reset(c->sms_timer);
+        return;
+     }
+
+   if (c->sms_timer) ecore_timer_del(c->sms_timer);
+   c->sms_timer = NULL;
+   c->sms = sms;
+   if (sms == SHOTGUN_MESSAGE_STATUS_COMPOSING)
+     /* previous sms was paused or inactive */
+     c->sms_timer = ecore_timer_add(SMS_TIMER_INTERVAL_COMPOSING, (Ecore_Task_Cb)_contact_chat_window_typing_cb, c);
+   shotgun_message_send(c->list->account, c->base->jid, NULL, sms);
 }

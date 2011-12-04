@@ -75,6 +75,7 @@ eet_ss_edd_new(void)
    ADD(enable_chat_focus, UCHAR);
    ADD(enable_chat_promote, UCHAR);
    ADD(enable_chat_newselect, UCHAR);
+   ADD(enable_chat_typing, UCHAR);
    ADD(enable_account_info, UCHAR);
    ADD(enable_last_account, UCHAR);
    ADD(enable_logging, UCHAR);

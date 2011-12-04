@@ -170,13 +170,15 @@ _chat_window_send_cb(Contact *c, Evas_Object *obj, void *ev __UNUSED__)
      jid = c->cur->jid;
    else
      jid = c->base->jid;
-   shotgun_message_send(c->base->account, jid, s, 0);
+   shotgun_message_send(c->base->account, jid, s, SHOTGUN_MESSAGE_STATUS_INACTIVE);
    chat_message_insert(c, "me", s, EINA_TRUE);
 #ifdef HAVE_DBUS
    ui_dbus_signal_message_self(c->list, jid, s);
 #endif
    elm_entry_entry_set(obj, "");
    elm_entry_cursor_end_set(obj);
+   if (c->sms_timer) ecore_timer_del(c->sms_timer);
+   c->sms_timer = NULL;
 
    free(s);
 }
@@ -572,6 +574,8 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
    evas_object_show(entry);
    elm_object_focus_set(entry, EINA_TRUE);
    evas_object_smart_callback_add(entry, "activated", (Evas_Smart_Cb)_chat_window_send_cb, c);
+   if (c->list->settings->enable_chat_typing)
+     evas_object_smart_callback_add(entry, "changed,user", (Evas_Smart_Cb)contact_chat_window_typing, c);
 
    elm_object_part_content_set(panes, "elm.swallow.right", entry);
    elm_panes_content_left_size_set(panes, 0.8);

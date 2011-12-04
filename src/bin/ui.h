@@ -61,6 +61,9 @@ void *alloca (size_t);
 #define IF_UI_IS_LOGIN(X) if (((UI_WIN*)(X))->type)
 #define IF_UI_IS_NOT_LOGIN(X) if (!((UI_WIN*)(X))->type)
 
+#define SMS_TIMER_INTERVAL_PAUSED 120 /* time to expire a "paused" status */ 
+#define SMS_TIMER_INTERVAL_COMPOSING 2 /* time to switch to "paused" status */ 
+
 extern int ui_log_dom;
 
 typedef struct Login_Window Login_Window;
@@ -78,6 +81,7 @@ typedef struct Shotgun_Settings
    Eina_Bool enable_chat_focus;
    Eina_Bool enable_chat_promote;
    Eina_Bool enable_chat_newselect;
+   Eina_Bool enable_chat_typing;
    Eina_Bool enable_account_info;
    Eina_Bool enable_last_account;
    Eina_Bool enable_logging;
@@ -209,6 +213,9 @@ struct Contact
    int priority; /* user's current priority */
    const char *description; /* user's current status message */
 
+   Shotgun_Message_Status sms; /* current status sent TO user */
+   Ecore_Timer *sms_timer; /* timer for inactivity */
+
    const char *force_resource; /* always send to this resource if set */
    const char *last_conv; /* entire conversation with user to keep conversations fluid when windows are opened/closed */
    const char *tooltip_label; /* label for contact list item tooltip */
@@ -272,6 +279,7 @@ void contact_chat_window_animator_add(Contact *c);
 void contact_chat_window_animator_del(Contact *c);
 void contact_chat_window_close(Contact *c);
 void contact_subscription_set(Contact *c, Shotgun_Presence_Type type, Shotgun_User_Subscription sub);
+void contact_chat_window_typing(Contact *c, Evas_Object *obj, void *event_info);
 
 Eina_Bool ui_eet_init(Shotgun_Auth *auth);
 void ui_eet_dummy_add(const char *url);
