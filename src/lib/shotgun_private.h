@@ -80,7 +80,7 @@ struct Shotgun_Auth
    Shotgun_User_Status status; /* current status */
    int priority;
 
-   const char *pass; /* NOT ALLOCATED! */
+   const char *pass; /* stringshared */
    const char *error; /* stringshared */
 
    Eina_Strbuf *buf;

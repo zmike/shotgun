@@ -226,12 +226,12 @@ shotgun_connect(Shotgun_Auth *auth)
    if ((!auth->user) || (!auth->from) || (!auth->svr_name)) return EINA_FALSE;
    if (auth->changed)
      {
-        eina_stringshare_printf("%s@%s/%s", auth->user, auth->from, auth->resource);
-        eina_stringshare_printf("%s@%s", auth->user, auth->from);
+        auth->jid = eina_stringshare_printf("%s@%s/%s", auth->user, auth->from, auth->resource);
+        auth->base_jid = eina_stringshare_printf("%s@%s", auth->user, auth->from);
         auth->changed = EINA_FALSE;
      }
-   else if (!auth->jid) eina_stringshare_printf("%s@%s/%s", auth->user, auth->from, auth->resource);
-   else if (!auth->base_jid) eina_stringshare_printf("%s@%s", auth->user, auth->from);
+   else if (!auth->jid) auth->jid = eina_stringshare_printf("%s@%s/%s", auth->user, auth->from, auth->resource);
+   else if (!auth->base_jid) auth->base_jid = eina_stringshare_printf("%s@%s", auth->user, auth->from);
    auth->ev_add = ecore_event_handler_add(ECORE_CON_EVENT_SERVER_ADD, (Ecore_Event_Handler_Cb)shotgun_login_con, auth);
    auth->ev_del = ecore_event_handler_add(ECORE_CON_EVENT_SERVER_DEL, (Ecore_Event_Handler_Cb)disc, NULL);
    auth->ev_data = ecore_event_handler_add(ECORE_CON_EVENT_SERVER_DATA, (Ecore_Event_Handler_Cb)data, auth);
@@ -276,6 +276,7 @@ shotgun_free(Shotgun_Auth *auth)
    eina_stringshare_del(auth->bind);
    eina_stringshare_del(auth->desc);
    eina_stringshare_del(auth->error);
+   eina_stringshare_del(auth->pass);
    auth->svr_name = NULL;
    shotgun_disconnect(auth);
    free(auth->settings);
@@ -411,14 +412,5 @@ void
 shotgun_password_set(Shotgun_Auth *auth, const char *password)
 {
    EINA_SAFETY_ON_NULL_RETURN(auth);
-   EINA_SAFETY_ON_NULL_RETURN(password);
-
-   auth->pass = password;
-}
-
-void
-shotgun_password_del(Shotgun_Auth *auth)
-{
-   EINA_SAFETY_ON_NULL_RETURN(auth);
-   auth->pass = NULL;
+   eina_stringshare_replace(&auth->pass, password);
 }
