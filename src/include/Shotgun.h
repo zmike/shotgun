@@ -217,12 +217,7 @@ void shotgun_settings_set(Shotgun_Auth *auth, void *settings);
 void *shotgun_settings_get(Shotgun_Auth *auth);
 void shotgun_data_set(Shotgun_Auth *auth, void *data);
 void *shotgun_data_get(Shotgun_Auth *auth);
-
-/**
- * DOES NOT ALLOCATE FOR PASSWORD.
- */
 void shotgun_password_set(Shotgun_Auth *auth, const char *password);
-void shotgun_password_del(Shotgun_Auth *auth);
 
 Eina_Bool shotgun_iq_roster_get(Shotgun_Auth *auth);
 Eina_Bool shotgun_iq_contact_add(Shotgun_Auth *auth, const char *user, const char *alias, Eina_List */* const char * */groups);
