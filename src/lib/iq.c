@@ -37,6 +37,7 @@ shotgun_user_info_free(Shotgun_User_Info *info)
    eina_stringshare_del(info->jid);
    eina_stringshare_del(info->full_name);
    eina_stringshare_del(info->photo.type);
+   eina_stringshare_del(info->photo.sha1);
    free(info->photo.data);
    free(info);
 }
