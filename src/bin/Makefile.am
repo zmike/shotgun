@@ -32,12 +32,14 @@ dbus.c \
 eet.c \
 events.c \
 getpass_x.c \
+login.c \
 logging.c \
 main.c \
 settings.c \
 sha1.c \
 sha1.h \
 sha1wrap.c \
+ui.c \
 ui.h \
 util.c
 
