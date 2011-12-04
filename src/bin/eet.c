@@ -383,10 +383,15 @@ ui_eet_auth_get(const char *name, const char *domain)
         if (domain)
           snprintf(buf, sizeof(buf), "%s@%s", name, domain);
         else
-          jid = (char*)name;
+          strncpy(buf, name, sizeof(buf));
      }
-   if (!jid) return _ui_eet_auth_get(ef, buf);
-   return _ui_eet_auth_get(ef, jid);
+   else
+     {
+        jid[0] = 0;
+        strncpy(buf, jid, sizeof(buf));
+        free(jid);
+     }
+   return _ui_eet_auth_get(ef, buf);
 }
 
 void
