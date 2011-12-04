@@ -784,8 +784,7 @@ contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev)
              c->list->list_item_del[c->list->mode](c->list_item);
           }
         c->list_item = NULL;
-        c->cur = NULL;
-        c->force_resource = NULL;
+        contact_presence_clear(c);
         return;
      }
    if (ev->jid == c->cur->jid)
@@ -803,7 +802,7 @@ contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev)
              if (pres->priority < c->cur->priority) continue;
              c->cur = pres;
           }
-        if (ev->jid == c->force_resource) c->force_resource = NULL;
+        if (ev->jid == c->force_resource) eina_stringshare_replace(&c->force_resource, NULL);
         c->plist = eina_list_remove(c->plist, c->cur);
      }
    else
@@ -812,7 +811,7 @@ contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev)
           {
              if (ev->jid != pres->jid) continue;
 
-             if (ev->jid == c->force_resource) c->force_resource = NULL;
+             if (ev->jid == c->force_resource) eina_stringshare_replace(&c->force_resource, NULL);
              shotgun_event_presence_free(pres);
              c->plist = eina_list_remove_list(c->plist, l);
              break;
@@ -821,9 +820,7 @@ contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev)
    contact_jids_menu_del(c, ev->jid);
    if (!c->cur)
      {
-        c->status = 0;
-        c->description = NULL;
-        c->priority = 0;
+        contact_presence_clear(c);
         return;
      }
 #if 0
