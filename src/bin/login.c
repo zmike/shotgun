@@ -135,6 +135,7 @@ static void
 _login(Login_Window *lw)
 {
    const char *domain, *svr_name, *user, *pw;
+   char *d, *s, *u, *p;
    int argc;
    Shotgun_Auth *auth = NULL;
 
@@ -146,59 +147,72 @@ _login(Login_Window *lw)
    if (user && (!user[0])) user = NULL;
    pw = elm_entry_entry_get(lw->password);
    if (pw && (!pw[0])) pw = NULL;
+   if (domain) d = elm_entry_markup_to_utf8(domain);
+   if (svr_name) s = elm_entry_markup_to_utf8(svr_name);
+   if (user) u = elm_entry_markup_to_utf8(user);
+   if (pw) p = elm_entry_markup_to_utf8(pw);
 
-   argc = (!!svr_name) + (!!domain) + (!!user);
+   argc = (!!s) + (!!d) + (!!u);
    switch (argc)
      {
       case 0:
         /* ERROR */
         break;
       case 1:
-        if (!user)
+        if (!u)
           {
              /* ERROR */
              break;
           }
-        auth = ui_eet_auth_get(user, NULL);
+        auth = ui_eet_auth_get(u, NULL);
         break;
       case 2:
-        if (!user)
+        if (!u)
           {
              /* ERROR */
              break;
           }
-        if (domain)
-          auth = ui_eet_auth_get(user, domain);
+        if (d)
+          auth = ui_eet_auth_get(u, d);
         else
-          auth = ui_eet_auth_get(user, NULL);
-        if (auth && svr_name) /* possibly changed address */
-          shotgun_servername_set(auth, svr_name);
+          auth = ui_eet_auth_get(u, NULL);
+        if (auth && s) /* possibly changed address */
+          shotgun_servername_set(auth, s);
         break;
       case 3:
-        if (!user)
+        if (!u)
           {
              /* ERROR */
              break;
           }
-        if (domain)
-          auth = ui_eet_auth_get(user, domain);
+        if (d)
+          auth = ui_eet_auth_get(u, d);
         if (!auth)
-          auth = ui_eet_auth_get(user, NULL);
-        if (auth && svr_name) /* possibly changed address */
-          shotgun_servername_set(auth, svr_name);
-        if (svr_name && domain && (!auth))
-          auth = shotgun_new(svr_name, user, domain);
+          auth = ui_eet_auth_get(u, NULL);
+        if (auth && s) /* possibly changed address */
+          shotgun_servername_set(auth, s);
+        if (s && d && (!auth))
+          auth = shotgun_new(s, u, d);
       default:
         break;
      }
    if (!auth)
      {
         /* ERROR */
+
+        free(d);
+        free(s);
+        free(u);
+        free(p);
         return;
      }
 
-   if (pw) shotgun_password_set(auth, pw);
+   if (p) shotgun_password_set(auth, p);
 
+   free(d);
+   free(s);
+   free(u);
+   free(p);
    if ((!shotgun_username_get(auth)) ||
        (!shotgun_password_get(auth)) ||
        (!shotgun_domain_get(auth)) ||
