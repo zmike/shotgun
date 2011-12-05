@@ -138,6 +138,7 @@ _login(Login_Window *lw)
    char *d, *s, *u, *p;
    int argc;
    Shotgun_Auth *auth = NULL;
+   d = s = u = p = NULL;
 
    svr_name = elm_entry_entry_get(lw->server);
    if (svr_name && (!svr_name[0])) svr_name = NULL;
