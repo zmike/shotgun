@@ -31,6 +31,28 @@ _contact_list_free_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj __U
 }
 
 static void
+_contact_list_resize_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
+{
+   const Eina_List *l;
+   Evas_Object *box;
+   int w, h, sw, sh;
+   double size;
+
+   if (!cl->chat_wins) return;
+   evas_object_geometry_get(cl->illume_frame, NULL, NULL, &w, &h);
+   evas_object_geometry_get(cl->win, NULL, NULL, &sw, &sh);
+
+   /* check against default size ratio */
+   if ((double)w / (double)sw <= 300./850.) return;
+   size = (double)sw * 300. / 850.;
+   l = elm_box_children_get(cl->illume_box);
+   box = l->next->data;
+   evas_object_resize(cl->illume_frame, size, h);
+   evas_object_resize(box, (double)sw - size, sh);
+   elm_box_recalculate(cl->illume_box);
+}
+
+static void
 _contact_list_user_del_cb(Contact *c, Evas_Object *obj __UNUSED__, void *ev  __UNUSED__)
 {
    if (!c) return;
@@ -858,6 +880,7 @@ contact_list_init(UI_WIN *ui, Shotgun_Auth *auth)
    cl->type = 0;
    elm_win_title_set(win, cl->settings->enable_illume ? "Shotgun" : "Contacts");
 
+   IF_ILLUME(cl) evas_object_event_callback_add(cl->illume_frame, EVAS_CALLBACK_RESIZE, (Evas_Object_Event_Cb)_contact_list_resize_cb, cl);
    evas_object_event_callback_add(win, EVAS_CALLBACK_FREE, (Evas_Object_Event_Cb)_contact_list_free_cb, cl);
    evas_object_event_callback_add(win, EVAS_CALLBACK_KEY_DOWN, (Evas_Object_Event_Cb)_contact_list_window_key, cl);
 
