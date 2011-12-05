@@ -48,13 +48,14 @@ ui_win_init(UI_WIN *ui)
    ui->flip = elm_flip_add(win);
    EXPAND(ui->flip);
    FILL(ui->flip);
-   elm_win_resize_object_add(win, ui->flip);
 
    IF_ILLUME(ui)
      {
         elm_object_content_set(fr, ui->flip);
         evas_object_show(fr);
      }
+   else
+     elm_win_resize_object_add(win, ui->flip);
 
    ui->box = box = elm_box_add(win);
    elm_box_homogeneous_set(box, EINA_FALSE);
