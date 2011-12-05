@@ -799,7 +799,6 @@ contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev)
    Shotgun_Event_Presence *pres;
    if ((!c->plist) || (!ev))
      {
-        shotgun_event_presence_free(c->cur);
         if (c->list_item)
           {
              INF("Removing user %s", c->base->jid);
