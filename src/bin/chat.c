@@ -460,7 +460,10 @@ chat_window_new(Contact_List *cl)
    cw->cl = cl;
    cl->chat_wins = eina_list_append(cl->chat_wins, cw);
    IF_ILLUME(cl)
-     evas_object_resize(cw->win, 850, 700);
+     {
+        evas_object_resize(cw->win, 850, 700);
+        evas_object_resize(cw->cl->illume_frame, 300, 700);
+     }
 }
 
 void
@@ -637,6 +640,7 @@ chat_window_free(Chat_Window *cw, Evas_Object *obj __UNUSED__, const char *ev __
         Evas_Modifier_Mask ctrl, shift, alt;
 
         evas_object_event_callback_del_full(cl->win, EVAS_CALLBACK_KEY_DOWN, (Evas_Object_Event_Cb)_chat_window_key, cw);
+        evas_object_smart_callback_del(cl->win, "focus,in", (Evas_Smart_Cb)_chat_window_focus);
         e = evas_object_evas_get(cl->win);
         ctrl = evas_key_modifier_mask_get(e, "Control");
         shift = evas_key_modifier_mask_get(e, "Shift");
