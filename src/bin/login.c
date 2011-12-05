@@ -257,7 +257,7 @@ login_new(void)
    evas_object_show(ic);
    obj = elm_button_add(win);
    elm_object_tooltip_text_set(obj, "Settings");
-   elm_tooltip_size_restrict_disable(obj, EINA_TRUE);
+   elm_tooltip_window_mode_set(obj, EINA_TRUE);
    elm_object_content_set(obj, ic);
    ALIGN(obj, 1, 0);
    elm_box_pack_end(lw->box, obj);
