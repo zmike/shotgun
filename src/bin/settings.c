@@ -22,7 +22,7 @@
    elm_object_text_set(ck, LABEL); \
    elm_check_state_pointer_set(ck, &ui->settings->POINTER); \
    elm_object_tooltip_text_set(ck, TOOLTIP); \
-   elm_tooltip_window_mode_set(ck, EINA_TRUE); \
+   elm_object_tooltip_window_mode_set(ck, EINA_TRUE); \
    elm_box_pack_end(frbox, ck); \
    evas_object_show(ck); \
 } while (0)
@@ -35,7 +35,7 @@
    elm_slider_min_max_set(sl, 0, MAX); \
    elm_object_text_set(sl, LABEL); \
    elm_object_tooltip_text_set(sl, TOOLTIP); \
-   elm_tooltip_window_mode_set(sl, EINA_TRUE); \
+   elm_object_tooltip_window_mode_set(sl, EINA_TRUE); \
    evas_object_smart_callback_add(sl, "delay,changed", (Evas_Smart_Cb)_settings_ ##CB## _change, ui); \
    elm_box_pack_end(frbox, sl); \
    evas_object_show(sl); \
@@ -128,7 +128,7 @@ settings_new(UI_WIN *ui)
      elm_object_tooltip_text_set(back, "Return to login");
    else
      elm_object_tooltip_text_set(back, "Return to contact list");
-   elm_tooltip_window_mode_set(back, EINA_TRUE);
+   elm_object_tooltip_window_mode_set(back, EINA_TRUE);
    WEIGHT(back, 0, 0);
    ALIGN(back, 0, 0);
    elm_box_pack_end(box, back);

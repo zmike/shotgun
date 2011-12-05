@@ -76,7 +76,7 @@ chat_conv_image_show(Contact *c, Evas_Object *obj, Elm_Entry_Anchor_Info *ev)
    i = eina_hash_find(c->list->images, ev->name);
    if (!i) return;
    elm_object_tooltip_content_cb_set(obj, (Elm_Tooltip_Content_Cb)_chat_conv_image_provider, i, NULL);
-   elm_tooltip_window_mode_set(obj, EINA_TRUE);
+   elm_object_tooltip_window_mode_set(obj, EINA_TRUE);
    elm_object_tooltip_show(obj);
    DBG("anchor in: '%s' (%i, %i)", ev->name, ev->x, ev->y);
 }
