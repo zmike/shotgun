@@ -233,9 +233,9 @@ shotgun_connect(Shotgun_Auth *auth)
    else if (!auth->jid) auth->jid = eina_stringshare_printf("%s@%s/%s", auth->user, auth->from, auth->resource);
    else if (!auth->base_jid) auth->base_jid = eina_stringshare_printf("%s@%s", auth->user, auth->from);
    auth->ev_add = ecore_event_handler_add(ECORE_CON_EVENT_SERVER_ADD, (Ecore_Event_Handler_Cb)shotgun_login_con, auth);
-   auth->ev_del = ecore_event_handler_add(ECORE_CON_EVENT_SERVER_DEL, (Ecore_Event_Handler_Cb)disc, NULL);
+   auth->ev_del = ecore_event_handler_add(ECORE_CON_EVENT_SERVER_DEL, (Ecore_Event_Handler_Cb)disc, auth);
    auth->ev_data = ecore_event_handler_add(ECORE_CON_EVENT_SERVER_DATA, (Ecore_Event_Handler_Cb)data, auth);
-   auth->ev_error = ecore_event_handler_add(ECORE_CON_EVENT_SERVER_ERROR, (Ecore_Event_Handler_Cb)error, NULL);
+   auth->ev_error = ecore_event_handler_add(ECORE_CON_EVENT_SERVER_ERROR, (Ecore_Event_Handler_Cb)error, auth);
    auth->ev_upgrade = ecore_event_handler_add(ECORE_CON_EVENT_SERVER_UPGRADE, (Ecore_Event_Handler_Cb)shotgun_login_con, auth);
    auth->svr = ecore_con_server_connect(ECORE_CON_REMOTE_NODELAY, auth->svr_name, 5222, auth);
 
