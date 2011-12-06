@@ -17,12 +17,14 @@ disc(Contact_List *cl, int type __UNUSED__, Shotgun_Auth *auth __UNUSED__)
 {
    Eina_List *l;
    Contact *c;
+   double dtime;
    INF("Disconnected");
    if (!cl)
      {
         ecore_main_loop_quit();
         return ECORE_CALLBACK_RENEW;
      }
+   dtime = ecore_time_get();
    EINA_LIST_FOREACH(cl->users_list, l, c)
      contact_presence_clear(c);
    if (cl->pager)
@@ -32,7 +34,9 @@ disc(Contact_List *cl, int type __UNUSED__, Shotgun_Auth *auth __UNUSED__)
         cl->pager = NULL;
         cl->pager_state = 0;
      }
-   shotgun_connect(cl->account);
+   if (dtime - cl->disconnect_time < 1.) ecore_main_loop_quit();
+   else shotgun_connect(cl->account);
+   cl->disconnect_time = dtime;
    return ECORE_CALLBACK_RENEW;
 }
 

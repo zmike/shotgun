@@ -189,6 +189,7 @@ struct Contact_List
         Ecore_Event_Handler *presence;
         Ecore_Event_Handler *message;
    } event_handlers;
+   double disconnect_time;
 };
 
 typedef struct
