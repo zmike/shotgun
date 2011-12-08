@@ -205,22 +205,15 @@ shotgun_login(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
           {
              if (auth->ssl_verify)
                {
-                  Eina_Iterator *it;
-                  Eina_File_Direct_Info *info;
-                  it = eina_file_stat_ls("/etc/ssl/certs");
-                  if (it)
-                    {
                        Eina_Log_Level level;
                        level = eina_log_domain_level_get("ecore_con");
 #ifndef SUPER_LOUD_CERT_LOADING
                        eina_log_domain_level_set("ecore_con", EINA_LOG_LEVEL_UNKNOWN);
 #endif
-                       EINA_ITERATOR_FOREACH(it, info)
-                         ecore_con_ssl_server_cafile_add(ev->server, info->path);
+                       ecore_con_ssl_server_cafile_add(ev->server, "/etc/ssl/certs");
                        eina_log_domain_level_set("ecore_con", level);
                        ecore_con_ssl_server_verify(ev->server);
                        ecore_con_ssl_server_verify_name_set(ev->server, auth->from);
-                    }
                }
              ecore_con_ssl_server_upgrade(ev->server, ECORE_CON_USE_MIXED | auth->ssl_verify);
           }
