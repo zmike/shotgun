@@ -609,7 +609,6 @@ ui_eet_image_get(const char *url, unsigned long long timestamp)
    image_cache_update(alias, timestamp);
 
    eina_stringshare_del(alias);
-   free(img);
    return buf;
 }
 
