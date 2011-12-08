@@ -153,8 +153,8 @@ chat_image_data(void *d __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Url_Dat
    Image *i = ecore_con_url_data_get(ev->url_con);
 
    //DBG("Received %i bytes of image: %s", ev->size, ecore_con_url_url_get(ev->url_con));
-   if (!i->buf) i->buf = eina_binbuf_new();
-   eina_binbuf_append_length(i->buf, &ev->data[0], ev->size);
+   if (!i->buf) i->buf = eina_binbuf_manage_new_length(ev->data, ev->size);
+   else eina_binbuf_append_length(i->buf, ev->data, ev->size);
    return ECORE_CALLBACK_RENEW;
 }
 

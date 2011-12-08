@@ -605,8 +605,7 @@ ui_eet_image_get(const char *url, unsigned long long timestamp)
 
    img = eet_read(images, url, (int*)&size);
    alias = eet_alias_get(images, url);
-   buf = eina_binbuf_new(); /* FIXME: eina_binbuf_managed_new */
-   eina_binbuf_append_length(buf, img, size);
+   buf = eina_binbuf_manage_new_length(img, size);
    image_cache_update(alias, timestamp);
 
    eina_stringshare_del(alias);
