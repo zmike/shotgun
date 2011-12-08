@@ -212,7 +212,7 @@ shotgun_login(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
 #endif
                        ecore_con_ssl_server_cafile_add(ev->server, "/etc/ssl/certs");
                        eina_log_domain_level_set("ecore_con", level);
-                       ecore_con_ssl_server_verify(ev->server);
+                       ecore_con_ssl_server_verify_basic(ev->server);
                        ecore_con_ssl_server_verify_name_set(ev->server, auth->from);
                }
              ecore_con_ssl_server_upgrade(ev->server, ECORE_CON_USE_MIXED | auth->ssl_verify);
