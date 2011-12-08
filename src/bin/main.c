@@ -3,6 +3,7 @@
 int ui_log_dom = -1;
 static Ecore_Event_Handler *dh = NULL;
 static Ecore_Event_Handler *ch = NULL;
+Eina_Bool ssl_verify = EINA_TRUE;
 
 static Eina_Bool
 con_state(void *d __UNUSED__, int type __UNUSED__, Shotgun_Auth *auth __UNUSED__)
@@ -88,9 +89,9 @@ main(int argc, char *argv[])
    char *pass;
    Shotgun_Auth *auth = NULL;
    char *getpass_x(const char *prompt);
+   int x;
 
    eina_init();
-   ecore_app_args_set(argc, (const char**)argv);
    shotgun_init();
    elm_init(argc, argv);
    elm_policy_set(ELM_POLICY_QUIT, ELM_POLICY_QUIT_LAST_WINDOW_CLOSED);
@@ -112,6 +113,21 @@ main(int argc, char *argv[])
    eina_log_abort_on_critical_level_set(EINA_LOG_LEVEL_CRITICAL);
    eina_log_abort_on_critical_set(EINA_TRUE);
 
+   for (x = 0; x < argc; x++)
+     {
+        if (argv[x][0] != '-') continue;
+        if (strcmp(argv[x], "--noverify")) continue;
+        ssl_verify = EINA_FALSE;
+        break;
+     }
+   if (!ssl_verify)
+     {
+        /* ignore --noverify after parsing */
+        for (;x < argc; x++)
+          argv[x] = argv[x + 1];
+        argc--;
+     }
+   ecore_app_args_set(argc, (const char**)argv);
    switch (argc - 1)
      {
       case 0:
@@ -146,6 +162,7 @@ main(int argc, char *argv[])
              CRI("Could not initialize eet backend!");
              return 1;
           }
+        shotgun_ssl_verify_set(auth, ssl_verify);
         shotgun_connect(auth);
      }
    else

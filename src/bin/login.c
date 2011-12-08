@@ -234,6 +234,7 @@ _login(Login_Window *lw)
    evas_object_map_set(lw->icon, lw->icon_map);
    evas_object_map_enable_set(lw->icon, EINA_TRUE);
    lw->spinner = ecore_animator_add((Ecore_Task_Cb)_login_spin, lw);
+   shotgun_ssl_verify_set(auth, ssl_verify);
    shotgun_connect(auth);
 }
  

@@ -65,6 +65,7 @@ void *alloca (size_t);
 #define SMS_TIMER_INTERVAL_COMPOSING 2 /* time to switch to "paused" status */ 
 
 extern int ui_log_dom;
+extern Eina_Bool ssl_verify;
 
 typedef struct Login_Window Login_Window;
 typedef struct Contact_List Contact_List;

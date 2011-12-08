@@ -201,6 +201,8 @@ Eina_Bool shotgun_connect(Shotgun_Auth *auth);
 void shotgun_disconnect(Shotgun_Auth *auth);
 
 Shotgun_Auth *shotgun_new(const char *svr_name, const char *username, const char *domain);
+void shotgun_ssl_verify_set(Shotgun_Auth *auth, Eina_Bool verify);
+Eina_Bool shotgun_ssl_verify_get(Shotgun_Auth *auth);
 void shotgun_free(Shotgun_Auth *auth);
 Shotgun_Connection_State shotgun_connection_state_get(Shotgun_Auth *auth);
 void shotgun_username_set(Shotgun_Auth *auth, const char *username);

@@ -299,6 +299,20 @@ shotgun_new(const char *svr_name, const char *username, const char *domain)
    return auth;
 }
 
+void
+shotgun_ssl_verify_set(Shotgun_Auth *auth, Eina_Bool verify)
+{
+   EINA_SAFETY_ON_NULL_RETURN(auth);
+   auth->ssl_verify = ECORE_CON_LOAD_CERT * (!!verify);
+}
+
+Eina_Bool
+shotgun_ssl_verify_get(Shotgun_Auth *auth)
+{
+   EINA_SAFETY_ON_NULL_RETURN_VAL(auth, EINA_FALSE);
+   return auth->ssl_verify;
+}
+
 Shotgun_Connection_State
 shotgun_connection_state_get(Shotgun_Auth *auth)
 {
