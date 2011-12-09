@@ -80,7 +80,12 @@ con(Contact_List *cl, int type __UNUSED__, Shotgun_Auth *auth)
 static void
 _setup_extension(void)
 {
-   elm_theme_extension_add(NULL, PACKAGE_DATA_DIR "/default.edj");
+   char buf[4096];
+   snprintf(buf, sizeof(buf), "%s/default.edj", util_configdir_get());
+   if (ecore_file_exists(buf))
+     elm_theme_extension_add(NULL, buf);
+   else
+     elm_theme_extension_add(NULL, PACKAGE_DATA_DIR "/default.edj");
 }
 
 int
