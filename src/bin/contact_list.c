@@ -744,10 +744,10 @@ _contact_list_window_key(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj 
         if (!cl->pager)
           {
              if (elm_flip_front_get(cl->flip)) return;
-             elm_flip_go(cl->flip, ELM_FLIP_ROTATE_Y_CENTER_AXIS);
+             settings_toggle((UI_WIN*)cl, NULL, NULL);
              return;
           }
-        settings_toggle((UI_WIN*)cl, NULL, NULL);
+        _contact_list_add_pager_cb_prev(cl, NULL, NULL);
      }
    else if (!strcmp(ev->keyname, "q"))
      evas_object_del(cl->win);
