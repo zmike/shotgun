@@ -192,7 +192,7 @@ _chat_window_close_cb(Chat_Window *cw, Evas_Object *obj __UNUSED__, const char *
 static void
 _chat_window_longpress(Chat_Window *cw __UNUSED__, Evas_Object *obj __UNUSED__, Elm_Object_Item *it)
 {
-   contact_chat_window_close(elm_toolbar_item_data_get(it));
+   contact_chat_window_close(elm_object_item_data_get(it));
 }
 
 static void
@@ -310,7 +310,7 @@ _chat_window_otherclick(Elm_Object_Item *it, Evas_Object *obj __UNUSED__, const 
    Contact *c;
    int button;
 
-   c = elm_toolbar_item_data_get(it);
+   c = elm_object_item_data_get(it);
    button = atoi(emission + sizeof("elm,action,click,") - 1);
    if (button == 2) /* middle click */
      contact_chat_window_close(c);
@@ -341,11 +341,11 @@ _chat_window_key(Chat_Window *cw, Evas *e __UNUSED__, Evas_Object *obj __UNUSED_
           {
              new = elm_toolbar_item_prev_get(cur);
              if (!new) new = elm_toolbar_last_item_get(cw->toolbar);
-             c = elm_toolbar_item_data_get(new);
+             c = elm_object_item_data_get(new);
              if (!c->animator)
                {
                   for (smart = elm_toolbar_item_prev_get(new); smart && (!c->animator); smart = elm_toolbar_item_prev_get(smart))
-                    c = elm_toolbar_item_data_get(smart);
+                    c = elm_object_item_data_get(smart);
                   if (c->animator && smart && (smart != cur)) new = smart;
                }
           }
@@ -353,11 +353,11 @@ _chat_window_key(Chat_Window *cw, Evas *e __UNUSED__, Evas_Object *obj __UNUSED_
           {
              new = elm_toolbar_item_next_get(cur);
              if (!new) new = elm_toolbar_first_item_get(cw->toolbar);
-             c = elm_toolbar_item_data_get(new);
+             c = elm_object_item_data_get(new);
              if (!c->animator)
                {
                   for (smart = elm_toolbar_item_next_get(new); smart && (!c->animator); smart = elm_toolbar_item_next_get(smart))
-                    c = elm_toolbar_item_data_get(smart);
+                    c = elm_object_item_data_get(smart);
                   if (c->animator && smart && (smart != cur)) new = smart;
                }
           }
