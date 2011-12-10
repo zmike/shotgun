@@ -539,7 +539,10 @@ ui_eet_userinfo_get(Shotgun_Auth *auth, const char *jid)
         info = eet_data_read_cipher(ef, edd, buf, shotgun_password_get(auth));
         eet_data_descriptor_free(edd);
         if (info)
-          ci = realloc(info, sizeof(Contact_Info));
+          {
+             INF("Old format userinfo detected for %s, updating", jid);
+             ci = realloc(info, sizeof(Contact_Info));
+          }
         else
           INF("Userinfo for %s does not exist", jid);
      }
