@@ -203,10 +203,25 @@ typedef struct
    Eina_List *contacts;
 } Chat_Window;
 
+/* compatible with Shotgun_User_Info, but with more info */
+typedef struct Contact_Info
+{
+   const char *jid;
+   const char *full_name;
+   struct
+     {
+        const char *type;
+        const char *sha1;
+        void *data;
+        size_t size;
+     } photo;
+   const char *after;
+} Contact_Info;
+
 struct Contact
 {
    Shotgun_User *base;
-   Shotgun_User_Info *info;
+   Contact_Info *info;
    Shotgun_Event_Presence *cur; /* the current presence; should NOT be in plist */
    Eina_List *plist; /* list of presences with lower priority than cur */
 
@@ -235,6 +250,7 @@ struct Contact
    Contact_List *list; /* the owner list */
    FILE *log; /* log of contact */
    const char *logdir; /* directory where contact's logs are stored */
+   const char *after; /* which contact (jid) this item is after in the contact list */
    Eina_Bool tooltip_changed : 1; /* when set, tooltip_label will be re-created */
    Eina_Bool ignore_resource : 1; /* when set, priority will be ignored and messages will be sent to all resources */
    Eina_Bool logdir_exists : 1; /* true only if a contact has an existing log directory */
@@ -274,6 +290,7 @@ void contact_resource_set(Contact *c, Evas_Object *obj __UNUSED__, Elm_Object_It
 void contact_resource_menu_setup(Contact *c, Evas_Object *menu);
 const char *contact_name_get(Contact *c);
 void contact_jids_menu_del(Contact *c, const char *jid);
+void contact_info_free(Contact_Info *ci);
 void contact_free(Contact *c);
 Contact *do_something_with_user(Contact_List *cl, Shotgun_User *user, const char *j);
 Eina_Bool contact_chat_window_current(Contact *c);
@@ -293,8 +310,9 @@ void ui_eet_image_ping(const char *url, unsigned long long timestamp);
 void ui_eet_shutdown(Shotgun_Auth *auth);
 Shotgun_Auth *ui_eet_auth_get(const char *name, const char *domain);
 void ui_eet_auth_set(Shotgun_Auth *auth, Shotgun_Settings *ss, Eina_Bool use_auth);
-Eina_Bool ui_eet_userinfo_add(Shotgun_Auth *auth, Evas_Object *img, Shotgun_User_Info *info);
-Shotgun_User_Info *ui_eet_userinfo_get(Shotgun_Auth *auth, const char *jid);
+Contact_Info *ui_eet_userinfo_add(Shotgun_Auth *auth, Contact *c, Evas_Object *img, Shotgun_User_Info *info);
+Contact_Info *ui_eet_userinfo_get(Shotgun_Auth *auth, const char *jid);
+void ui_eet_userinfo_update(Shotgun_Auth *auth, const char *jid, Contact_Info *ci);
 Shotgun_Settings *ui_eet_settings_get(Shotgun_Auth *auth);
 void ui_eet_settings_set(Shotgun_Auth *auth, Shotgun_Settings *ss);
 Eina_Bool ui_eet_idler_start(Contact_List *cl);

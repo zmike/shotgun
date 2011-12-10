@@ -53,25 +53,24 @@ event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev)
                 ERR("WTF!");
                 break;
              }
-           if (util_userinfo_eq(c->info, ev->ev))
+           if (util_userinfo_eq((Shotgun_User_Info*)c->info, ev->ev))
              {
                 INF("User info for %s unchanged, not updating cache", c->base->jid);
                 break;
              }
-           shotgun_user_info_free(c->info);
+           contact_info_free(c->info);
            if (c->cur && c->cur->photo)
              {
                 INF("Found contact photo sha1: %s", c->cur->photo);
                 info->photo.sha1 = eina_stringshare_ref(c->cur->photo);
              }
-           c->info = info;
-           ev->ev = NULL;
            if (info->photo.size)
              {
                 img = evas_object_image_add(evas_object_evas_get(c->list->win));
                 evas_object_image_memfile_set(img, info->photo.data, info->photo.size, NULL, NULL);
              }
-           ui_eet_userinfo_add(cl->account, img, info);
+           c->info = ui_eet_userinfo_add(cl->account, c, img, info);
+           ev->ev = NULL;
            if (img) evas_object_del(img);
            if (c->list_item && (info->photo.size || info->full_name))
              cl->list_item_update[cl->mode](c->list_item);

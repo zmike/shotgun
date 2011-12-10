@@ -107,18 +107,25 @@ eet_auth_edd_new(void)
 }
 
 static Eet_Data_Descriptor *
-eet_userinfo_edd_new(void)
+eet_userinfo_edd_new(Eina_Bool old)
 {
    Eet_Data_Descriptor *edd;
-   Eet_Data_Descriptor_Class eddc;
-   EET_EINA_FILE_DATA_DESCRIPTOR_CLASS_SET(&eddc, Shotgun_User_Info);
-   edd = eet_data_descriptor_stream_new(&eddc);
+   Eet_Data_Descriptor_Class eddc, eddc2;
+   /* FIXME: remove compat stuff in a couple weeks */
+   EET_EINA_FILE_DATA_DESCRIPTOR_CLASS_SET(&eddc, Contact_Info);
+   EET_EINA_FILE_DATA_DESCRIPTOR_CLASS_SET(&eddc2, Shotgun_User_Info);
+   if (old)
+     edd = eet_data_descriptor_stream_new(&eddc2);
+   else
+     edd = eet_data_descriptor_stream_new(&eddc);
 #define ADD(name, type) \
-  EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Shotgun_User_Info, #name, name, EET_T_##type)
+  EET_DATA_DESCRIPTOR_ADD_BASIC(edd, Contact_Info, #name, name, EET_T_##type)
 
    ADD(full_name, INLINED_STRING);
    ADD(photo.type, INLINED_STRING);
    ADD(photo.sha1, INLINED_STRING);
+   if (!old)
+     ADD(after, INLINED_STRING);
 #undef ADD
    return edd;
 }
@@ -453,8 +460,8 @@ ui_eet_auth_set(Shotgun_Auth *auth, Shotgun_Settings *ss, Eina_Bool use_auth)
 #endif
 }
 
-Eina_Bool
-ui_eet_userinfo_add(Shotgun_Auth *auth, Evas_Object *img, Shotgun_User_Info *info)
+Contact_Info *
+ui_eet_userinfo_add(Shotgun_Auth *auth, Contact *c, Evas_Object *img, Shotgun_User_Info *info)
 {
    char buf[1024];
    const char *jid;
@@ -463,55 +470,83 @@ ui_eet_userinfo_add(Shotgun_Auth *auth, Evas_Object *img, Shotgun_User_Info *inf
    Eet_File *ef = shotgun_data_get(auth);
    int w, h;
    Eina_Bool success;
+   Contact_Info *ci;
 
    jid = shotgun_jid_get(auth);
-   edd = eet_userinfo_edd_new();
+   edd = eet_userinfo_edd_new(EINA_FALSE);
    snprintf(buf, sizeof(buf), "%s/%s", jid, info->jid);
-   success = eet_data_write_cipher(ef, edd, buf, shotgun_password_get(auth), info, 0);
+   ci = realloc(info, sizeof(Contact_Info));
+   ci->after = eina_stringshare_ref(c->after);
+   success = eet_data_write_cipher(ef, edd, buf, shotgun_password_get(auth), ci, 0);
    eet_data_descriptor_free(edd);
    if (!success)
      {
         ERR("Failed to write userinfo for %s!", info->jid);
         eet_data_descriptor_free(edd);
-        return EINA_FALSE;
+        return ci;
      }
-   INF("Wrote encrypted userinfo for %s to disk", info->jid);
-   if ((!info->photo.data) || (!img)) return EINA_TRUE;
-   snprintf(buf, sizeof(buf), "%s/%s/img", jid, info->jid);
+   INF("Wrote encrypted userinfo for %s to disk", ci->jid);
+   if ((!ci->photo.data) || (!img)) return ci;
+   snprintf(buf, sizeof(buf), "%s/%s/img", jid, ci->jid);
    img_data = evas_object_image_data_get(img, EINA_FALSE);
    if (img_data)
      {
         evas_object_image_size_get(img, &w, &h);
         eet_data_image_write(ef, buf, img_data, w, h, evas_object_image_alpha_get(img), 5, 100, 0);
-        info->photo.size = w * h * sizeof(int);
+        ci->photo.size = w * h * sizeof(int);
      }
    eet_sync(ef);
-   return EINA_TRUE;
+   return ci;
 }
 
-Shotgun_User_Info *
+void
+ui_eet_userinfo_update(Shotgun_Auth *auth, const char *jid, Contact_Info *ci)
+{
+   char buf[1024];
+   const char *me;
+   Eet_Data_Descriptor *edd;
+   Eet_File *ef = shotgun_data_get(auth);
+
+   me = shotgun_jid_get(auth);
+   edd = eet_userinfo_edd_new(EINA_FALSE);
+   snprintf(buf, sizeof(buf), "%s/%s", me, jid);
+   if (eet_data_write_cipher(ef, edd, buf, shotgun_password_get(auth), ci, 0))
+     INF("Updated userinfo for %s", jid);
+   eet_data_descriptor_free(edd);
+}
+
+Contact_Info *
 ui_eet_userinfo_get(Shotgun_Auth *auth, const char *jid)
 {
    char buf[1024];
    const char *me;
    Eet_Data_Descriptor *edd;
+   Contact_Info *ci;
    Shotgun_User_Info *info;
    Eet_File *ef = shotgun_data_get(auth);
    unsigned int w, h;
 
-   edd = eet_userinfo_edd_new();
+   edd = eet_userinfo_edd_new(EINA_FALSE);
    me = shotgun_jid_get(auth);
    snprintf(buf, sizeof(buf), "%s/%s", me, jid);
-   info = eet_data_read_cipher(ef, edd, buf, shotgun_password_get(auth));
+   ci = eet_data_read_cipher(ef, edd, buf, shotgun_password_get(auth));
    eet_data_descriptor_free(edd);
-   if (info)
+   if (ci)
      INF("Read encrypted userinfo for %s from disk", jid);
    else
-     INF("Userinfo for %s does not exist", jid);
+     {
+        edd = eet_userinfo_edd_new(EINA_TRUE);
+        info = eet_data_read_cipher(ef, edd, buf, shotgun_password_get(auth));
+        eet_data_descriptor_free(edd);
+        if (info)
+          ci = realloc(info, sizeof(Contact_Info));
+        else
+          INF("Userinfo for %s does not exist", jid);
+     }
    snprintf(buf, sizeof(buf), "%s/%s/img", me, jid);
-   if (eet_data_image_header_read(ef, buf, &w, &h, NULL, NULL, NULL, NULL))
-     info->photo.size = w * h * sizeof(int);
-   return info;
+   if (ci && eet_data_image_header_read(ef, buf, &w, &h, NULL, NULL, NULL, NULL))
+     ci->photo.size = w * h * sizeof(int);
+   return ci;
 }
 
 void

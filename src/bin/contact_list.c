@@ -87,6 +87,39 @@ _contact_list_user_del(Contact *c)
 }
 
 static void
+_contact_list_reorder_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Genlist_Item *it)
+{
+   Contact *c, *before, *after;
+   Eina_List *l;
+   Elm_Genlist_Item *i;
+   Eina_Bool ua = EINA_FALSE, ub = EINA_FALSE;
+   const char *jid;
+
+   c = elm_genlist_item_data_get(it);
+   i = elm_genlist_item_prev_get(it);
+   before = i ? elm_genlist_item_data_get(i) : NULL;
+   jid = before ? before->after : NULL;
+   INF("%s moved after %s", contact_name_get(c), contact_name_get(before));
+   EINA_LIST_FOREACH(cl->users_list, l, after)
+     {
+        if ((!ub) && (after->after == jid))
+          {
+             INF("Updating previous item %s", contact_name_get(after));
+             eina_stringshare_replace(&after->after, c->base->jid);
+             ub++;
+          }
+        if ((!ua) && (after->after == c->base->jid))
+          {
+             INF("Updating previously previous item %s", contact_name_get(after));
+             eina_stringshare_replace(&after->after, c->after);
+             ua++;
+          }
+        if (ua && ub) break;
+     }
+   eina_stringshare_replace(&c->after, jid);
+}
+
+static void
 _contact_list_click_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, void *ev)
 {
    Contact *c;
@@ -520,6 +553,8 @@ _contact_list_list_add(Contact_List *cl)
    evas_object_show(list);
    evas_object_smart_callback_add(list, "activated",
                                   (Evas_Smart_Cb)_contact_list_click_cb, cl);
+   evas_object_smart_callback_add(list, "moved",
+                                  (Evas_Smart_Cb)_contact_list_reorder_cb, cl);
    evas_object_event_callback_add(list, EVAS_CALLBACK_MOUSE_DOWN,
                                   (Evas_Object_Event_Cb)_contact_list_rightclick_cb, cl);
 }
@@ -797,8 +832,32 @@ contact_list_user_add(Contact_List *cl, Contact *c)
    if (cl->mode)
      c->list_item = elm_gengrid_item_append(cl->list, &ggit, c, NULL, NULL);
    else
-     c->list_item = elm_genlist_item_append(cl->list, &glit, c, NULL,
-                                                     ELM_GENLIST_ITEM_NONE, NULL, NULL);
+     {
+        Contact *after;
+        Elm_Genlist_Item *it;
+        if (c->after)
+          {
+             after = eina_hash_find(cl->users, c->after);
+             /* find the next previous contact which has an item */
+             while (after && after->after && (!after->list_item))
+               after = eina_hash_find(cl->users, after->after);
+             INF("Inserting after %s", contact_name_get(after));
+             c->list_item = elm_genlist_item_insert_after(cl->list, &glit, c, NULL,
+                                                          after->list_item,
+                                                          ELM_GENLIST_ITEM_NONE, NULL, NULL);
+          }
+        else
+          {
+             c->list_item = elm_genlist_item_append(cl->list, &glit, c, NULL,
+                                                    ELM_GENLIST_ITEM_NONE, NULL, NULL);
+             it = elm_genlist_item_prev_get(c->list_item);
+             if (it)
+               {
+                  after = elm_genlist_item_data_get(it);
+                  c->after = eina_stringshare_add(after->base->jid);
+               }
+          }
+     }
    cl->list_item_tooltip_add[cl->mode](c->list_item,
      (Elm_Tooltip_Item_Content_Cb)_contact_list_item_tooltip_cb, c, NULL);
    cl->list_item_tooltip_resize[cl->mode](c->list_item, EINA_TRUE);
