@@ -11,7 +11,7 @@ event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev)
            Shotgun_User *user;
            EINA_LIST_FREE(ev->ev, user)
              {
-                c = do_something_with_user(cl, user);
+                c = do_something_with_user(cl, user, NULL);
                 contact_subscription_set(c, 0, user->subscription);
                 if (user->subscription == SHOTGUN_USER_SUBSCRIPTION_REMOVE)
                   {
@@ -89,6 +89,26 @@ _list_sort_cb(Shotgun_Event_Presence *a, Shotgun_Event_Presence *b)
    return a->priority - b->priority;
 }
 
+static Shotgun_Event_Presence *
+_event_presence_steal(Shotgun_Event_Presence *p)
+{
+   Shotgun_Event_Presence *pres;
+
+   pres = calloc(1, sizeof(Shotgun_Event_Presence));
+   pres->jid = p->jid;
+   p->jid = NULL;
+   pres->priority = p->priority;
+   pres->status = p->status;
+   pres->description = p->description;
+   p->description = NULL;
+   pres->photo = p->photo;
+   p->photo = NULL;
+   pres->vcard = p->vcard;
+   pres->idle = p->idle;
+   pres->timestamp = p->timestamp;
+   return pres;
+}
+
 Eina_Bool
 event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence *ev)
 {
@@ -101,7 +121,17 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
    if (p) jid = strndupa(ev->jid, p - ev->jid);
    else jid = (char*)ev->jid;
    c = eina_hash_find(cl->users, jid);
-   if (!c) return ECORE_CALLBACK_RENEW;
+   if (!c)
+     {
+        /* un-added contact with subscribe request */
+        if (ev->type != SHOTGUN_PRESENCE_TYPE_SUBSCRIBE) return ECORE_CALLBACK_RENEW;
+        c = do_something_with_user(cl, NULL, jid);
+        c->cur = _event_presence_steal(ev);
+        c->base->subscription = SHOTGUN_USER_SUBSCRIPTION_FROM;
+        contact_presence_set(c, c->cur);
+        contact_list_user_add(cl, c);
+        return ECORE_CALLBACK_RENEW;
+     }
 
    if (!ev->status)
      {
@@ -159,15 +189,7 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
         /* if not found, copy */
         if ((!pres) || (pres->jid != ev->jid))
           {
-             pres = calloc(1, sizeof(Shotgun_Event_Presence));
-             pres->jid = eina_stringshare_ref(ev->jid);
-             pres->priority = ev->priority;
-             pres->status = ev->status;
-             pres->description = eina_stringshare_ref(ev->description);
-             pres->photo = eina_stringshare_ref(ev->photo);
-             pres->vcard = ev->vcard;
-             pres->idle = ev->idle;
-             pres->timestamp = ev->timestamp;
+             pres = _event_presence_steal(ev);
           }
         /* if found, update */
         else if (pres && (pres->jid == ev->jid))
@@ -180,12 +202,14 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
              if (pres->description != ev->description)
                {
                   eina_stringshare_del(pres->description);
-                  pres->description = eina_stringshare_ref(ev->description);
+                  pres->description = ev->description;
+                  ev->description = NULL;
                }
              if (pres->photo != ev->photo)
                {
                   eina_stringshare_del(pres->photo);
-                  pres->photo = eina_stringshare_ref(ev->photo);
+                  pres->photo = ev->photo;
+                  ev->photo = NULL;
                }
              pres->vcard = ev->vcard;
              /* must sort! */

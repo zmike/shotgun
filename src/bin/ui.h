@@ -275,7 +275,7 @@ void contact_resource_menu_setup(Contact *c, Evas_Object *menu);
 const char *contact_name_get(Contact *c);
 void contact_jids_menu_del(Contact *c, const char *jid);
 void contact_free(Contact *c);
-Contact *do_something_with_user(Contact_List *cl, Shotgun_User *user);
+Contact *do_something_with_user(Contact_List *cl, Shotgun_User *user, const char *j);
 Eina_Bool contact_chat_window_current(Contact *c);
 void contact_chat_window_animator_add(Contact *c);
 void contact_chat_window_animator_del(Contact *c);

@@ -162,21 +162,29 @@ contact_jids_menu_del(Contact *c, const char *jid)
 }
 
 Contact *
-do_something_with_user(Contact_List *cl, Shotgun_User *user)
+do_something_with_user(Contact_List *cl, Shotgun_User *user, const char *j)
 {
    Contact *c;
    char *jid, *p;
 
-   p = strchr(user->jid, '/');
-   if (p) jid = strndupa(user->jid, p - user->jid);
-   else jid = (char*)user->jid;
-   c = eina_hash_find(cl->users, jid);
-
-   if (c)
+   if (user)
      {
-        shotgun_user_free(c->base);
-        c->base = user;
-        return c;
+        p = strchr(user->jid, '/');
+        if (p) jid = strndupa(user->jid, p - user->jid);
+        else jid = (char*)user->jid;
+        c = eina_hash_find(cl->users, jid);
+        if (c)
+          {
+             shotgun_user_free(c->base);
+             c->base = user;
+             return c;
+          }
+     }
+   else
+     {
+        user = calloc(1, sizeof(Shotgun_User));
+        user->jid = eina_stringshare_add(j);
+        jid = (char*)j;
      }
 
    c = calloc(1, sizeof(Contact));
