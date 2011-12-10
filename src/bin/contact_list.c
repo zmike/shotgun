@@ -192,6 +192,8 @@ _contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Object_I
       evas_object_show(i);
       b = elm_button_add(cl->win);
       elm_object_content_set(b, i);
+      elm_object_tooltip_text_set(b, "Back");
+      elm_object_tooltip_window_mode_set(b, EINA_TRUE);
       evas_object_smart_callback_add(b, "clicked", (Evas_Smart_Cb)_contact_list_add_pager_cb_prev, cl);
       evas_object_show(b);
 
@@ -202,6 +204,8 @@ _contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Object_I
       evas_object_show(i);
       b2 = elm_button_add(cl->win);
       elm_object_content_set(b2, i);
+      elm_object_tooltip_text_set(b2, "Add contact");
+      elm_object_tooltip_window_mode_set(b2, EINA_TRUE);
       evas_object_smart_callback_add(b2, "clicked", (Evas_Smart_Cb)_contact_list_add_pager_cb_next, cl);
       evas_object_show(b2);
 
@@ -214,6 +218,8 @@ _contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Object_I
       elm_entry_single_line_set(o, 1);
       elm_entry_editable_set(o, 1);
       elm_entry_scrollable_set(o, 1);
+      elm_object_tooltip_text_set(o, "Contact's display name");
+      elm_object_tooltip_window_mode_set(o, EINA_TRUE);
       elm_entry_scrollbar_policy_set(o, ELM_SCROLLER_POLICY_AUTO, ELM_SCROLLER_POLICY_OFF);
       evas_object_smart_callback_add(o, "activated", (Evas_Smart_Cb)_contact_list_add_pager_cb_next, cl);
       evas_object_show(o);
@@ -231,6 +237,8 @@ _contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Object_I
       evas_object_show(i);
       b = elm_button_add(cl->win);
       elm_object_content_set(b, i);
+      elm_object_tooltip_text_set(b, "Cancel");
+      elm_object_tooltip_window_mode_set(b, EINA_TRUE);
       evas_object_smart_callback_add(b, "clicked", (Evas_Smart_Cb)_contact_list_add_pager_cb_prev, cl);
       evas_object_show(b);
 
@@ -240,6 +248,8 @@ _contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Object_I
       evas_object_show(i);
       b2 = elm_button_add(cl->win);
       elm_object_content_set(b2, i);
+      elm_object_tooltip_text_set(b2, "Next");
+      elm_object_tooltip_window_mode_set(b2, EINA_TRUE);
       evas_object_smart_callback_add(b2, "clicked", (Evas_Smart_Cb)_contact_list_add_pager_cb_next, cl);
       evas_object_show(b2);
 
@@ -252,6 +262,8 @@ _contact_list_add_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Object_I
       elm_entry_single_line_set(o, 1);
       elm_entry_editable_set(o, 1);
       elm_entry_scrollable_set(o, 1);
+      elm_object_tooltip_text_set(o, "Contact's full address in the format \"ABC@XYZ.TLD\"");
+      elm_object_tooltip_window_mode_set(o, EINA_TRUE);
       elm_entry_scrollbar_policy_set(o, ELM_SCROLLER_POLICY_AUTO, ELM_SCROLLER_POLICY_OFF);
       evas_object_smart_callback_add(o, "activated", (Evas_Smart_Cb)_contact_list_add_pager_cb_next, cl);
       evas_object_show(o);
