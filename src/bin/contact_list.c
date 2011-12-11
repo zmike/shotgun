@@ -841,12 +841,15 @@ contact_list_user_add(Contact_List *cl, Contact *c)
              /* find the next previous contact which has an item */
              while (after && after->after && (!after->list_item))
                after = eina_hash_find(cl->users, after->after);
-             INF("Inserting after %s", contact_name_get(after));
-             c->list_item = elm_genlist_item_insert_after(cl->list, &glit, c, NULL,
-                                                          after->list_item,
-                                                          ELM_GENLIST_ITEM_NONE, NULL, NULL);
+             if (after)
+               {
+                  INF("Inserting after %s", contact_name_get(after));
+                  c->list_item = elm_genlist_item_insert_after(cl->list, &glit, c, NULL,
+                                                               after->list_item,
+                                                               ELM_GENLIST_ITEM_NONE, NULL, NULL);
+               }
           }
-        else
+        if (!c->list_item)
           {
              c->list_item = elm_genlist_item_append(cl->list, &glit, c, NULL,
                                                     ELM_GENLIST_ITEM_NONE, NULL, NULL);
