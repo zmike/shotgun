@@ -848,6 +848,9 @@ contact_list_user_add(Contact_List *cl, Contact *c)
                                                                after->list_item,
                                                                ELM_GENLIST_ITEM_NONE, NULL, NULL);
                }
+             else
+               c->list_item = elm_genlist_item_prepend(cl->list, &glit, c, NULL,
+                                                               ELM_GENLIST_ITEM_NONE, NULL, NULL);
           }
         if (!c->list_item)
           {
