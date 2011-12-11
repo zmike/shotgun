@@ -575,7 +575,6 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
    EXPAND(entry);
    FILL(entry);
    evas_object_show(entry);
-   elm_object_focus_set(entry, EINA_TRUE);
    evas_object_smart_callback_add(entry, "activated", (Evas_Smart_Cb)_chat_window_send_cb, c);
    if (c->list->settings->enable_chat_typing)
      evas_object_smart_callback_add(entry, "changed,user", (Evas_Smart_Cb)contact_chat_window_typing, c);
@@ -610,6 +609,7 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
 
    if (c->list->settings->enable_chat_focus)
      elm_win_activate(cw->win);
+   elm_object_focus_set(c->chat_input, EINA_TRUE);
 }
 
 void
