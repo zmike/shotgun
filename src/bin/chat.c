@@ -114,7 +114,7 @@ chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me)
    elm_entry_cursor_end_set(e);
    if (c->list->settings->enable_chat_focus)
      elm_win_activate(c->chat_window->win);
-   if (c->list->settings->enable_chat_promote)
+   if (c->list_item && c->list->settings->enable_chat_promote)
      /* FIXME: gengrid doesn't have item promote */
      if (c->list->list_item_promote[c->list->mode])
        /* FIXME: FIXME: fuck gengrid */
