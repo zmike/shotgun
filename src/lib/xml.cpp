@@ -635,9 +635,9 @@ xml_iq_disco_info_write(Shotgun_Auth *auth, xml_document &query)
    /* TODO: this setup should probably be a macro or something if it gets reused */
    iq = doc.append_child("iq");
    iq.append_attribute("type").set_value("result");
-   iq.append_attribute("from").set_value(query.attribute("to").value());
-   iq.append_attribute("to").set_value(query.attribute("from").value());
-   iq.append_attribute("id").set_value(query.attribute("id").value());
+   iq.append_attribute("from").set_value(query.first_child().attribute("to").value());
+   iq.append_attribute("to").set_value(auth->base_jid);
+   iq.append_attribute("id").set_value(query.first_child().attribute("id").value());
    node = iq.append_child("query");
    node.append_attribute("xmlns").set_value(XML_NS_DISCO_INFO);
    identity = node.append_child("identity");
