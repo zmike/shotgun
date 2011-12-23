@@ -49,6 +49,13 @@ struct xml_memory_writer : xml_writer
    }
 };
 
+void
+xml_sanitize_from(const char **save, char *from)
+{
+   eina_str_tolower(&from);
+   eina_stringshare_replace(save, from);
+}
+
 static char *
 xmlnode_to_buf(xml_node node,
                size_t *len,
@@ -576,7 +583,7 @@ xml_iq_roster_read(Shotgun_Auth *auth, xml_node node)
         name = it.attribute("name").value();
         if (name && name[0])
           user->name = eina_stringshare_add(name);
-        user->jid = eina_stringshare_add(it.attribute("jid").value());
+        xml_sanitize_from(&user->jid, (char*)it.attribute("jid").value());
         user->subscription = xml_iq_user_subscription_get(it);
         for (xml_node g = it.first_child(); g; g = g.next_sibling())
           {
@@ -664,7 +671,7 @@ xml_iq_vcard_read(Shotgun_Auth *auth, xml_node iq, xml_node node)
    info = static_cast<Shotgun_User_Info*>(calloc(1, sizeof(Shotgun_User_Info)));
    ret->ev = info;
    ret->account = auth;
-   info->jid = eina_stringshare_add(iq.attribute("from").value());
+   xml_sanitize_from(&info->jid, (char*)iq.attribute("from").value());
 
    for (xml_node it = node.first_child(); it; it = it.next_sibling())
      {
@@ -826,7 +833,7 @@ E: <message from='romeo@example.net/orchard'
      {
         if (!strcmp(attr.name(), "from"))
           {
-             eina_stringshare_replace(&ret->jid, attr.value());
+             xml_sanitize_from(&ret->jid, (char*)attr.value());
              break;
           }
      }
@@ -956,7 +963,7 @@ xml_presence_read(Shotgun_Auth *auth, char *xml, size_t size)
    for (attr = node.first_attribute(); attr; attr = attr.next_attribute())
      {
         if (!strcmp(attr.name(), "from"))
-          eina_stringshare_replace(&ret->jid, attr.value());
+          xml_sanitize_from(&ret->jid, (char*)attr.value());
         else if (!strcmp(attr.name(), "type"))
           {
              const char *t;
