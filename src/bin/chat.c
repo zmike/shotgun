@@ -31,7 +31,7 @@ _chat_conv_anchor_click(Contact *c, Evas_Object *obj __UNUSED__, Elm_Entry_Ancho
            size_t len;
            len = strlen(ev->name);
            if (len == sizeof(int)) len++; /* workaround for stupid elm cnp bug which breaks the universe */
-           ecore_x_selection_clipboard_set(elm_win_xwindow_get(c->chat_window->win), ev->name, len);
+           elm_cnp_selection_set(ELM_SEL_TYPE_CLIPBOARD, c->chat_window->win, ELM_SEL_FORMAT_TEXT, ev->name, len);
         }
 #endif
       default:
