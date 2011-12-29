@@ -123,7 +123,11 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
    if (!c)
      {
         /* un-added contact with subscribe request */
-        if (ev->type != SHOTGUN_PRESENCE_TYPE_SUBSCRIBE) return ECORE_CALLBACK_RENEW;
+        if (ev->type != SHOTGUN_PRESENCE_TYPE_SUBSCRIBE)
+          {
+             ERR("Received message from non-contact '%s', probably a bug", jid);
+             return ECORE_CALLBACK_RENEW;
+          }
         c = do_something_with_user(cl, NULL, jid);
         c->cur = _event_presence_steal(ev);
         c->base->subscription = SHOTGUN_USER_SUBSCRIPTION_FROM;
@@ -259,7 +263,11 @@ event_message_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Message *m
    p = strchr(jid, '/');
    if (p) *p = 0;
    c = eina_hash_find(cl->users, jid);
-   if (!c) return ECORE_CALLBACK_RENEW;
+   if (!c)
+     {
+        ERR("Received message from non-contact '%s', probably a bug", jid);
+        return ECORE_CALLBACK_RENEW;
+     }
 
    if (msg->msg)
      {
