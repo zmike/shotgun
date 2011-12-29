@@ -328,6 +328,7 @@ _chat_window_key(Chat_Window *cw, Evas *e __UNUSED__, Evas_Object *obj __UNUSED_
         double timer;
         static double throttle;
 
+        if (elm_toolbar_items_count(cw->toolbar) == 1) return;
         /* fast-repeating keyboards will break this, so throttle here to avoid it */
         timer = ecore_time_get();
         if (timer - throttle < 0.1)
