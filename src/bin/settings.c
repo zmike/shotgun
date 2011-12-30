@@ -189,11 +189,11 @@ settings_new(UI_WIN *ui)
    SETTINGS_FRAME("List");
    SETTINGS_CHECK("Don't show status in list item", disable_list_status, "Do not show a contact's status inlined under the name");
    evas_object_smart_callback_add(ck, "changed", (Evas_Smart_Cb)contact_list_mode_toggle, cl);
+   SETTINGS_CHECK("Promote contact on message", enable_chat_promote, "Move contact to top of list when message is received");
    SETTINGS_FRAME("Messages");
    SETTINGS_CHECK("Send keyboard events", enable_chat_typing, "Send additional notifications to contacts when you start or stop typing to them");
    IF_UI_IS_NOT_LOGIN(ui) evas_object_smart_callback_add(ck, "changed", (Evas_Smart_Cb)_settings_chat_typing_change, cl);
    SETTINGS_CHECK("Focus chat window on message", enable_chat_focus, "Focus chat window whenever message is received");
-   SETTINGS_CHECK("Promote contact on message", enable_chat_promote, "Move contact to top of list when message is received");
    SETTINGS_CHECK("Always select new chat tabs", enable_chat_newselect, "When a message is received which would open a new tab, make that tab active");
    SETTINGS_CHECK("Log messages to disk", enable_logging, "All messages sent or received will appear in ~/.config/shotgun/logs");
    IF_UI_IS_LOGIN(ui) elm_object_disabled_set(ck, EINA_TRUE);
