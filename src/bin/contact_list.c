@@ -133,6 +133,7 @@ _contact_list_click_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, void *ev)
      }
    if (!cl->chat_wins) chat_window_new(cl);
    chat_window_chat_new(c, cl->chat_wins->data, EINA_TRUE);
+   elm_win_activate(c->chat_window->win);
 }
 
 static void
