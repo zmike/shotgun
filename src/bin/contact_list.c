@@ -1,7 +1,7 @@
 #include "ui.h"
 
 static void
-_contact_list_free_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, void *ev __UNUSED__)
+_contact_list_free_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj, void *ev __UNUSED__)
 {
    Contact *c;
    Chat_Window *cw;
@@ -9,6 +9,11 @@ _contact_list_free_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj __U
    ecore_event_handler_del(cl->event_handlers.iq);
    ecore_event_handler_del(cl->event_handlers.presence);
    ecore_event_handler_del(cl->event_handlers.message);
+
+   IF_ILLUME(cl)
+     evas_object_geometry_get(cl->illume_frame, NULL, NULL, &cl->settings->list_w, &cl->settings->list_h);
+   else
+     evas_object_geometry_get(obj, NULL, NULL, &cl->settings->list_w, &cl->settings->list_h);
 
    EINA_LIST_FREE(cl->chat_wins, cw)
      chat_window_free(cw, NULL, NULL);
@@ -1163,7 +1168,7 @@ contact_list_init(UI_WIN *ui, Shotgun_Auth *auth)
    }
 
 
-   evas_object_resize(win, 300, 700);
+   evas_object_resize(win, cl->settings->list_w ?: 300, cl->settings->list_h ?: 700);
    evas_object_show(win);
    return cl;
 }

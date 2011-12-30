@@ -64,6 +64,10 @@ void *alloca (size_t);
 #define SMS_TIMER_INTERVAL_PAUSED 120 /* time to expire a "paused" status */ 
 #define SMS_TIMER_INTERVAL_COMPOSING 2 /* time to switch to "paused" status */ 
 
+#ifndef MIN
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#endif
+
 extern int ui_log_dom;
 extern Eina_Bool ssl_verify;
 
@@ -94,6 +98,10 @@ typedef struct Shotgun_Settings
    Eina_Bool enable_list_sort_alpha;
    unsigned int allowed_image_age;
    unsigned int allowed_image_size;
+   int chat_w;
+   int chat_h;
+   int list_w;
+   int list_h;
 
    void *ui;
 } Shotgun_Settings;

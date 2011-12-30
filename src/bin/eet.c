@@ -81,12 +81,18 @@ eet_ss_edd_new(void)
    ADD(enable_logging, UCHAR);
    ADD(enable_illume, UCHAR);
    ADD(disable_image_fetch, UCHAR);
-   ADD(allowed_image_age, UINT);
-   ADD(allowed_image_size, UINT);
    ADD(disable_reconnect, UCHAR);
    ADD(enable_presence_save, UCHAR);
    ADD(disable_list_status, UCHAR);
    ADD(enable_list_sort_alpha, UCHAR);
+
+   ADD(allowed_image_age, UINT);
+   ADD(allowed_image_size, UINT);
+
+   ADD(chat_w, INT);
+   ADD(chat_h, INT);
+   ADD(list_w, INT);
+   ADD(list_h, INT);
 #undef ADD
    return edd;
 }

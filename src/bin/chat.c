@@ -428,7 +428,7 @@ chat_window_new(Contact_List *cl)
    IF_NOT_ILLUME(cl)
      {
         1 | evas_object_key_grab(win, "Escape", 0, ctrl | shift | alt, 1); /* worst warn_unused ever. */
-        evas_object_resize(win, 550, 330);
+        evas_object_resize(win, cl->settings->chat_w ?: 550, cl->settings->chat_h ?: 330);
         evas_object_show(win);
 
         bg = elm_bg_add(win);
@@ -472,8 +472,11 @@ chat_window_new(Contact_List *cl)
    cl->chat_wins = eina_list_append(cl->chat_wins, cw);
    IF_ILLUME(cl)
      {
-        evas_object_resize(cw->win, 850, 700);
-        evas_object_resize(cw->cl->illume_frame, 300, 700);
+        if (cl->settings->chat_w)
+          evas_object_resize(cw->win, cl->settings->chat_w + cl->settings->list_w, MIN(cl->settings->list_h, cl->settings->chat_h));
+        else
+          evas_object_resize(cw->win, 850, 700);
+        evas_object_resize(cw->cl->illume_frame, cl->settings->list_w ?: 300, cl->settings->list_h ?: 700);
      }
 }
 
@@ -659,11 +662,15 @@ chat_window_free(Chat_Window *cw, Evas_Object *obj __UNUSED__, const char *ev __
         evas_object_key_ungrab(cl->win, "w", ctrl, shift | alt);
         evas_object_key_ungrab(cl->win, "Tab", ctrl, alt);
         evas_object_key_ungrab(cl->win, "Tab", ctrl | shift, alt);
+        evas_object_geometry_get(cw->box, NULL, NULL, &cl->settings->chat_w, &cl->settings->chat_h);
         evas_object_del(cw->box);
-        evas_object_resize(cw->win, 300, 700);
+        evas_object_resize(cw->win, cl->settings->list_w ?: 300, cl->settings->list_h ?: 700);
      }
    else
-     evas_object_del(cw->win);
+     {
+        evas_object_geometry_get(cw->win, NULL, NULL, &cl->settings->chat_w, &cl->settings->chat_h);
+        evas_object_del(cw->win);
+     }
 
    free(cw);
 }
