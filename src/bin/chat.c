@@ -149,15 +149,17 @@ _chat_window_focus(Chat_Window *cw, Evas_Object *obj __UNUSED__, void *ev __UNUS
 }
 
 static void
-_chat_window_send_cb(Contact *c, Evas_Object *obj, void *ev __UNUSED__)
+_chat_window_send_cb(Chat_Window *cw)
 {
    char *s;
    const char *jid, *txt;
+   Contact *c;
 
+   c = cw->contacts->data;
    /* FIXME: add popup error or something */
    if (shotgun_connection_state_get(c->list->account) != SHOTGUN_CONNECTION_STATE_CONNECTED) return;
 
-   txt = elm_entry_entry_get(obj);
+   txt = elm_entry_entry_get(c->chat_input);
    if ((!txt) || (!txt[0])) return;
 
    s = elm_entry_markup_to_utf8(txt);
@@ -175,8 +177,8 @@ _chat_window_send_cb(Contact *c, Evas_Object *obj, void *ev __UNUSED__)
 #ifdef HAVE_DBUS
    ui_dbus_signal_message_self(c->list, jid, s);
 #endif
-   elm_entry_entry_set(obj, "");
-   elm_entry_cursor_end_set(obj);
+   elm_entry_entry_set(c->chat_input, "");
+   elm_entry_cursor_end_set(c->chat_input);
    if (c->sms_timer) ecore_timer_del(c->sms_timer);
    c->sms_timer = NULL;
 
@@ -319,8 +321,14 @@ _chat_window_otherclick(Elm_Object_Item *it, Evas_Object *obj __UNUSED__, const 
 static void
 _chat_window_key(Chat_Window *cw, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, Evas_Event_Key_Down *ev)
 {
-   Contact_List *cl = cw->cl;
+   Contact_List *cl;
    //DBG("%s", ev->keyname);
+   if ((!strcmp(ev->keyname, "Return")) || (!strcmp(ev->keyname, "KP_Enter")))
+     {
+        _chat_window_send_cb(cw);
+        return;
+     }
+   cl = cw->cl;
    if (!strcmp(ev->keyname, "Tab"))
      {
         Elm_Object_Item *cur, *new, *smart;
@@ -414,6 +422,8 @@ chat_window_new(Contact_List *cl)
    1 | evas_object_key_grab(win, "w", ctrl, shift | alt, 1); /* worst warn_unused ever. */
    1 | evas_object_key_grab(win, "Tab", ctrl, alt, 1); /* worst warn_unused ever. */
    1 | evas_object_key_grab(win, "Tab", ctrl | shift, alt, 1); /* worst warn_unused ever. */
+   1 | evas_object_key_grab(win, "Return", 0, ctrl | shift | alt, 1); /* worst warn_unused ever. */
+   1 | evas_object_key_grab(win, "KP_Enter", 0, ctrl | shift | alt, 1); /* worst warn_unused ever. */
 
    IF_NOT_ILLUME(cl)
      {
@@ -570,13 +580,12 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
    elm_object_part_content_set(panes, "elm.swallow.left", box);
 
    c->chat_input = entry = elm_entry_add(win);
-   elm_entry_single_line_set(entry, 1);
    elm_entry_scrollable_set(entry, 1);
    elm_entry_line_wrap_set(entry, ELM_WRAP_MIXED);
+   elm_entry_scrollbar_policy_set(entry, ELM_SCROLLER_POLICY_AUTO, ELM_SCROLLER_POLICY_AUTO);
    EXPAND(entry);
    FILL(entry);
    evas_object_show(entry);
-   evas_object_smart_callback_add(entry, "activated", (Evas_Smart_Cb)_chat_window_send_cb, c);
    if (c->list->settings->enable_chat_typing)
      evas_object_smart_callback_add(entry, "changed,user", (Evas_Smart_Cb)contact_chat_window_typing, c);
 
