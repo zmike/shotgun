@@ -86,6 +86,7 @@ eet_ss_edd_new(void)
    ADD(disable_reconnect, UCHAR);
    ADD(enable_presence_save, UCHAR);
    ADD(disable_list_status, UCHAR);
+   ADD(enable_list_sort_alpha, UCHAR);
 #undef ADD
    return edd;
 }

@@ -91,6 +91,7 @@ typedef struct Shotgun_Settings
    Eina_Bool disable_reconnect;
    Eina_Bool enable_presence_save;
    Eina_Bool disable_list_status;
+   Eina_Bool enable_list_sort_alpha;
    unsigned int allowed_image_age;
    unsigned int allowed_image_size;
 

@@ -790,6 +790,16 @@ _contact_list_item_null(Contact *c, Evas *e __UNUSED__, Evas_Object *obj __UNUSE
    c->list_item = NULL;
 }
 
+static int
+_contact_list_sorted_insert(Contact *a, Contact *b)
+{
+   const char *c1, *c2;
+
+   c1 = contact_name_get(a);
+   c2 = contact_name_get(b);
+   return tolower(c1[0]) - tolower(c2[0]);
+}
+
 void
 contact_list_mode_toggle(Contact_List *cl, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
 {
@@ -846,13 +856,18 @@ contact_list_user_add(Contact_List *cl, Contact *c)
      {
         Contact *after;
         Elm_Genlist_Item *it;
-        if (c->after)
+        if (cl->settings->enable_list_sort_alpha)
+          {
+             c->list_item = elm_genlist_item_sorted_insert(cl->list, &glit, c, NULL,
+                                                    ELM_GENLIST_ITEM_NONE, (Eina_Compare_Cb)_contact_list_sorted_insert, NULL, NULL);
+          }
+        else if (c->after)
           {
              after = eina_hash_find(cl->users, c->after);
              /* find the next previous contact which has an item */
              while (after && after->after && (!after->list_item) && (after != c))
                {
-                  DBG("Found c->after %s", after->base->jid);
+                  //DBG("Found c->after %s", after->base->jid);
                   after = eina_hash_find(cl->users, after->after);
                }
              if (after && after->list_item)
@@ -874,7 +889,7 @@ contact_list_user_add(Contact_List *cl, Contact *c)
              if (it)
                {
                   after = elm_genlist_item_data_get(it);
-                  c->after = eina_stringshare_add(after->base->jid);
+                  eina_stringshare_replace(&c->after, after->base->jid);
                }
           }
      }
