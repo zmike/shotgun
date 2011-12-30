@@ -90,6 +90,7 @@ typedef struct Shotgun_Settings
    Eina_Bool disable_image_fetch;
    Eina_Bool disable_reconnect;
    Eina_Bool enable_presence_save;
+   Eina_Bool disable_list_status;
    unsigned int allowed_image_age;
    unsigned int allowed_image_size;
 
@@ -268,6 +269,7 @@ typedef struct
 Contact_List *contact_list_init(UI_WIN *ui, Shotgun_Auth *auth);
 void contact_list_user_add(Contact_List *cl, Contact *c);
 void contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev);
+void contact_list_mode_toggle(Contact_List *cl, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__);
 
 void chat_window_new(Contact_List *cl);
 void chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus);

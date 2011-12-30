@@ -583,23 +583,6 @@ _contact_list_grid_add(Contact_List *cl)
    evas_object_event_callback_add(grid, EVAS_CALLBACK_MOUSE_DOWN,
                                   (Evas_Object_Event_Cb)_contact_list_rightclick_cb, cl);
 }
-
-static void
-_contact_list_mode_toggle(Contact_List *cl, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
-{
-   Eina_List *l;
-   Contact *c;
-   evas_object_del(cl->list);
-   if (cl->mode)
-     _contact_list_list_add(cl);
-   else
-     _contact_list_grid_add(cl);
-   EINA_LIST_FOREACH(cl->users_list, l, c)
-     {
-        if (cl->view || ((c->base->subscription > SHOTGUN_USER_SUBSCRIPTION_NONE) && c->status))
-          contact_list_user_add(cl, c);
-     }
-}
 */
 
 static void
@@ -801,11 +784,37 @@ _contact_list_window_key(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj 
      evas_object_del(cl->win);
 }
 
+static void
+_contact_list_item_null(Contact *c, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
+{
+   c->list_item = NULL;
+}
+
+void
+contact_list_mode_toggle(Contact_List *cl, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
+{
+   Eina_List *l;
+   Contact *c;
+   evas_object_del(cl->list);
+/*
+   if (cl->mode)
+     _contact_list_grid_add(cl);
+   else
+*/
+     _contact_list_list_add(cl);
+   EINA_LIST_FOREACH(cl->users_list, l, c)
+     {
+        c->list_item = NULL;
+        if (cl->view || ((c->base->subscription > SHOTGUN_USER_SUBSCRIPTION_NONE) && c->status))
+          contact_list_user_add(cl, c);
+     }
+}
+
 void
 contact_list_user_add(Contact_List *cl, Contact *c)
 {
    static Elm_Genlist_Item_Class glit = {
-        .item_style = "double_label",
+        .item_style = NULL,
         .func = {
              .text_get = (Elm_Genlist_Item_Text_Get_Cb)_it_text_get_list,
              .content_get = (Elm_Genlist_Item_Content_Get_Cb)_it_content_get,
@@ -822,6 +831,7 @@ contact_list_user_add(Contact_List *cl, Contact *c)
              .del = (Elm_Gengrid_Item_Del_Cb)_it_del
         }
    };
+   glit.item_style = cl->settings->disable_list_status ? "default" : "double_label";
    if ((!c) || c->list_item) return;
    if (!cl->view)
      {
@@ -840,8 +850,11 @@ contact_list_user_add(Contact_List *cl, Contact *c)
           {
              after = eina_hash_find(cl->users, c->after);
              /* find the next previous contact which has an item */
-             while (after && after->after && (!after->list_item))
-               after = eina_hash_find(cl->users, after->after);
+             while (after && after->after && (!after->list_item) && (after != c))
+               {
+                  DBG("Found c->after %s", after->base->jid);
+                  after = eina_hash_find(cl->users, after->after);
+               }
              if (after && after->list_item)
                {
                   INF("Inserting after %s", contact_name_get(after));
@@ -868,6 +881,7 @@ contact_list_user_add(Contact_List *cl, Contact *c)
    cl->list_item_tooltip_add[cl->mode](c->list_item,
      (Elm_Tooltip_Item_Content_Cb)_contact_list_item_tooltip_cb, c, NULL);
    cl->list_item_tooltip_resize[cl->mode](c->list_item, EINA_TRUE);
+   evas_object_event_callback_add(c->list_item, EVAS_CALLBACK_DEL, (Evas_Object_Event_Cb)_contact_list_item_null, c);
 }
 
 void

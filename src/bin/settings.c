@@ -186,6 +186,9 @@ settings_new(UI_WIN *ui)
         elm_object_disabled_set(ck, EINA_TRUE);
      }
 
+   SETTINGS_FRAME("List");
+   SETTINGS_CHECK("Don't show status in list item", disable_list_status, "Do not show a contact's status inlined under the name");
+   evas_object_smart_callback_add(ck, "changed", (Evas_Smart_Cb)contact_list_mode_toggle, cl);
    SETTINGS_FRAME("Messages");
    SETTINGS_CHECK("Send keyboard events", enable_chat_typing, "Send additional notifications to contacts when you start or stop typing to them");
    IF_UI_IS_NOT_LOGIN(ui) evas_object_smart_callback_add(ck, "changed", (Evas_Smart_Cb)_settings_chat_typing_change, cl);

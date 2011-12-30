@@ -85,6 +85,7 @@ eet_ss_edd_new(void)
    ADD(allowed_image_size, UINT);
    ADD(disable_reconnect, UCHAR);
    ADD(enable_presence_save, UCHAR);
+   ADD(disable_list_status, UCHAR);
 #undef ADD
    return edd;
 }
