@@ -211,7 +211,7 @@ settings_new(UI_WIN *ui)
    IF_UI_IS_NOT_LOGIN(ui) evas_object_smart_callback_add(ck, "changed", (Evas_Smart_Cb)_settings_chat_typing_change, cl);
    SETTINGS_CHECK("Focus chat window on message", enable_chat_focus, "Focus chat window whenever message is received");
    SETTINGS_CHECK("Always select new chat tabs", enable_chat_newselect, "When a message is received which would open a new tab, make that tab active");
-   SETTINGS_CHECK("Send messages to all instances of contact", enable_chat_noresource,
+   SETTINGS_CHECK("Send messages to all resources", enable_chat_noresource,
                   "XMPP specifies that only the highest priority instance of a contact should receive messages<ps>"
                   "This option ignores resource priority, sending to all instances by default<ps>"
                   "This setting can also be toggled on a contact-by-contact basis");
