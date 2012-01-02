@@ -20,6 +20,8 @@ collections
      ICON("useradd", 16, 0, 0, 0);
      ICON("userdel", 16, 0, 0, 0);
      ICON("dialog_ok", 16, 0, 0, 0);
+     ICON("settings", 16, 0, 0, 0);
+     ICON("status", 16, 0, 0, 0);
 
      ICON("useroffline", 16, 0, 5, -6);
      ICON("userunknown", 16, 0, 5, -6);
