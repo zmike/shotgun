@@ -76,6 +76,7 @@ eet_ss_edd_new(void)
    ADD(enable_chat_promote, UCHAR);
    ADD(enable_chat_newselect, UCHAR);
    ADD(enable_chat_typing, UCHAR);
+   ADD(enable_chat_noresource, UCHAR);
    ADD(enable_account_info, UCHAR);
    ADD(enable_last_account, UCHAR);
    ADD(enable_logging, UCHAR);
@@ -85,6 +86,7 @@ eet_ss_edd_new(void)
    ADD(enable_presence_save, UCHAR);
    ADD(disable_list_status, UCHAR);
    ADD(enable_list_sort_alpha, UCHAR);
+   ADD(enable_list_offlines, UCHAR);
 
    ADD(allowed_image_age, UINT);
    ADD(allowed_image_size, UINT);
@@ -214,7 +216,7 @@ image_cleaner_cb(Contact_List *cl)
    image_cache *ic;
    Eina_List *l, *l2;
    int cleaned = 0;
-   if ((!cleaner_edd) || (!cache_edd) || (!cl->settings->allowed_image_age))
+   if ((!cleaner_edd) || (!cache_edd) || (!cl->settings->allowed_image_age) || (!icl) || (!icl->cache))
      {
         cl->image_cleaner = NULL;
         return EINA_FALSE;
@@ -379,7 +381,7 @@ ui_eet_auth_get(const char *name, const char *domain)
    char *jid, buf[4096];
    const char *home;
    int size;
-   
+
    EINA_SAFETY_ON_TRUE_RETURN_VAL(!util_configdir_create(), NULL);
    eet_init();
    home = util_configdir_get();

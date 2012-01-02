@@ -287,26 +287,6 @@ _chat_conv_filter(Contact_List *cl, Evas_Object *obj __UNUSED__, char **str)
 }
 
 static void
-_chat_resource_ignore_toggle(Contact *c, Evas_Object *obj __UNUSED__, Elm_Object_Item *ev)
-{
-   Elm_Object_Item *next = elm_menu_item_next_get(ev);
-   c->ignore_resource = !c->ignore_resource;
-   if (c->ignore_resource)
-     {
-        const Eina_List *l;
-        Evas_Object *radio;
-        elm_object_item_text_set(ev, "Unignore Resource");
-        l = elm_menu_item_subitems_get(next);
-        radio = elm_object_item_content_get(l->data);
-        c->force_resource = NULL;
-        elm_radio_state_value_set(radio, 0);
-     }
-   else
-     elm_object_item_text_set(ev, "Ignore Resource");
-   elm_object_item_disabled_set(next, c->ignore_resource);
-}
-
-static void
 _chat_window_otherclick(Elm_Object_Item *it, Evas_Object *obj __UNUSED__, const char *emission, const char *source __UNUSED__)
 {
    Contact *c;
@@ -394,6 +374,34 @@ _chat_window_switch(Contact *c, Evas_Object *obj __UNUSED__, Elm_Object_Item *it
    elm_toolbar_item_selected_set(it, EINA_TRUE);
    c->chat_window->contacts = eina_list_promote_list(c->chat_window->contacts, eina_list_data_find_list(c->chat_window->contacts, c));
    elm_object_focus_set(c->chat_input, EINA_TRUE);
+}
+
+void
+chat_resource_ignore_toggle(Contact *c, Evas_Object *obj __UNUSED__, Elm_Object_Item *ev)
+{
+   Elm_Object_Item *next;
+
+   if (ev)
+     c->ignore_resource = !c->ignore_resource;
+   else
+     {
+        ev = elm_menu_first_item_get(c->chat_jid_menu);
+        c->ignore_resource = c->list->settings->enable_chat_noresource;
+     }
+   next = elm_menu_item_next_get(ev);
+   if (c->ignore_resource)
+     {
+        const Eina_List *l;
+        Evas_Object *radio;
+        elm_object_item_text_set(ev, "Unignore Resource");
+        l = elm_menu_item_subitems_get(next);
+        radio = elm_object_item_content_get(l->data);
+        c->force_resource = NULL;
+        elm_radio_state_value_set(radio, 0);
+     }
+   else
+     elm_object_item_text_set(ev, "Ignore Resource");
+   elm_object_item_disabled_set(next, c->ignore_resource);
 }
 
 void
@@ -542,7 +550,7 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
    elm_box_pack_end(box2, obj);
    evas_object_show(obj);
    c->chat_jid_menu = menu = elm_toolbar_item_menu_get(it);
-   elm_menu_item_add(menu, NULL, NULL, "Ignore Resource", (Evas_Smart_Cb)_chat_resource_ignore_toggle, c);
+   elm_menu_item_add(menu, NULL, NULL, "Ignore Resource", (Evas_Smart_Cb)chat_resource_ignore_toggle, c);
    contact_resource_menu_setup(c, menu);
 
    c->status_line = status = elm_entry_add(win);

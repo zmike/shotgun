@@ -44,7 +44,7 @@ ui_azy_return(Contact_List *cl, int type __UNUSED__, Azy_Content *content)
      snprintf(buf, sizeof(buf), "Your version of Shotgun! is at least %u commits old!", x);
    else
      snprintf(buf, sizeof(buf), "Your version of Shotgun! is %u commit%s old!", x, (x > 1) ? "s" : "");
-   
+
 #ifdef HAVE_NOTIFY
    ui_dbus_notify(cl, NULL, "Shotgun!", buf);
 #endif

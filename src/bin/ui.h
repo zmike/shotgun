@@ -87,6 +87,7 @@ typedef struct Shotgun_Settings
    Eina_Bool enable_chat_promote;
    Eina_Bool enable_chat_newselect;
    Eina_Bool enable_chat_typing;
+   Eina_Bool enable_chat_noresource;
    Eina_Bool enable_account_info;
    Eina_Bool enable_last_account;
    Eina_Bool enable_logging;
@@ -96,6 +97,7 @@ typedef struct Shotgun_Settings
    Eina_Bool enable_presence_save;
    Eina_Bool disable_list_status;
    Eina_Bool enable_list_sort_alpha;
+   Eina_Bool enable_list_offlines;
    unsigned int allowed_image_age;
    unsigned int allowed_image_size;
    int chat_w;
@@ -279,11 +281,13 @@ Contact_List *contact_list_init(UI_WIN *ui, Shotgun_Auth *auth);
 void contact_list_user_add(Contact_List *cl, Contact *c);
 void contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev);
 void contact_list_mode_toggle(Contact_List *cl, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__);
+void contact_list_show_toggle(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Object_Item *ev __UNUSED__);
 
 void chat_window_new(Contact_List *cl);
 void chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus);
 void chat_window_free(Chat_Window *cw, Evas_Object *obj __UNUSED__, const char *ev __UNUSED__);
 void chat_message_status(Contact *c, Shotgun_Event_Message *msg);
+void chat_resource_ignore_toggle(Contact *c, Evas_Object *obj __UNUSED__, Elm_Object_Item *ev);
 void chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me);
 
 void chat_image_add(Contact_List *cl, const char *url);

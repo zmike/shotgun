@@ -237,7 +237,7 @@ _login(Login_Window *lw)
    shotgun_ssl_verify_set(auth, ssl_verify);
    shotgun_connect(auth);
 }
- 
+
 void
 login_new(void)
 {

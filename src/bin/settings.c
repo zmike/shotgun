@@ -80,6 +80,16 @@ _settings_logging_change(Contact_List *cl, Evas_Object *obj, void *event_info __
 }
 
 static void
+_settings_chat_resource_ignore_toggle(Contact_List *cl, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
+{
+   Eina_List *l;
+   Contact *c;
+
+   EINA_LIST_FOREACH(cl->users_list, l, c)
+     chat_resource_ignore_toggle(c, NULL, NULL);
+}
+
+static void
 _settings_chat_typing_change(Contact_List *cl, Evas_Object *obj, void *event_info __UNUSED__)
 {
    Eina_List *l, *ll;
@@ -192,11 +202,20 @@ settings_new(UI_WIN *ui)
    SETTINGS_CHECK("Promote contact on message", enable_chat_promote, "Move contact to top of list when message is received<ps>This will modify alphabetical sorting");
    SETTINGS_CHECK("Alphabetize contact list", enable_list_sort_alpha, "Sort the contact list alphabetically<ps>Toggling this will sort your list");
    evas_object_smart_callback_add(ck, "changed", (Evas_Smart_Cb)contact_list_mode_toggle, cl);
+   SETTINGS_CHECK("Show offline contacts", enable_list_offlines, "Show offline contacts in the list");
+   evas_object_smart_callback_add(ck, "changed", (Evas_Smart_Cb)contact_list_show_toggle, cl);
+
+
    SETTINGS_FRAME("Messages");
    SETTINGS_CHECK("Send keyboard events", enable_chat_typing, "Send additional notifications to contacts when you start or stop typing to them");
    IF_UI_IS_NOT_LOGIN(ui) evas_object_smart_callback_add(ck, "changed", (Evas_Smart_Cb)_settings_chat_typing_change, cl);
    SETTINGS_CHECK("Focus chat window on message", enable_chat_focus, "Focus chat window whenever message is received");
    SETTINGS_CHECK("Always select new chat tabs", enable_chat_newselect, "When a message is received which would open a new tab, make that tab active");
+   SETTINGS_CHECK("Send messages to all instances of contact", enable_chat_noresource,
+                  "XMPP specifies that only the highest priority instance of a contact should receive messages<ps>"
+                  "This option ignores resource priority, sending to all instances by default<ps>"
+                  "This setting can also be toggled on a contact-by-contact basis");
+   evas_object_smart_callback_add(ck, "changed", (Evas_Smart_Cb)_settings_chat_resource_ignore_toggle, cl);
    SETTINGS_CHECK("Log messages to disk", enable_logging, "All messages sent or received will appear in ~/.config/shotgun/logs");
    IF_UI_IS_LOGIN(ui) elm_object_disabled_set(ck, EINA_TRUE);
    IF_UI_IS_NOT_LOGIN(ui) evas_object_smart_callback_add(ck, "changed", (Evas_Smart_Cb)_settings_logging_change, cl);

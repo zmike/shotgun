@@ -591,22 +591,6 @@ _contact_list_grid_add(Contact_List *cl)
 */
 
 static void
-_contact_list_show_toggle(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Object_Item *ev __UNUSED__)
-{
-   Eina_List *l;
-   Contact *c;
-
-   if (shotgun_connection_state_get(cl->account) != SHOTGUN_CONNECTION_STATE_CONNECTED) return;
-   cl->view++;
-   EINA_LIST_FOREACH(cl->users_list, l, c)
-     {
-        if (cl->view && (!c->list_item)) contact_list_user_add(cl, c);
-        else if ((!cl->view) && (((!c->cur) || (!c->cur->status)) || (!c->base->subscription)))
-          contact_list_user_del(c, c->cur ?: NULL);
-     }
-}
-
-static void
 _contact_list_status_changed(Contact_List *cl, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
 {
    ecore_timer_delay(cl->status_timer, 3);
@@ -803,6 +787,22 @@ _contact_list_sorted_insert(Contact *a, Contact *b)
    c1 = contact_name_get(a);
    c2 = contact_name_get(b);
    return tolower(c1[0]) - tolower(c2[0]);
+}
+
+void
+contact_list_show_toggle(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Object_Item *ev __UNUSED__)
+{
+   Eina_List *l;
+   Contact *c;
+
+   if (shotgun_connection_state_get(cl->account) != SHOTGUN_CONNECTION_STATE_CONNECTED) return;
+   cl->view++;
+   EINA_LIST_FOREACH(cl->users_list, l, c)
+     {
+        if (cl->view && (!c->list_item)) contact_list_user_add(cl, c);
+        else if ((!cl->view) && (((!c->cur) || (!c->cur->status)) || (!c->base->subscription)))
+          contact_list_user_del(c, c->cur ?: NULL);
+     }
 }
 
 void
@@ -1059,6 +1059,12 @@ contact_list_init(UI_WIN *ui, Shotgun_Auth *auth)
    elm_menu_item_add_object(menu, NULL, obj, (Evas_Smart_Cb)_contact_list_status_menu, cl);
    elm_radio_value_set(radio, SHOTGUN_USER_STATUS_NORMAL);
 
+   /* FIXME: tooltips need window mode here */
+   it = elm_toolbar_item_append(tb, "shotgun/useradd", NULL, (Evas_Smart_Cb)_contact_list_add_cb, cl);
+   elm_toolbar_item_tooltip_text_set(it, "Add a new contact");
+   it = elm_toolbar_item_append(tb, "shotgun/userdel", NULL, (Evas_Smart_Cb)_contact_list_del_cb, cl);
+   elm_toolbar_item_tooltip_text_set(it, "Remove the selected contact");
+
    cl->list_at_xy_item_get[0] = (Contact_List_At_XY_Item_Get)elm_genlist_at_xy_item_get;
    cl->list_at_xy_item_get[1] = NULL;
    //cl->list_at_xy_item_get[1] = (Ecore_Data_Cb)elm_gengrid_at_xy_item_get;
@@ -1078,18 +1084,6 @@ contact_list_init(UI_WIN *ui, Shotgun_Auth *auth)
    cl->list_item_tooltip_resize[1] = (Contact_List_Item_Tooltip_Resize_Cb)elm_gengrid_item_tooltip_window_mode_set;
 
    _contact_list_list_add(cl);
-
-   tb = elm_toolbar_add(win);
-   elm_toolbar_mode_shrink_set(tb, ELM_TOOLBAR_SHRINK_SCROLL);
-   WEIGHT(tb, EVAS_HINT_EXPAND, 0.0);
-   FILL(tb);
-   elm_toolbar_align_set(tb, 0);
-   it = elm_toolbar_item_append(tb, "shotgun/useradd", "Add Contact", (Evas_Smart_Cb)_contact_list_add_cb, cl);
-   it = elm_toolbar_item_append(tb, "shotgun/userdel", "Remove Contact", (Evas_Smart_Cb)_contact_list_del_cb, cl);
-   it = elm_toolbar_item_append(tb, "shotgun/useroffline", "Show Offline", (Evas_Smart_Cb)_contact_list_show_toggle, cl);
-   elm_box_pack_end(box, tb);
-   elm_object_scale_set(tb, 0.75);
-   evas_object_show(tb);
 
    obj = elm_separator_add(win);
    elm_separator_horizontal_set(obj, EINA_TRUE);

@@ -316,7 +316,7 @@ contact_resource_menu_setup(Contact *c, Evas_Object *menu)
         s = s ? s + 1 : pres->jid;
         len = strlen(s);
         buf = alloca(len + 20);
-        snprintf(buf, len, "%s (%i)", s ?: c->base->jid, pres->priority);
+        snprintf(buf, len, "%s (%d)", s ?: c->base->jid, pres->priority);
         obj = elm_radio_add(win);
         elm_radio_group_add(obj, radio);
         if (pres->jid == c->force_resource) set = i;
