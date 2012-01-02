@@ -665,6 +665,7 @@ _contact_list_status_click(Contact_List *cl, Evas_Object *o __UNUSED__, Elm_Obje
    elm_radio_state_value_set(radio, SHOTGUN_USER_STATUS_NORMAL);
    elm_object_text_set(radio, "Available");
    evas_object_smart_callback_add(radio, "changed", (Evas_Smart_Cb)_contact_list_status_change, cl);
+   ALIGN(radio, 0, EVAS_HINT_FILL);
    elm_box_pack_end(box, radio);
    evas_object_show(radio);
 
@@ -674,6 +675,7 @@ _contact_list_status_click(Contact_List *cl, Evas_Object *o __UNUSED__, Elm_Obje
    elm_radio_group_add(obj, radio); \
    elm_object_text_set(obj, LABEL); \
    evas_object_smart_callback_add(obj, "changed", (Evas_Smart_Cb)_contact_list_status_change, cl); \
+   ALIGN(obj, 0, EVAS_HINT_FILL); \
    elm_box_pack_end(box, obj); \
    evas_object_show(obj)
 
