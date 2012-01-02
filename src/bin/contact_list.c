@@ -1072,7 +1072,7 @@ contact_list_init(UI_WIN *ui, Shotgun_Auth *auth)
 
    tb = elm_toolbar_add(win);
    ALIGN(tb, EVAS_HINT_FILL, 0);
-   elm_toolbar_align_set(tb, 0);
+   elm_object_scale_set(tb, 0.9);
    it = elm_toolbar_item_append(tb, "shotgun/settings", "Settings", (Evas_Smart_Cb)settings_toggle, cl);
    elm_box_pack_end(box, tb);
    evas_object_show(tb);
