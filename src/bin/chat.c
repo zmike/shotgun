@@ -481,7 +481,7 @@ chat_window_new(Contact_List *cl)
    IF_ILLUME(cl)
      {
         if (cl->settings->chat_w)
-          evas_object_resize(cw->win, cl->settings->chat_w + cl->settings->list_w, MIN(cl->settings->list_h, cl->settings->chat_h));
+          evas_object_resize(cw->win, cl->settings->chat_w + cl->settings->list_w, MAX(cl->settings->list_h, cl->settings->chat_h));
         else
           evas_object_resize(cw->win, 850, 700);
         evas_object_resize(cw->cl->illume_frame, cl->settings->list_w ?: 300, cl->settings->list_h ?: 700);
@@ -670,7 +670,6 @@ chat_window_free(Chat_Window *cw, Evas_Object *obj __UNUSED__, const char *ev __
         evas_object_key_ungrab(cl->win, "w", ctrl, shift | alt);
         evas_object_key_ungrab(cl->win, "Tab", ctrl, alt);
         evas_object_key_ungrab(cl->win, "Tab", ctrl | shift, alt);
-        evas_object_geometry_get(cw->box, NULL, NULL, &cl->settings->chat_w, &cl->settings->chat_h);
         evas_object_del(cw->box);
         evas_object_resize(cw->win, cl->settings->list_w ?: 300, cl->settings->list_h ?: 700);
      }
