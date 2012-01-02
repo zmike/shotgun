@@ -125,7 +125,8 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
         /* un-added contact with subscribe request */
         if (ev->type != SHOTGUN_PRESENCE_TYPE_SUBSCRIBE)
           {
-             DBG("Received message from non-contact '%s', probably a bug", jid);
+             if (ev->jid != shotgun_jid_get(cl->account))
+               DBG("Received message from non-contact '%s', probably a bug", ev->jid);
              return ECORE_CALLBACK_RENEW;
           }
         c = do_something_with_user(cl, NULL, jid);
