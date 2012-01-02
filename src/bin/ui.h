@@ -174,7 +174,6 @@ struct Contact_List
    Eina_Hash *images; /* hash of img_url<->Image */
    Eina_List *image_list; /* list of Images sorted by timestamp */
    size_t image_size; /* current total size of images in memory (in bytes) */
-   Ecore_Timer *status_timer; /* timer for sending text in status_entry */
 
    int alert_colors[3]; /* array of r/g/b for contact->animator */
 

@@ -591,55 +591,38 @@ _contact_list_grid_add(Contact_List *cl)
 */
 
 static void
-_contact_list_status_changed(Contact_List *cl, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
+_contact_list_status_close(Contact_List *cl, Evas_Object *obj, void *ev __UNUSED__)
 {
-   ecore_timer_delay(cl->status_timer, 3);
-}
+   char *s;
 
-static Eina_Bool
-_contact_list_status_send(Contact_List *cl)
-{
-   if (shotgun_connection_state_get(cl->account) != SHOTGUN_CONNECTION_STATE_CONNECTED) return EINA_FALSE;
+   s = elm_entry_markup_to_utf8(elm_entry_entry_get(cl->status_entry));
+   shotgun_presence_desc_set(cl->account, s);
+   free(s);
    shotgun_presence_send(cl->account);
 #ifdef HAVE_DBUS
    ui_dbus_signal_status_self(cl);
 #endif
-
-   cl->status_timer = NULL;
-   evas_object_smart_callback_del(cl->status_entry, "changed", (Evas_Smart_Cb)_contact_list_status_changed);
-   elm_entry_select_none(cl->status_entry);
-   return EINA_FALSE;
+   cl->status_entry = NULL;
+   evas_object_del(obj);
 }
 
 static void
-_contact_list_status_menu(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Object_Item *it)
+_contact_list_status_change(Contact_List *cl, Evas_Object *obj __UNUSED__, Evas_Object *radio)
 {
-   Evas_Object *radio;
    Shotgun_User_Status val;
 
-   if (shotgun_connection_state_get(cl->account) != SHOTGUN_CONNECTION_STATE_CONNECTED) return;
-   radio = (Evas_Object*)elm_object_item_content_get(it);
    val = elm_radio_state_value_get(radio);
    if ((Shotgun_User_Status)elm_radio_value_get(radio) == val) return;
    elm_radio_value_set(radio, val);
    shotgun_presence_status_set(cl->account, val);
    elm_object_focus_set(cl->status_entry, EINA_TRUE);
    elm_entry_select_all(cl->status_entry);
-   cl->status_timer = ecore_timer_add(3.0, (Ecore_Task_Cb)_contact_list_status_send, cl);
-   evas_object_smart_callback_add(cl->status_entry, "changed", (Evas_Smart_Cb)_contact_list_status_changed, cl);
 }
 
 static void
 _contact_list_status_priority(Contact_List *cl, Evas_Object *obj, void *ev __UNUSED__)
 {
-   if (shotgun_connection_state_get(cl->account) != SHOTGUN_CONNECTION_STATE_CONNECTED) return;
    shotgun_presence_priority_set(cl->account, elm_spinner_value_get(obj));
-   if (cl->status_timer) ecore_timer_delay(cl->status_timer, 3);
-   else
-     {
-        cl->status_timer = ecore_timer_add(3.0, (Ecore_Task_Cb)_contact_list_status_send, cl);
-        evas_object_smart_callback_add(cl->status_entry, "changed", (Evas_Smart_Cb)_contact_list_status_changed, cl);
-     }
 }
 
 static void
@@ -647,16 +630,91 @@ _contact_list_status_message(Contact_List *cl, Evas_Object *obj, void *ev __UNUS
 {
    char *s;
 
-   if (shotgun_connection_state_get(cl->account) != SHOTGUN_CONNECTION_STATE_CONNECTED) return;
    s = elm_entry_markup_to_utf8(elm_entry_entry_get(obj));
    shotgun_presence_desc_set(cl->account, s);
    free(s);
    shotgun_presence_send(cl->account);
-   if (cl->status_timer)
-     {
-        ecore_timer_del(cl->status_timer);
-        cl->status_timer = NULL;
-     }
+}
+
+static void
+_contact_list_status_click(Contact_List *cl, Evas_Object *o __UNUSED__, Elm_Object_Item *ev)
+{
+   Evas_Object *cx, *b, *box, *scr, *obj, *radio;
+   int w, h, x, y;
+
+   elm_toolbar_item_selected_set(ev, EINA_FALSE);
+
+   evas_object_geometry_get(cl->win, NULL, NULL, &w, &h);
+   b = elm_box_add(cl->win);
+   evas_object_size_hint_min_set(b, 0.7 * w, 0.5 * h);
+   evas_object_size_hint_max_set(b, 0.8 * w, 0.8 * h);
+
+   scr = elm_scroller_add(b);
+   elm_scroller_bounce_set(scr, EINA_FALSE, EINA_FALSE);
+   elm_scroller_policy_set(scr, ELM_SCROLLER_POLICY_AUTO, ELM_SCROLLER_POLICY_AUTO);
+   FILL(scr);
+   EXPAND(scr);
+   elm_box_pack_end(b, scr);
+   evas_object_show(scr);
+
+   box = elm_box_add(scr);
+   FILL(box);
+   EXPAND(box);
+
+   radio = elm_radio_add(scr);
+   elm_radio_state_value_set(radio, SHOTGUN_USER_STATUS_NORMAL);
+   elm_object_text_set(radio, "Available");
+   evas_object_smart_callback_add(radio, "changed", (Evas_Smart_Cb)_contact_list_status_change, cl);
+   elm_box_pack_end(box, radio);
+   evas_object_show(radio);
+
+#define STATUS_RADIO(STATUS, LABEL) \
+   obj = elm_radio_add(scr); \
+   elm_radio_state_value_set(obj, SHOTGUN_USER_STATUS_##STATUS); \
+   elm_radio_group_add(obj, radio); \
+   elm_object_text_set(obj, LABEL); \
+   evas_object_smart_callback_add(obj, "changed", (Evas_Smart_Cb)_contact_list_status_change, cl); \
+   elm_box_pack_end(box, obj); \
+   evas_object_show(obj)
+
+   STATUS_RADIO(CHAT, "Chatty");
+   STATUS_RADIO(AWAY, "Away");
+   STATUS_RADIO(XA, "Really Away");
+   STATUS_RADIO(DND, "DND");
+   elm_radio_value_set(radio, SHOTGUN_USER_STATUS_NORMAL);
+
+   cl->status_entry = obj = elm_entry_add(scr);
+   elm_entry_line_wrap_set(obj, ELM_WRAP_MIXED);
+   elm_entry_single_line_set(obj, 1);
+   elm_entry_scrollable_set(obj, 1);
+   EXPAND(obj);
+   FILL(obj);
+   elm_box_pack_end(box, obj);
+   evas_object_smart_callback_add(obj, "activated", (Evas_Smart_Cb)_contact_list_status_message, cl);
+   elm_entry_entry_set(obj, shotgun_presence_desc_get(cl->account));
+   elm_entry_scrollbar_policy_set(obj, ELM_SCROLLER_POLICY_AUTO, ELM_SCROLLER_POLICY_OFF);
+   evas_object_show(obj);
+
+   obj = elm_spinner_add(scr);
+   elm_spinner_label_format_set(obj, "Priority: %1.0f");
+   elm_spinner_wrap_set(obj, EINA_TRUE);
+   elm_spinner_step_set(obj, 1);
+   elm_spinner_min_max_set(obj, 0, 9999);
+   elm_spinner_value_set(obj, shotgun_presence_priority_get(cl->account));
+   FILL(obj);
+   elm_box_pack_end(box, obj);
+   evas_object_smart_callback_add(obj, "changed", (Evas_Smart_Cb)_contact_list_status_priority, cl);
+   evas_object_show(obj);
+
+   evas_object_show(box);
+   elm_object_content_set(scr, box);
+
+   cx = elm_ctxpopup_add(cl->win);
+   evas_object_smart_callback_add(cx, "dismissed", (Evas_Smart_Cb)_contact_list_status_close, cl);
+   elm_object_content_set(cx, b);
+   evas_pointer_canvas_xy_get(evas_object_evas_get(obj), &x, &y);
+   evas_object_move(cx, x, y);
+   evas_object_show(cx);
 }
 
 static Eina_Bool
@@ -972,7 +1030,7 @@ contact_list_user_del(Contact *c, Shotgun_Event_Presence *ev)
 Contact_List *
 contact_list_init(UI_WIN *ui, Shotgun_Auth *auth)
 {
-   Evas_Object *win, *obj, *tb, *radio, *box, *menu, *entry;
+   Evas_Object *win, *tb, *box;
    Elm_Object_Item *it;
    Contact_List *cl;
 
@@ -1015,54 +1073,16 @@ contact_list_init(UI_WIN *ui, Shotgun_Auth *auth)
    tb = elm_toolbar_add(win);
    ALIGN(tb, EVAS_HINT_FILL, 0);
    elm_toolbar_align_set(tb, 0);
-   it = elm_toolbar_item_append(tb, "shotgun/settings", NULL, (Evas_Smart_Cb)settings_toggle, cl);
+   it = elm_toolbar_item_append(tb, "shotgun/settings", "Settings", (Evas_Smart_Cb)settings_toggle, cl);
    elm_box_pack_end(box, tb);
    evas_object_show(tb);
 
-   it = elm_toolbar_item_append(tb, NULL, "Status", NULL, NULL);
-   elm_toolbar_item_menu_set(it, 1);
-   elm_toolbar_menu_parent_set(tb, win);
-   menu = elm_toolbar_item_menu_get(it);
-
-   radio = elm_radio_add(win);
-   elm_radio_state_value_set(radio, SHOTGUN_USER_STATUS_NORMAL);
-   elm_object_text_set(radio, "Available");
-   evas_object_show(radio);
-   elm_menu_item_add_object(menu, NULL, radio, (Evas_Smart_Cb)_contact_list_status_menu, cl);
-
-   obj = elm_radio_add(win);
-   elm_radio_state_value_set(obj, SHOTGUN_USER_STATUS_CHAT);
-   elm_radio_group_add(obj, radio);
-   elm_object_text_set(obj, "Chatty");
-   evas_object_show(obj);
-   elm_menu_item_add_object(menu, NULL, obj, (Evas_Smart_Cb)_contact_list_status_menu, cl);
-
-   obj = elm_radio_add(win);
-   elm_radio_state_value_set(obj, SHOTGUN_USER_STATUS_AWAY);
-   elm_radio_group_add(obj, radio);
-   elm_object_text_set(obj, "Away");
-   evas_object_show(obj);
-   elm_menu_item_add_object(menu, NULL, obj, (Evas_Smart_Cb)_contact_list_status_menu, cl);
-
-   obj = elm_radio_add(win);
-   elm_radio_state_value_set(obj, SHOTGUN_USER_STATUS_XA);
-   elm_radio_group_add(obj, radio);
-   elm_object_text_set(obj, "Really Away");
-   evas_object_show(obj);
-   elm_menu_item_add_object(menu, NULL, obj, (Evas_Smart_Cb)_contact_list_status_menu, cl);
-
-   obj = elm_radio_add(win);
-   elm_radio_state_value_set(obj, SHOTGUN_USER_STATUS_DND);
-   elm_radio_group_add(obj, radio);
-   elm_object_text_set(obj, "DND");
-   evas_object_show(obj);
-   elm_menu_item_add_object(menu, NULL, obj, (Evas_Smart_Cb)_contact_list_status_menu, cl);
-   elm_radio_value_set(radio, SHOTGUN_USER_STATUS_NORMAL);
+   it = elm_toolbar_item_append(tb, "shotgun/status", "Status", (Evas_Smart_Cb)_contact_list_status_click, cl);
 
    /* FIXME: tooltips need window mode here */
-   it = elm_toolbar_item_append(tb, "shotgun/useradd", NULL, (Evas_Smart_Cb)_contact_list_add_cb, cl);
+   it = elm_toolbar_item_append(tb, "shotgun/useradd", "Add", (Evas_Smart_Cb)_contact_list_add_cb, cl);
    elm_toolbar_item_tooltip_text_set(it, "Add a new contact");
-   it = elm_toolbar_item_append(tb, "shotgun/userdel", NULL, (Evas_Smart_Cb)_contact_list_del_cb, cl);
+   it = elm_toolbar_item_append(tb, "shotgun/userdel", "Remove", (Evas_Smart_Cb)_contact_list_del_cb, cl);
    elm_toolbar_item_tooltip_text_set(it, "Remove the selected contact");
 
    cl->list_at_xy_item_get[0] = (Contact_List_At_XY_Item_Get)elm_genlist_at_xy_item_get;
@@ -1084,40 +1104,6 @@ contact_list_init(UI_WIN *ui, Shotgun_Auth *auth)
    cl->list_item_tooltip_resize[1] = (Contact_List_Item_Tooltip_Resize_Cb)elm_gengrid_item_tooltip_window_mode_set;
 
    _contact_list_list_add(cl);
-
-   obj = elm_separator_add(win);
-   elm_separator_horizontal_set(obj, EINA_TRUE);
-   elm_box_pack_end(box, obj);
-   evas_object_show(obj);
-
-   box = elm_box_add(win);
-   WEIGHT(box, EVAS_HINT_EXPAND, 0.0);
-   ALIGN(box, EVAS_HINT_FILL, 1.0);
-   elm_box_horizontal_set(box, EINA_TRUE);
-   elm_box_pack_end(cl->box, box);
-   evas_object_show(box);
-
-   cl->status_entry = entry = elm_entry_add(win);
-   elm_entry_line_wrap_set(entry, ELM_WRAP_MIXED);
-   elm_entry_single_line_set(entry, 1);
-   elm_entry_scrollable_set(entry, 1);
-   WEIGHT(entry, EVAS_HINT_EXPAND, 0);
-   ALIGN(entry, EVAS_HINT_FILL, 0.5);
-   elm_box_pack_end(box, entry);
-   evas_object_smart_callback_add(entry, "activated", (Evas_Smart_Cb)_contact_list_status_message, cl);
-   elm_entry_entry_set(entry, shotgun_presence_desc_get(cl->account));
-   elm_entry_scrollbar_policy_set(entry, ELM_SCROLLER_POLICY_AUTO, ELM_SCROLLER_POLICY_OFF);
-   evas_object_show(entry);
-
-   obj = elm_spinner_add(win);
-   elm_spinner_wrap_set(obj, EINA_TRUE);
-   elm_spinner_step_set(obj, 1);
-   elm_spinner_min_max_set(obj, 0, 9999);
-   elm_spinner_value_set(obj, shotgun_presence_priority_get(cl->account));
-   ALIGN(obj, 1.0, 0.5);
-   elm_box_pack_end(box, obj);
-   evas_object_smart_callback_add(obj, "delay,changed", (Evas_Smart_Cb)_contact_list_status_priority, cl);
-   evas_object_show(obj);
 
    cl->users = eina_hash_string_superfast_new(NULL);
 //   cl->users = eina_hash_string_superfast_new((Eina_Free_Cb)contact_free);
