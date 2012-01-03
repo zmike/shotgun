@@ -95,6 +95,8 @@ eet_ss_edd_new(void)
    ADD(chat_h, INT);
    ADD(list_w, INT);
    ADD(list_h, INT);
+
+   ADD(browser, INLINED_STRING);
 #undef ADD
    return edd;
 }

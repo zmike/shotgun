@@ -22,9 +22,6 @@ void *alloca (size_t);
 #include <Ecore.h>
 #include <Ecore_Con.h>
 #include <Elementary.h>
-#ifdef HAVE_ECORE_X
-# include <Ecore_X.h>
-#endif
 #ifdef HAVE_DBUS
 # include <E_DBus.h>
 #endif
@@ -104,6 +101,7 @@ typedef struct Shotgun_Settings
    int chat_h;
    int list_w;
    int list_h;
+   const char *browser;
 
    void *ui;
 } Shotgun_Settings;
@@ -369,5 +367,6 @@ Eina_Bool util_configdir_create(void);
 
 void login_new(void);
 void ui_win_init(UI_WIN *ui);
+void ui_key_grab_set(UI_WIN *ui, const char *key, Eina_Bool enable);
 
 #endif /* __UI_H */

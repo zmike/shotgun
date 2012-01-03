@@ -8,32 +8,32 @@ _chat_conv_anchor_click(Contact *c, Evas_Object *obj __UNUSED__, Elm_Entry_Ancho
      {
       case 1:
         {
-           const char *browser;
            char *cmd;
            size_t size;
 
-           browser = getenv("BROWSER");
-           if (!browser)
+           if (!c->list->settings->browser)
              {
-                DBG("No BROWSER found in env, not opening");
+                DBG("BROWSER set to NULL; not opening link");
                 return;
              }
-           size = sizeof(char) * (strlen(ev->name) + strlen(browser) + 1) + 1;
-           cmd = alloca(size);
-           snprintf(cmd, size, "%s %s", browser, ev->name);
+           size = sizeof(char) * (strlen(ev->name) + strlen(c->list->settings->browser) + 3) + 1;
+           if (size > 32000)
+             cmd = malloc(size);
+           else
+             cmd = alloca(size);
+           snprintf(cmd, size, "%s '%s'", c->list->settings->browser, ev->name);
            DBG("Running BROWSER command: %s", cmd);
            ecore_exe_run(cmd, NULL);
+           if (size > 32000) free(cmd);
            return;
         }
       case 3:
-#ifdef HAVE_ECORE_X
         {
            size_t len;
            len = strlen(ev->name);
            if (len == sizeof(int)) len++; /* workaround for stupid elm cnp bug which breaks the universe */
            elm_cnp_selection_set(ELM_SEL_TYPE_CLIPBOARD, c->chat_window->win, ELM_SEL_FORMAT_TEXT, ev->name, len);
         }
-#endif
       default:
         break;
      }

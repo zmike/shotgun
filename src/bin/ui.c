@@ -1,6 +1,22 @@
 #include "ui.h"
 
 void
+ui_key_grab_set(UI_WIN *ui, const char *key, Eina_Bool enable)
+{
+   Evas *e;
+   Evas_Modifier_Mask ctrl, shift, alt;
+
+   e = evas_object_evas_get(ui->win);
+   ctrl = evas_key_modifier_mask_get(e, "Control");
+   shift = evas_key_modifier_mask_get(e, "Shift");
+   alt = evas_key_modifier_mask_get(e, "Alt");
+   if (enable)
+     1 | evas_object_key_grab(ui->win, key, 0, ctrl | shift | alt, 1); /* worst warn_unused ever. */
+   else
+     evas_object_key_ungrab(ui->win, key, 0, ctrl | shift | alt);
+}
+
+void
 ui_win_init(UI_WIN *ui)
 {
    Evas_Object *obj, *fr, *box, *win;

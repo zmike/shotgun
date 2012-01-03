@@ -74,28 +74,6 @@ AC_ARG_WITH([edje-cc],
    ],[edje_cc=$(pkg-config --variable=prefix edje)/bin/edje_cc])
 AC_SUBST(edje_cc)
 
-have_ecore_x="no"
-want_ecore_x="auto"
-AC_ARG_ENABLE([ecore-x],
-   [AC_HELP_STRING([--disable-ecore-x], [disable ecore-x support. @<:@default=detect@:>@])],
-   [want_ecore_x=$enableval], [])
-
-if test "x$want_ecore_x" != "xno"; then
-   PKG_CHECK_MODULES([ECORE_X],
-      [ecore-x >= 1.0.0],
-      [
-       AC_DEFINE(HAVE_ECORE_X, 1, [X11 support])
-       have_ecore_x="yes"
-      ],
-      [have_ecore_x="no"]
-   )
-else
-    have_ecore_x="no"
-fi
-if test "x$want_ecore_x" = "xyes" -a "x$have_ecore_x" = "xno"; then
-    AC_MSG_ERROR([ecore-x support requested, but not found by pkg-config.])
-fi
-
 have_azy="no"
 want_azy="auto"
 AC_ARG_ENABLE([azy],

@@ -2,14 +2,14 @@
 
 VREV="$(git log -n1 --pretty=oneline 2> /dev/null | cut -d' ' -f1 | tr -d '\n')"
 
-CF="-DHAVE_LIMITS_H -DSTDC_HEADERS -DHAVE_MEMCPY=1 -DVREV=\"$VREV\" -I$(readlink -f .) -D_GNU_SOURCE=1 -O0 -pipe -Wall -Wextra -g -I$(readlink -f src/include) -DHAVE_ECORE_X -DHAVE_DBUS -DHAVE_NOTIFY -DPACKAGE_DATA_DIR=\".\""
+CF="-DHAVE_LIMITS_H -DSTDC_HEADERS -DHAVE_MEMCPY=1 -DVREV=\"$VREV\" -I$(readlink -f .) -D_GNU_SOURCE=1 -O0 -pipe -Wall -Wextra -g -I$(readlink -f src/include) -DHAVE_DBUS -DHAVE_NOTIFY -DPACKAGE_DATA_DIR=\".\""
 [[ -z "$CC" ]] && CC=gcc
 [[ -z "$CXX" ]] && CXX=g++
-#DEPS=($(pkg-config --print-requires-private ecore-con edbus ecore-x elementary enotify))
+#DEPS=($(pkg-config --print-requires-private ecore-con edbus elementary enotify))
 #echo "DEPENDENCIES: ${DEPS[@]}"
-CFLAGS="$(pkg-config --cflags eina eet evas edje ecore ecore-con edbus ecore-x elementary enotify ecore-file)"
+CFLAGS="$(pkg-config --cflags eina eet evas edje ecore ecore-con edbus elementary enotify ecore-file)"
 #echo "DEPENDENCY CFLAGS: $CFLAGS"
-LIBS="$(pkg-config --libs eina eet evas edje ecore ecore-con edbus ecore-x elementary enotify ecore-file)"
+LIBS="$(pkg-config --libs eina eet evas edje ecore ecore-con edbus elementary enotify ecore-file)"
 if pkg-config --exists azy ; then
 	CFLAGS+=" $(pkg-config --cflags azy) -DHAVE_AZY"
 	LIBS+=" $(pkg-config --libs azy)"
