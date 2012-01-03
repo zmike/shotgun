@@ -22,6 +22,7 @@ collections
      ICON("dialog_ok", 16, 0, 0, 0);
      ICON("settings", 16, 0, 0, 0);
      ICON("status", 16, 0, 0, 0);
+     ICON("logout", 16, 0, 0, 0);
 
      ICON("useroffline", 16, 0, 5, -6);
      ICON("userunknown", 16, 0, 5, -6);

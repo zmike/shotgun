@@ -1,6 +1,13 @@
 #include "ui.h"
 
 static void
+_contact_list_quit_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, void *ev __UNUSED__)
+{
+   evas_object_del(cl->win);
+   cl->win = NULL;
+}
+
+static void
 _contact_list_free_cb(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj, void *ev __UNUSED__)
 {
    Contact *c;
@@ -1075,6 +1082,7 @@ contact_list_init(UI_WIN *ui, Shotgun_Auth *auth)
    tb = elm_toolbar_add(win);
    ALIGN(tb, EVAS_HINT_FILL, 0);
    elm_object_scale_set(tb, 0.9);
+   it = elm_toolbar_item_append(tb, "shotgun/logout", "Quit", (Evas_Smart_Cb)_contact_list_quit_cb, cl);
    it = elm_toolbar_item_append(tb, "shotgun/settings", "Settings", (Evas_Smart_Cb)settings_toggle, cl);
    elm_box_pack_end(box, tb);
    evas_object_show(tb);

@@ -12,6 +12,7 @@ arrows_pending_left.png \
 arrows_pending_right.png \
 arrows_rejected.png \
 dialog_ok.png \
+logout.png \
 settings.png \
 status.png \
 useradd.png \
