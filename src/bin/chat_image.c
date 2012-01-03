@@ -4,8 +4,11 @@
 static Evas_Object *
 _chat_conv_image_provider(Image *i, Evas_Object *obj __UNUSED__, Evas_Object *tt)
 {
-   Evas_Object *ret, *ic;
+   Evas_Object *ret, *ic, *lbl;
    int w, h, cw, ch;
+   char *buf;
+   size_t len;
+
    DBG("(i=%p)", i);
    if ((!i) || (!i->buf)) goto error;
 
@@ -24,6 +27,12 @@ _chat_conv_image_provider(Image *i, Evas_Object *obj __UNUSED__, Evas_Object *tt
    elm_box_homogeneous_set(ret, EINA_FALSE);
    EXPAND(ret);
    FILL(ret);
+
+   lbl = elm_label_add(tt);
+   elm_object_text_set(lbl, ecore_con_url_url_get(i->url));
+   elm_box_pack_end(ret, lbl);
+   evas_object_show(lbl);
+
    elm_box_pack_end(ret, ic);
 
    elm_win_screen_size_get(tt, NULL, NULL, &cw, &ch);
@@ -42,18 +51,41 @@ _chat_conv_image_provider(Image *i, Evas_Object *obj __UNUSED__, Evas_Object *tt
         sc = ((float)ch * 0.6) / (float)h;
       if (sc) elm_object_scale_set(ic, sc);
    }
-   ic = elm_label_add(tt);
-   elm_object_text_set(ic, "Left click link to open in BROWSER<ps>"
-                           "Right click link to copy to clipboard");
-   elm_box_pack_end(ret, ic);
-   evas_object_show(ic);
+   lbl = elm_label_add(tt);
+   len = strlen(i->cl->settings->browser) + 64;
+   if (len > 32000)
+     buf = malloc(len);
+   else
+     buf = alloca(len);
+   snprintf(buf, len,
+            "Left click link to open with \"%s\"<ps>"
+            "Right click link to copy to clipboard",
+            i->cl->settings->browser);
+
+   elm_object_text_set(lbl, buf);
+   if (len > 32000) free(buf);
+   elm_box_pack_end(ret, lbl);
+   evas_object_show(lbl);
    return ret;
 error:
    ret = elm_bg_add(tt);
    elm_bg_color_set(ret, 0, 0, 0);
+   evas_object_show(ret);
    ret = elm_label_add(tt);
-   elm_object_text_set(ret, "Left click link to open in BROWSER<ps>"
-                           "Right click link to copy to clipboard");
+   {
+      len = strlen(ecore_con_url_url_get(i->url)) + strlen(i->cl->settings->browser) + 64;
+      if (len > 32000)
+        buf = malloc(len);
+      else
+        buf = alloca(len);
+      snprintf(buf, len, "%s<ps>"
+               "Left click link to open with \"%s\"<ps>"
+               "Right click link to copy to clipboard",
+               ecore_con_url_url_get(i->url),
+               i->cl->settings->browser);
+      elm_object_text_set(ret, buf);
+      if (len > 32000) free(buf);
+   }
    return ret;
 }
 
@@ -75,8 +107,26 @@ chat_conv_image_show(Contact *c, Evas_Object *obj, Elm_Entry_Anchor_Info *ev)
    if (!c) return;
    DBG("anchor in: '%s' (%i, %i)", ev->name, ev->x, ev->y);
    i = eina_hash_find(c->list->images, ev->name);
-   if (!i) return;
-   elm_object_tooltip_content_cb_set(obj, (Elm_Tooltip_Content_Cb)_chat_conv_image_provider, i, NULL);
+   if (i)
+     elm_object_tooltip_content_cb_set(obj, (Elm_Tooltip_Content_Cb)_chat_conv_image_provider, i, NULL);
+   else
+     {
+        char *buf;
+        size_t len;
+
+        len = strlen(ev->name) + strlen(c->list->settings->browser) + 64;
+        if (len > 32000)
+          buf = malloc(len);
+        else
+          buf = alloca(len);
+        snprintf(buf, len, "%s<ps>"
+                 "Left click link to open with \"%s\"<ps>"
+                 "Right click link to copy to clipboard",
+                 ev->name,
+                 c->list->settings->browser);
+        elm_object_tooltip_text_set(obj, buf);
+        if (len > 32000) free(buf);
+     }
    elm_object_tooltip_window_mode_set(obj, EINA_TRUE);
    elm_object_tooltip_show(obj);
 }
@@ -89,7 +139,6 @@ chat_conv_image_hide(Contact *c, Evas_Object *obj, Elm_Entry_Anchor_Info *ev)
    if (!c) return;
    DBG("anchor out: '%s' (%i, %i)", ev->name, ev->x, ev->y);
    i = eina_hash_find(c->list->images, ev->name);
-   if (!i) return;
    elm_object_tooltip_unset(obj);
 }
 
