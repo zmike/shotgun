@@ -52,7 +52,7 @@ _chat_conv_image_provider(Image *i, Evas_Object *obj __UNUSED__, Evas_Object *tt
       if (sc) elm_object_scale_set(ic, sc);
    }
    lbl = elm_label_add(tt);
-   len = i->cl->settings->browser ? strlen(i->cl->settings->browser) : 0 + 64;
+   len = (i->cl->settings->browser ? strlen(i->cl->settings->browser) : 0) + 64;
    if (len > 32000)
      buf = malloc(len);
    else
@@ -74,7 +74,7 @@ error:
    evas_object_show(ret);
    ret = elm_label_add(tt);
    {
-      len = strlen(ecore_con_url_url_get(i->url)) + strlen(i->cl->settings->browser) + 64;
+      len = strlen(ecore_con_url_url_get(i->url)) + (i->cl->settings->browser ? strlen(i->cl->settings->browser) : 0) + 64;
       if (len > 32000)
         buf = malloc(len);
       else
@@ -117,7 +117,7 @@ chat_conv_image_show(Contact *c, Evas_Object *obj, Elm_Entry_Anchor_Info *ev)
         char *buf;
         size_t len;
 
-        len = strlen(ev->name) + c->list->settings->browser ? strlen(c->list->settings->browser) : 0 + 64;
+        len = strlen(ev->name) + (c->list->settings->browser ? strlen(c->list->settings->browser) : 0) + 64;
         if (len > 32000)
           buf = malloc(len);
         else
