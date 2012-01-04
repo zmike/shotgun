@@ -85,6 +85,7 @@ typedef struct Shotgun_Settings
    Eina_Bool enable_chat_newselect;
    Eina_Bool enable_chat_typing;
    Eina_Bool enable_chat_noresource;
+   Eina_Bool disable_chat_status_entry;
    Eina_Bool enable_account_info;
    Eina_Bool enable_last_account;
    Eina_Bool enable_logging;
@@ -285,6 +286,7 @@ void chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus);
 void chat_window_free(Chat_Window *cw, Evas_Object *obj __UNUSED__, const char *ev __UNUSED__);
 void chat_message_status(Contact *c, Shotgun_Event_Message *msg);
 void chat_resource_ignore_toggle(Contact *c, Evas_Object *obj __UNUSED__, Elm_Object_Item *ev);
+void chat_status_entry_toggle(Contact *c);
 void chat_message_insert(Contact *c, const char *from, const char *msg, Eina_Bool me);
 
 void chat_image_add(Contact_List *cl, const char *url);

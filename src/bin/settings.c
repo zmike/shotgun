@@ -145,6 +145,20 @@ _settings_chat_typing_change(Contact_List *cl, Evas_Object *obj, void *event_inf
 }
 
 static void
+_settings_chat_status_entry_change(Contact_List *cl, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
+{
+   Eina_List *l, *ll;
+   Chat_Window *cw;
+   Contact *c;
+
+   EINA_LIST_FOREACH(cl->chat_wins, l, cw)
+     {
+        EINA_LIST_FOREACH(cw->contacts, ll, c)
+          chat_status_entry_toggle(c);
+     }
+}
+
+static void
 _settings_browser_entry_cb(Evas_Object *hv, Evas_Object *obj __UNUSED__, void *ev __UNUSED__)
 {
    elm_hover_dismiss(hv);
@@ -316,6 +330,8 @@ settings_new(UI_WIN *ui)
    SETTINGS_FRAME("Messages");
    SETTINGS_CHECK("Send keyboard events", enable_chat_typing, "Send additional notifications to contacts when you start or stop typing to them");
    SETTINGS_CHECK_CALLBACK(_settings_chat_typing_change);
+   SETTINGS_CHECK("Disable chat status message display", disable_chat_status_entry, "Disable the text showing the contact's status in the chat window");
+   SETTINGS_CHECK_CALLBACK(_settings_chat_status_entry_change);
    SETTINGS_CHECK("Focus chat window on message", enable_chat_focus, "Focus chat window whenever message is received");
    SETTINGS_CHECK("Always select new chat tabs", enable_chat_newselect, "When a message is received which would open a new tab, make that tab active");
    SETTINGS_CHECK("Send messages to all resources", enable_chat_noresource,
