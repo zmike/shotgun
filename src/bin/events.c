@@ -27,19 +27,10 @@ event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev)
                      contact_free(c);
                      continue;
                   }
-                if (c->list_item)
-                  {
-                     if ((!cl->view) && (!c->status) && (c->base->subscription == SHOTGUN_USER_SUBSCRIPTION_BOTH))
-                       contact_list_user_del(c, NULL);
-                     else
-                       cl->list_item_update[cl->mode](c->list_item);
-                  }
-                else
-                  {
-                     if (cl->view || (user->subscription != SHOTGUN_USER_SUBSCRIPTION_BOTH) || user->subscription_pending)
-                       contact_list_user_add(cl, c);
-                  }
+                  else
+                    c->info = ui_eet_userinfo_get(cl->account, c->base->jid);
              }
+           contact_list_mode_toggle(cl, NULL, NULL);
            break;
         }
       case SHOTGUN_IQ_EVENT_TYPE_INFO:

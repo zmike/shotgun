@@ -416,7 +416,7 @@ contact_presence_set(Contact *c, Shotgun_Event_Presence *cur)
    /* if no list item, create */
    if (!c->list_item)
      {
-        if (c->cur->vcard)
+        if (c->cur->vcard && (!c->info))
           c->info = ui_eet_userinfo_get(cl->account, c->base->jid);
         if (c->info)
           eina_stringshare_replace(&c->after, c->info->after);
