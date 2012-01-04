@@ -122,12 +122,14 @@ contact_free(Contact *c)
    Shotgun_Event_Presence *pres;
 
    if (!c) return;
+   if (c->list_item)
+     c->list->list_item_del[c->list->mode](c->list_item);
+   c->list_item = NULL;
+   if (c->info_thread) ecore_thread_cancel(c->info_thread);
    if (c->info) ui_eet_userinfo_update(c->list->account, c->base->jid, c->info);
    EINA_LIST_FREE(c->plist, pres)
      shotgun_event_presence_free(pres);
    shotgun_event_presence_free(c->cur);
-   if (c->list_item)
-     c->list->list_item_del[c->list->mode](c->list_item);
    if (c->tooltip_timer) ecore_timer_del(c->tooltip_timer);
    if (c->sms_timer) ecore_timer_del(c->sms_timer);
    shotgun_user_free(c->base);
@@ -416,8 +418,8 @@ contact_presence_set(Contact *c, Shotgun_Event_Presence *cur)
    /* if no list item, create */
    if (!c->list_item)
      {
-        if (c->cur->vcard && (!c->info))
-          c->info = ui_eet_userinfo_get(cl->account, c->base->jid);
+        if (c->cur->vcard)
+          ui_eet_userinfo_fetch(c, EINA_FALSE);
         if (c->info)
           eina_stringshare_replace(&c->after, c->info->after);
         contact_list_user_add(cl, c);
@@ -429,7 +431,7 @@ contact_presence_set(Contact *c, Shotgun_Event_Presence *cur)
         cl->list_item_update[cl->mode](c->list_item);
      }
    /* if vcard available, fetch */
-   if (c->cur->vcard && ((!c->info) || (cur && c->info &&
+   if (c->cur->vcard && (((!c->info) && (!c->info_thread)) || (cur && c->info &&
        ((c->info->photo.sha1 != cur->photo) || (cur->photo && (!c->info->photo.size))))))
      {
         INF("VCARD for %s not current; fetching.", c->base->jid);

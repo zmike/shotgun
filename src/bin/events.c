@@ -27,16 +27,24 @@ event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev)
                      contact_free(c);
                      continue;
                   }
-                  else
-                    c->info = ui_eet_userinfo_get(cl->account, c->base->jid);
+                if (c->list_item)
+                  {
+                     if ((!cl->view) && (!c->status) && (c->base->subscription == SHOTGUN_USER_SUBSCRIPTION_BOTH))
+                       contact_list_user_del(c, NULL);
+                     else
+                       cl->list_item_update[cl->mode](c->list_item);
+                  }
+                else
+                  {
+                     if (cl->view || (user->subscription != SHOTGUN_USER_SUBSCRIPTION_BOTH) || user->subscription_pending)
+                       contact_list_user_add(cl, c);
+                  }
              }
-           contact_list_mode_toggle(cl, NULL, NULL);
            break;
         }
       case SHOTGUN_IQ_EVENT_TYPE_INFO:
         {
            Shotgun_User_Info *info = ev->ev;
-           Evas_Object *img = NULL;
 
            c = eina_hash_find(cl->users, info->jid);
            if (!c)
@@ -49,6 +57,7 @@ event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev)
                 INF("User info for %s unchanged, not updating cache", c->base->jid);
                 break;
              }
+           if (c->info_thread) ecore_thread_cancel(c->info_thread);
            contact_info_free(c->info);
            if (c->cur && c->cur->photo)
              {
@@ -57,12 +66,12 @@ event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev)
              }
            if (info->photo.size)
              {
-                img = evas_object_image_add(evas_object_evas_get(c->list->win));
-                evas_object_image_memfile_set(img, info->photo.data, info->photo.size, NULL, NULL);
+                c->info_img = evas_object_image_add(evas_object_evas_get(c->list->win));
+                evas_object_image_memfile_set(c->info_img, info->photo.data, info->photo.size, NULL, NULL);
              }
-           c->info = ui_eet_userinfo_add(cl->account, c, img, info);
+           c->info = (Contact_Info*)info;
+           ui_eet_userinfo_fetch(c, EINA_TRUE);
            ev->ev = NULL;
-           if (img) evas_object_del(img);
            if (c->list_item && (info->photo.size || info->full_name))
              cl->list_item_update[cl->mode](c->list_item);
            break;
@@ -223,7 +232,7 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
                   if ((!l) || (l->data != pres))
                     c->plist = eina_list_sorted_insert(c->plist, (Eina_Compare_Cb)_list_sort_cb, pres);
                   /* if vcard available and (not retrieved || not most recent) */
-                  if (ev->vcard && ((!c->info) || (c->cur && c->info &&
+                  if (ev->vcard && (((!c->info) && (!c->info_thread)) || (c->cur && c->info &&
                       ((c->info->photo.sha1 != c->cur->photo) ||
                        (c->cur->photo && (!c->info->photo.size))))))
                     {

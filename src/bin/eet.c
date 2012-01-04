@@ -247,6 +247,115 @@ image_cleaner_cb(Contact_List *cl)
    return EINA_TRUE;
 }
 
+
+static void
+userinfo_add(Shotgun_Auth *auth, Evas_Object *img, Contact_Info *info)
+{
+   char buf[1024];
+   const char *jid;
+   void *img_data;
+   Eet_Data_Descriptor *edd;
+   Eet_File *ef = shotgun_data_get(auth);
+   int w, h;
+   Eina_Bool success;
+
+   jid = shotgun_jid_get(auth);
+   edd = eet_userinfo_edd_new(EINA_FALSE);
+   snprintf(buf, sizeof(buf), "%s/%s", jid, info->jid);
+   success = eet_data_write_cipher(ef, edd, buf, shotgun_password_get(auth), info, 0);
+   eet_data_descriptor_free(edd);
+   if (!success)
+     {
+        ERR("Failed to write userinfo for %s!", info->jid);
+        eet_data_descriptor_free(edd);
+        return;
+     }
+   INF("Wrote encrypted userinfo for %s to disk", info->jid);
+   if ((!info->photo.data) || (!img)) return;
+   snprintf(buf, sizeof(buf), "%s/%s/img", jid, info->jid);
+   img_data = evas_object_image_data_get(img, EINA_FALSE);
+   if (img_data)
+     {
+        evas_object_image_size_get(img, &w, &h);
+        eet_data_image_write(ef, buf, img_data, w, h, evas_object_image_alpha_get(img), 5, 100, 0);
+        info->photo.size = w * h * sizeof(int);
+     }
+   eet_sync(ef);
+   return;
+}
+
+
+static Contact_Info *
+userinfo_get(Shotgun_Auth *auth, const char *jid)
+{
+   char buf[1024];
+   const char *me;
+   Eet_Data_Descriptor *edd;
+   Contact_Info *ci;
+   Shotgun_User_Info *info;
+   Eet_File *ef = shotgun_data_get(auth);
+   unsigned int w, h;
+
+   edd = eet_userinfo_edd_new(EINA_FALSE);
+   me = shotgun_jid_get(auth);
+   snprintf(buf, sizeof(buf), "%s/%s", me, jid);
+   ci = eet_data_read_cipher(ef, edd, buf, shotgun_password_get(auth));
+   eet_data_descriptor_free(edd);
+   if (ci)
+     INF("Read encrypted userinfo for %s from disk", jid);
+   else
+     {
+        edd = eet_userinfo_edd_new(EINA_TRUE);
+        info = eet_data_read_cipher(ef, edd, buf, shotgun_password_get(auth));
+        eet_data_descriptor_free(edd);
+        if (info)
+          {
+             INF("Old format userinfo detected for %s, updating", jid);
+             ci = realloc(info, sizeof(Contact_Info));
+          }
+        else
+          INF("Userinfo for %s does not exist", jid);
+     }
+   snprintf(buf, sizeof(buf), "%s/%s/img", me, jid);
+   if (ci && eet_data_image_header_read(ef, buf, &w, &h, NULL, NULL, NULL, NULL))
+     ci->photo.size = w * h * sizeof(int);
+   return ci;
+}
+
+static void
+userinfo_thread_done(Contact *c, Ecore_Thread *et)
+{
+   c->info_thread = NULL;
+   if (c->info_img) evas_object_del(c->info_img);
+   c->info_img = NULL;
+   if (et && c->list_item) c->list->list_item_update[c->list->mode](c->list_item);
+   if ((c->cur && c->cur->vcard && c->info &&
+       ((c->info->photo.sha1 != c->cur->photo) ||
+        (c->cur->photo && (!c->info->photo.size)))))
+     {
+        INF("VCARD for %s not current; fetching.", c->base->jid);
+        shotgun_iq_vcard_get(c->list->account, c->base->jid);
+     }
+}
+
+static void
+userinfo_thread_cancel(Contact *c, Ecore_Thread *et __UNUSED__)
+{
+   c->info_thread = NULL;
+}
+
+static void
+userinfo_thread_new(Contact *c, Ecore_Thread *et __UNUSED__)
+{
+   userinfo_add(c->list->account, c->info_img, c->info);
+}
+
+static void
+userinfo_thread_get(Contact *c, Ecore_Thread *et __UNUSED__)
+{
+   c->info = userinfo_get(c->list->account, c->base->jid);
+}
+
 Eina_Bool
 ui_eet_init(Shotgun_Auth *auth)
 {
@@ -473,45 +582,6 @@ ui_eet_auth_set(Shotgun_Auth *auth, Shotgun_Settings *ss, Eina_Bool use_auth)
 #endif
 }
 
-Contact_Info *
-ui_eet_userinfo_add(Shotgun_Auth *auth, Contact *c, Evas_Object *img, Shotgun_User_Info *info)
-{
-   char buf[1024];
-   const char *jid;
-   void *img_data;
-   Eet_Data_Descriptor *edd;
-   Eet_File *ef = shotgun_data_get(auth);
-   int w, h;
-   Eina_Bool success;
-   Contact_Info *ci;
-
-   jid = shotgun_jid_get(auth);
-   edd = eet_userinfo_edd_new(EINA_FALSE);
-   snprintf(buf, sizeof(buf), "%s/%s", jid, info->jid);
-   ci = realloc(info, sizeof(Contact_Info));
-   ci->after = eina_stringshare_ref(c->after);
-   success = eet_data_write_cipher(ef, edd, buf, shotgun_password_get(auth), ci, 0);
-   eet_data_descriptor_free(edd);
-   if (!success)
-     {
-        ERR("Failed to write userinfo for %s!", info->jid);
-        eet_data_descriptor_free(edd);
-        return ci;
-     }
-   INF("Wrote encrypted userinfo for %s to disk", ci->jid);
-   if ((!ci->photo.data) || (!img)) return ci;
-   snprintf(buf, sizeof(buf), "%s/%s/img", jid, ci->jid);
-   img_data = evas_object_image_data_get(img, EINA_FALSE);
-   if (img_data)
-     {
-        evas_object_image_size_get(img, &w, &h);
-        eet_data_image_write(ef, buf, img_data, w, h, evas_object_image_alpha_get(img), 5, 100, 0);
-        ci->photo.size = w * h * sizeof(int);
-     }
-   eet_sync(ef);
-   return ci;
-}
-
 void
 ui_eet_userinfo_update(Shotgun_Auth *auth, const char *jid, Contact_Info *ci)
 {
@@ -528,41 +598,18 @@ ui_eet_userinfo_update(Shotgun_Auth *auth, const char *jid, Contact_Info *ci)
    eet_data_descriptor_free(edd);
 }
 
-Contact_Info *
-ui_eet_userinfo_get(Shotgun_Auth *auth, const char *jid)
+void
+ui_eet_userinfo_fetch(Contact *c, Eina_Bool new)
 {
-   char buf[1024];
-   const char *me;
-   Eet_Data_Descriptor *edd;
-   Contact_Info *ci;
-   Shotgun_User_Info *info;
-   Eet_File *ef = shotgun_data_get(auth);
-   unsigned int w, h;
-
-   edd = eet_userinfo_edd_new(EINA_FALSE);
-   me = shotgun_jid_get(auth);
-   snprintf(buf, sizeof(buf), "%s/%s", me, jid);
-   ci = eet_data_read_cipher(ef, edd, buf, shotgun_password_get(auth));
-   eet_data_descriptor_free(edd);
-   if (ci)
-     INF("Read encrypted userinfo for %s from disk", jid);
-   else
+   Ecore_Thread_Cb cb = (Ecore_Thread_Cb)(new ? userinfo_thread_new : userinfo_thread_get);
+   if (c->info_thread) return;
+   if (new)
      {
-        edd = eet_userinfo_edd_new(EINA_TRUE);
-        info = eet_data_read_cipher(ef, edd, buf, shotgun_password_get(auth));
-        eet_data_descriptor_free(edd);
-        if (info)
-          {
-             INF("Old format userinfo detected for %s, updating", jid);
-             ci = realloc(info, sizeof(Contact_Info));
-          }
-        else
-          INF("Userinfo for %s does not exist", jid);
+        c->info = realloc(c->info, sizeof(Contact_Info));
+        c->info->after = eina_stringshare_ref(c->after);
      }
-   snprintf(buf, sizeof(buf), "%s/%s/img", me, jid);
-   if (ci && eet_data_image_header_read(ef, buf, &w, &h, NULL, NULL, NULL, NULL))
-     ci->photo.size = w * h * sizeof(int);
-   return ci;
+   c->info_thread = ecore_thread_run((Ecore_Thread_Cb)cb, (Ecore_Thread_Cb)userinfo_thread_done,
+                                     (Ecore_Thread_Cb)userinfo_thread_cancel, c);
 }
 
 void

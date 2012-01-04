@@ -232,6 +232,8 @@ struct Contact
 {
    Shotgun_User *base;
    Contact_Info *info;
+   Ecore_Thread *info_thread;
+   Evas_Object *info_img;
    Shotgun_Event_Presence *cur; /* the current presence; should NOT be in plist */
    Eina_List *plist; /* list of presences with lower priority than cur */
 
@@ -324,8 +326,7 @@ void ui_eet_image_ping(const char *url, unsigned long long timestamp);
 void ui_eet_shutdown(Shotgun_Auth *auth);
 Shotgun_Auth *ui_eet_auth_get(const char *name, const char *domain);
 void ui_eet_auth_set(Shotgun_Auth *auth, Shotgun_Settings *ss, Eina_Bool use_auth);
-Contact_Info *ui_eet_userinfo_add(Shotgun_Auth *auth, Contact *c, Evas_Object *img, Shotgun_User_Info *info);
-Contact_Info *ui_eet_userinfo_get(Shotgun_Auth *auth, const char *jid);
+void ui_eet_userinfo_fetch(Contact *c, Eina_Bool new);
 void ui_eet_userinfo_update(Shotgun_Auth *auth, const char *jid, Contact_Info *ci);
 Shotgun_Settings *ui_eet_settings_get(Shotgun_Auth *auth);
 void ui_eet_settings_set(Shotgun_Auth *auth, Shotgun_Settings *ss);
