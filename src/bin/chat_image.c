@@ -52,15 +52,16 @@ _chat_conv_image_provider(Image *i, Evas_Object *obj __UNUSED__, Evas_Object *tt
       if (sc) elm_object_scale_set(ic, sc);
    }
    lbl = elm_label_add(tt);
-   len = strlen(i->cl->settings->browser) + 64;
+   len = i->cl->settings->browser ? strlen(i->cl->settings->browser) : 0 + 64;
    if (len > 32000)
      buf = malloc(len);
    else
      buf = alloca(len);
-   snprintf(buf, len,
-            "Left click link to open with \"%s\"<ps>"
+   snprintf(buf, len, "%s%s%s"
             "Right click link to copy to clipboard",
-            i->cl->settings->browser);
+            i->cl->settings->browser ? "Left click link to open with \"" : "",
+            i->cl->settings->browser ?: "",
+            i->cl->settings->browser ? "\"<ps>" : "");
 
    elm_object_text_set(lbl, buf);
    if (len > 32000) free(buf);
@@ -79,10 +80,12 @@ error:
       else
         buf = alloca(len);
       snprintf(buf, len, "%s<ps>"
-               "Left click link to open with \"%s\"<ps>"
+               "%s%s%s"
                "Right click link to copy to clipboard",
                ecore_con_url_url_get(i->url),
-               i->cl->settings->browser);
+               i->cl->settings->browser ? "Left click link to open with \"" : "",
+               i->cl->settings->browser ?: "",
+               i->cl->settings->browser ? "\"<ps>" : "");
       elm_object_text_set(ret, buf);
       if (len > 32000) free(buf);
    }
@@ -114,16 +117,18 @@ chat_conv_image_show(Contact *c, Evas_Object *obj, Elm_Entry_Anchor_Info *ev)
         char *buf;
         size_t len;
 
-        len = strlen(ev->name) + strlen(c->list->settings->browser) + 64;
+        len = strlen(ev->name) + c->list->settings->browser ? strlen(c->list->settings->browser) : 0 + 64;
         if (len > 32000)
           buf = malloc(len);
         else
           buf = alloca(len);
         snprintf(buf, len, "%s<ps>"
-                 "Left click link to open with \"%s\"<ps>"
+                 "%s%s%s"
                  "Right click link to copy to clipboard",
                  ev->name,
-                 c->list->settings->browser);
+                 c->list->settings->browser ? "Left click link to open with \"" : "",
+                 c->list->settings->browser ?: "",
+                 c->list->settings->browser ? "\"<ps>" : "");
         elm_object_tooltip_text_set(obj, buf);
         if (len > 32000) free(buf);
      }
