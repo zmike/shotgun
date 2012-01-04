@@ -13,9 +13,10 @@ static char *BROWSERS[] = { NULL, "chrome", "firefox", "opera", NULL };
 
 #define SETTINGS_FRAME(LABEL) do { \
    fr = elm_frame_add(ui->win); \
-   EXPAND(fr); \
-   FILL(fr); \
+   WEIGHT(fr, EVAS_HINT_EXPAND, 0.0); \
+   ALIGN(fr, EVAS_HINT_FILL, 0.5); \
    elm_object_text_set(fr, LABEL); \
+   elm_frame_autocollapse_set(fr, EINA_TRUE); \
    elm_box_pack_end(box, fr); \
    evas_object_show(fr); \
 \
@@ -281,10 +282,12 @@ settings_new(UI_WIN *ui)
    IF_UI_IS_LOGIN(ui) elm_object_disabled_set(ck, EINA_TRUE);
 
    SETTINGS_FRAME("Application");
+   elm_frame_collapse_set(fr, EINA_TRUE);
    SETTINGS_CHECK("Enable single window mode", enable_illume, "Use a single window for the application - REQUIRES RESTART (embedded friendly)");
    SETTINGS_CHECK("Disable automatic reconnect", disable_reconnect, "Disable automatic reconnection when disconnected");
 
    SETTINGS_FRAME("Browser");
+   elm_frame_collapse_set(fr, EINA_TRUE);
    radio = SETTINGS_RADIO("BROWSER", BROWSER, "Use BROWSER environment variable");
    SETTINGS_SUBRADIO("Chrome", CHROME, "Use Chrome browser");
    SETTINGS_SUBRADIO("Firefox", FIREFOX, "Use Firefox browser");
@@ -295,6 +298,7 @@ settings_new(UI_WIN *ui)
 
 #ifdef HAVE_NOTIFY
    SETTINGS_FRAME("DBus");
+   elm_frame_collapse_set(fr, EINA_TRUE);
    SETTINGS_CHECK("Disable notifications", disable_notify, "Disables use of notification popups");
 #endif
 
@@ -303,6 +307,7 @@ settings_new(UI_WIN *ui)
      SETTINGS_FRAME("Images");
    else
      SETTINGS_FRAME("Images (DISABLED: REQUIRES CURL SUPPORT IN ECORE)");
+   elm_frame_collapse_set(fr, EINA_TRUE);
    SETTINGS_CHECK("Disable automatic image fetching", disable_image_fetch, "Disables background fetching of images");
    if (init)
      {
@@ -318,6 +323,7 @@ settings_new(UI_WIN *ui)
      }
 
    SETTINGS_FRAME("List");
+   elm_frame_collapse_set(fr, EINA_TRUE);
    SETTINGS_CHECK("Don't show status in list item", disable_list_status, "Do not show a contact's status inlined under the name");
    SETTINGS_CHECK_CALLBACK(contact_list_mode_toggle);
    SETTINGS_CHECK("Promote contact on message", enable_chat_promote, "Move contact to top of list when message is received<ps>This will modify alphabetical sorting");
@@ -328,6 +334,7 @@ settings_new(UI_WIN *ui)
 
 
    SETTINGS_FRAME("Messages");
+   elm_frame_collapse_set(fr, EINA_TRUE);
    SETTINGS_CHECK("Send keyboard events", enable_chat_typing, "Send additional notifications to contacts when you start or stop typing to them");
    SETTINGS_CHECK_CALLBACK(_settings_chat_typing_change);
    SETTINGS_CHECK("Disable chat status message display", disable_chat_status_entry, "Disable the text showing the contact's status in the chat window");
