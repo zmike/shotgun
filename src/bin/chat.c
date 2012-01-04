@@ -554,11 +554,12 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
    c->chat_window = cw;
    cw->contacts = eina_list_append(cw->contacts, c);
    c->chat_tb_item = it = elm_toolbar_item_append(cw->toolbar, icon, contact_name_get(c), (Evas_Smart_Cb)_chat_window_switch, c);
+   elm_object_item_tooltip_text_set(it, "Left click to select<ps>"
+                                        "Right click or Longpress for options");
    obj = elm_toolbar_item_object_get(it);
    edje_object_signal_callback_add(obj, "elm,action,click,*", "elm", (Edje_Signal_Cb)_chat_window_otherclick, it);
    if (!icon)
      {
-        /* FIXME: eet_file_get() */
         char buf[1024];
 
         snprintf(buf, sizeof(buf), "%s/%s/img", shotgun_jid_get(c->list->account), c->base->jid);

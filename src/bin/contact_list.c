@@ -1083,17 +1083,25 @@ contact_list_init(UI_WIN *ui, Shotgun_Auth *auth)
    ALIGN(tb, EVAS_HINT_FILL, 0);
    elm_object_scale_set(tb, 0.9);
    it = elm_toolbar_item_append(tb, "shotgun/logout", "Quit", (Evas_Smart_Cb)_contact_list_quit_cb, cl);
+   elm_object_item_tooltip_text_set(it, "Quit SHOTGUN! (Please don't. We will miss you.)");
+   elm_object_item_tooltip_window_mode_set(it, EINA_TRUE);
    it = elm_toolbar_item_append(tb, "shotgun/settings", "Settings", (Evas_Smart_Cb)settings_toggle, cl);
+   elm_object_item_tooltip_text_set(it, "Change application settings");
+   elm_object_item_tooltip_window_mode_set(it, EINA_TRUE);
    elm_box_pack_end(box, tb);
    evas_object_show(tb);
 
    it = elm_toolbar_item_append(tb, "shotgun/status", "Status", (Evas_Smart_Cb)_contact_list_status_click, cl);
+   elm_object_item_tooltip_text_set(it, "Change the current status");
+   elm_object_item_tooltip_window_mode_set(it, EINA_TRUE);
 
    /* FIXME: tooltips need window mode here */
    it = elm_toolbar_item_append(tb, "shotgun/useradd", "Add", (Evas_Smart_Cb)_contact_list_add_cb, cl);
-   elm_toolbar_item_tooltip_text_set(it, "Add a new contact");
+   elm_object_item_tooltip_text_set(it, "Add a new contact");
+   elm_object_item_tooltip_window_mode_set(it, EINA_TRUE);
    it = elm_toolbar_item_append(tb, "shotgun/userdel", "Remove", (Evas_Smart_Cb)_contact_list_del_cb, cl);
-   elm_toolbar_item_tooltip_text_set(it, "Remove the selected contact");
+   elm_object_item_tooltip_text_set(it, "Remove the selected contact");
+   elm_object_item_tooltip_window_mode_set(it, EINA_TRUE);
 
    cl->list_at_xy_item_get[0] = (Contact_List_At_XY_Item_Get)elm_genlist_at_xy_item_get;
    cl->list_at_xy_item_get[1] = NULL;
