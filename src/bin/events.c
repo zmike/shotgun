@@ -72,8 +72,6 @@ event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev)
            c->info = (Contact_Info*)info;
            ui_eet_userinfo_fetch(c, EINA_TRUE);
            ev->ev = NULL;
-           if (c->list_item && (info->photo.size || info->full_name))
-             cl->list_item_update[cl->mode](c->list_item);
            break;
         }
       default:
