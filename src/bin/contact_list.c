@@ -614,33 +614,22 @@ _contact_list_status_close(Contact_List *cl, Evas_Object *obj, void *ev __UNUSED
 }
 
 static void
-_contact_list_status_change(Contact_List *cl, Evas_Object *obj __UNUSED__, Evas_Object *radio)
+_contact_list_status_change(Contact_List *cl, Evas_Object *radio,  void*ev __UNUSED__)
 {
    Shotgun_User_Status val;
 
-   val = elm_radio_state_value_get(radio);
-   if ((Shotgun_User_Status)elm_radio_value_get(radio) == val) return;
+   val = elm_radio_value_get(radio);
+   if ((Shotgun_User_Status)shotgun_presence_status_get(cl->account) == val) return;
    elm_radio_value_set(radio, val);
    shotgun_presence_status_set(cl->account, val);
-   elm_object_focus_set(cl->status_entry, EINA_TRUE);
    elm_entry_select_all(cl->status_entry);
+   elm_object_focus_set(cl->status_entry, EINA_TRUE);
 }
 
 static void
 _contact_list_status_priority(Contact_List *cl, Evas_Object *obj, void *ev __UNUSED__)
 {
    shotgun_presence_priority_set(cl->account, elm_spinner_value_get(obj));
-}
-
-static void
-_contact_list_status_message(Contact_List *cl, Evas_Object *obj, void *ev __UNUSED__)
-{
-   char *s;
-
-   s = elm_entry_markup_to_utf8(elm_entry_entry_get(obj));
-   shotgun_presence_desc_set(cl->account, s);
-   free(s);
-   shotgun_presence_send(cl->account);
 }
 
 static void
@@ -690,7 +679,7 @@ _contact_list_status_click(Contact_List *cl, Evas_Object *o __UNUSED__, Elm_Obje
    STATUS_RADIO(AWAY, "Away");
    STATUS_RADIO(XA, "Really Away");
    STATUS_RADIO(DND, "DND");
-   elm_radio_value_set(radio, SHOTGUN_USER_STATUS_NORMAL);
+   elm_radio_value_set(radio, shotgun_presence_status_get(cl->account));
 
    cl->status_entry = obj = elm_entry_add(scr);
    elm_entry_line_wrap_set(obj, ELM_WRAP_MIXED);
@@ -699,7 +688,6 @@ _contact_list_status_click(Contact_List *cl, Evas_Object *o __UNUSED__, Elm_Obje
    EXPAND(obj);
    FILL(obj);
    elm_box_pack_end(box, obj);
-   evas_object_smart_callback_add(obj, "activated", (Evas_Smart_Cb)_contact_list_status_message, cl);
    elm_entry_entry_set(obj, shotgun_presence_desc_get(cl->account));
    elm_entry_scrollbar_policy_set(obj, ELM_SCROLLER_POLICY_AUTO, ELM_SCROLLER_POLICY_OFF);
    evas_object_show(obj);
