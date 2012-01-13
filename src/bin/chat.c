@@ -503,7 +503,7 @@ chat_window_new(Contact_List *cl)
    evas_object_show(box);
 
    cw->toolbar = tb = elm_toolbar_add(win);
-   elm_toolbar_mode_shrink_set(tb, ELM_TOOLBAR_SHRINK_SCROLL);
+   elm_toolbar_shrink_mode_set(tb, ELM_TOOLBAR_SHRINK_SCROLL);
    elm_toolbar_always_select_mode_set(tb, 1);
    elm_toolbar_homogeneous_set(tb, 0);
    elm_object_style_set(tb, "item_horizontal");

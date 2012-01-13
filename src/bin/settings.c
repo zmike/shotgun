@@ -172,7 +172,7 @@ _settings_browser_hover_close(UI_WIN *ui, Evas_Object *obj, void *ev __UNUSED__)
    const char *str;
    char buf[1024];
 
-   o = elm_hover_content_get(obj, "middle");
+   o = elm_object_part_content_get(obj, "middle");
    str = elm_entry_entry_get(o);
    if ((!str) || (!str[0])) str = NULL;
    eina_stringshare_replace(&ui->settings->browser, str);
@@ -208,7 +208,7 @@ _settings_browser_change(UI_WIN *ui, Evas_Object *radio, void *ev __UNUSED__)
         elm_entry_entry_set(ent, ui->settings->browser);
         elm_entry_select_all(ent);
         elm_entry_cursor_begin_set(ent);
-        elm_hover_content_set(hv, "middle", ent);
+        elm_object_part_content_set(hv, "middle", ent);
         evas_object_show(ent);
         evas_object_smart_callback_add(ent, "activated", (Evas_Smart_Cb)_settings_browser_entry_cb, hv);
         evas_object_smart_callback_add(hv, "clicked", (Evas_Smart_Cb)_settings_browser_hover_close, ui);

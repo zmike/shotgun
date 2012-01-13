@@ -167,7 +167,7 @@ contact_jids_menu_del(Contact *c, const char *jid)
              elm_radio_value_set(radio, 0);
              c->force_resource = NULL;
           }
-        elm_menu_item_del(it);
+        elm_object_item_del(it);
         break;
      }
 }
@@ -267,7 +267,7 @@ contact_chat_window_close(Contact *c)
         eina_stringshare_del(c->last_conv);
         c->last_conv = eina_stringshare_ref(elm_entry_entry_get(c->chat_buffer));
      }
-   elm_toolbar_item_del(c->chat_tb_item);
+   elm_object_item_del(c->chat_tb_item);
    evas_object_del(c->chat_panes);
    memset(&c->chat_window, 0, sizeof(void*) * 9);
    if (c->sms_timer)
