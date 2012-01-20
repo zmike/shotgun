@@ -99,11 +99,11 @@ _contact_list_user_del(Contact *c)
 }
 
 static void
-_contact_list_reorder_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Genlist_Item *it)
+_contact_list_reorder_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Object_Item *it)
 {
    Contact *c, *before, *after;
    Eina_List *l;
-   Elm_Genlist_Item *i;
+   Elm_Object_Item *i;
    Eina_Bool ua = EINA_FALSE, ub = EINA_FALSE;
    const char *jid;
 
@@ -915,7 +915,7 @@ contact_list_user_add(Contact_List *cl, Contact *c)
    else
      {
         Contact *after;
-        Elm_Genlist_Item *it;
+        Elm_Object_Item *it;
         if (cl->settings->enable_list_sort_alpha)
           {
              c->list_item = elm_genlist_item_sorted_insert(cl->list, &glit, c, NULL,
