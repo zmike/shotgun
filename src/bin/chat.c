@@ -228,7 +228,7 @@ _chat_conv_filter_helper(Contact_List *cl, int d, Eina_Strbuf **sbuf, const char
        strcmp(http + *len, "</a>") || (d < 5) ||
        memcmp(http - 5, "href=", 5))
      {
-        snprintf(fmt, sizeof(fmt), "<a href=%%.%is>%%.%is</a>", *len, *len);
+        snprintf(fmt, sizeof(fmt), "<a href=%%.%zus>%%.%zus</a>", *len, *len);
         eina_strbuf_append_printf(buf, fmt, http, http);
      }
    else
