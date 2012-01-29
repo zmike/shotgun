@@ -107,9 +107,9 @@ _contact_list_reorder_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Obje
    Eina_Bool ua = EINA_FALSE, ub = EINA_FALSE;
    const char *jid;
 
-   c = elm_genlist_item_data_get(it);
+   c = elm_object_item_data_get(it);
    i = elm_genlist_item_prev_get(it);
-   before = i ? elm_genlist_item_data_get(i) : NULL;
+   before = i ? elm_object_item_data_get(i) : NULL;
    jid = before ? before->after : NULL;
    INF("%s moved after %s", contact_name_get(c), contact_name_get(before));
    EINA_LIST_FOREACH(cl->users_list, l, after)
@@ -948,7 +948,7 @@ contact_list_user_add(Contact_List *cl, Contact *c)
              it = elm_genlist_item_prev_get(c->list_item);
              if (it)
                {
-                  after = elm_genlist_item_data_get(it);
+                  after = elm_object_item_data_get(it);
                   eina_stringshare_replace(&c->after, after->base->jid);
                }
           }
