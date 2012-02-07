@@ -1096,10 +1096,10 @@ contact_list_init(UI_WIN *ui, Shotgun_Auth *auth)
    //cl->list_at_xy_item_get[1] = (Ecore_Data_Cb)elm_gengrid_at_xy_item_get;
    cl->list_selected_item_get[0] = (Ecore_Data_Cb)elm_genlist_selected_item_get;
    cl->list_selected_item_get[1] = (Ecore_Data_Cb)elm_gengrid_selected_item_get;
-   cl->list_item_parent_get[0] = (Ecore_Data_Cb)elm_genlist_item_genlist_get;
-   cl->list_item_parent_get[1] = (Ecore_Data_Cb)elm_genlist_item_genlist_get;
+   cl->list_item_parent_get[0] = (Ecore_Data_Cb)elm_object_item_widget_get;
+   cl->list_item_parent_get[1] = (Ecore_Data_Cb)elm_object_item_widget_get;
    cl->list_item_del[0] = (Ecore_Cb)elm_object_item_del;
-   cl->list_item_del[1] = (Ecore_Cb)elm_gengrid_item_del;
+   cl->list_item_del[1] = (Ecore_Cb)elm_object_item_del;
    cl->list_item_update[0] = (Ecore_Cb)elm_genlist_item_update;
    cl->list_item_update[1] = (Ecore_Cb)elm_gengrid_item_update;
    cl->list_item_promote[0] = (Ecore_Cb)elm_genlist_item_promote;
