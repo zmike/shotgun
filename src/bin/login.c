@@ -25,7 +25,7 @@ _login_window_key(Login_Window *lw, Evas *e __UNUSED__, Evas_Object *obj __UNUSE
    //DBG("%s", ev->keyname);
    if (!strcmp(ev->keyname, "Escape"))
      {
-        if (!elm_flip_front_get(lw->flip))
+        if (!elm_flip_front_visible_get(lw->flip))
           settings_toggle((UI_WIN*)lw, NULL, NULL);
      }
    else if (!strcmp(ev->keyname, "q"))

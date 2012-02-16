@@ -368,7 +368,7 @@ settings_toggle(UI_WIN *ui, Evas_Object *obj __UNUSED__, void *event_info)
      }
    IF_ILLUME(ui)
      {
-        if (elm_flip_front_get(ui->flip))
+        if (elm_flip_front_visible_get(ui->flip))
           elm_object_text_set(ui->illume_frame, "Settings");
         else
           elm_object_text_set(ui->illume_frame, "Contacts");

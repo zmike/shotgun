@@ -818,7 +818,7 @@ _contact_list_window_key(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj 
      {
         if (!cl->pager)
           {
-             if (elm_flip_front_get(cl->flip)) return;
+             if (elm_flip_front_visible_get(cl->flip)) return;
              settings_toggle((UI_WIN*)cl, NULL, NULL);
              return;
           }
