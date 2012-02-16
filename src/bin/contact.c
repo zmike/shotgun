@@ -211,7 +211,7 @@ contact_chat_window_current(Contact *c)
 {
    if (!c->chat_window) return EINA_FALSE;
 
-   return c->chat_panes == elm_pager_content_top_get(c->chat_window->pager);
+   return c->chat_panes == elm_object_content_get(c->chat_window->pager);
 }
 
 void

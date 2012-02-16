@@ -239,7 +239,7 @@ settings_new(UI_WIN *ui)
    ui->settings_box = box = elm_box_add(ui->win);
    EXPAND(box);
    FILL(box);
-   elm_flip_content_back_set(ui->flip, box);
+   elm_object_part_content_set(ui->flip, "back", box);
    evas_object_show(box);
 
    ic = elm_icon_add(ui->win);

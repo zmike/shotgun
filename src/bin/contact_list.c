@@ -1061,7 +1061,7 @@ contact_list_init(UI_WIN *ui, Shotgun_Auth *auth)
           EXPAND(box);
         evas_object_show(box);
 
-        elm_flip_content_front_set(cl->flip, box);
+        elm_object_part_content_set(cl->flip, "front", box);
         IF_ILLUME(cl) elm_object_text_set(ui->illume_frame, "Contacts");
         settings_new((UI_WIN*)cl);
      }

@@ -81,7 +81,7 @@ ui_win_init(UI_WIN *ui)
      EXPAND(box);
    evas_object_show(box);
 
-   elm_flip_content_front_set(ui->flip, box);
+   elm_object_part_content_set(ui->flip, "front", box);
 
    settings_new(ui);
    evas_object_show(ui->flip);
