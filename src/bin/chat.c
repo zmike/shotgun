@@ -608,7 +608,7 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
      evas_object_smart_callback_add(entry, "changed,user", (Evas_Smart_Cb)contact_chat_window_typing, c);
 
    elm_object_part_content_set(panes, "elm.swallow.right", entry);
-   elm_panes_content_left_size_set(panes, 0.8);
+   elm_panes_content_left_size_set(panes, c->list->settings->chat_panes ?: 0.8);
 
    evas_object_data_set(panes, "contact", c);
    evas_object_data_set(panes, "list", c->list);

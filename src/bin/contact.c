@@ -268,6 +268,7 @@ contact_chat_window_close(Contact *c)
         c->last_conv = eina_stringshare_ref(elm_entry_entry_get(c->chat_buffer));
      }
    elm_object_item_del(c->chat_tb_item);
+   c->list->settings->chat_panes = elm_panes_content_left_size_get(c->chat_panes);
    evas_object_del(c->chat_panes);
    memset(&c->chat_window, 0, sizeof(void*) * 9);
    if (c->sms_timer)

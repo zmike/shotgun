@@ -94,6 +94,7 @@ eet_ss_edd_new(void)
 
    ADD(chat_w, INT);
    ADD(chat_h, INT);
+   ADD(chat_panes, DOUBLE);
    ADD(list_w, INT);
    ADD(list_h, INT);
 

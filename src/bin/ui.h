@@ -100,6 +100,7 @@ typedef struct Shotgun_Settings
    unsigned int allowed_image_size;
    int chat_w;
    int chat_h;
+   double chat_panes;
    int list_w;
    int list_h;
    const char *browser;
