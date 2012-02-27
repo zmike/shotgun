@@ -109,11 +109,23 @@ contact_name_get(Contact *c)
 }
 
 void
-contact_info_free(Contact_Info *ci)
+contact_info_free(Contact *c, Contact_Info *ci)
 {
-   if (!ci) return;
-   eina_stringshare_del(ci->after);
-   shotgun_user_info_free((Shotgun_User_Info*)ci);
+   Contact_Info *cid;
+   if (ci)
+     cid = ci;
+   else
+     {
+        if ((!c) || (!c->info)) return;
+        if (c->info_thread)
+          {
+             c->info->dead = EINA_TRUE;
+             return;
+          }
+        cid = c->info;
+     }
+   eina_stringshare_del(cid->after);
+   shotgun_user_info_free((Shotgun_User_Info*)cid);
 }
 
 void
@@ -122,10 +134,15 @@ contact_free(Contact *c)
    Shotgun_Event_Presence *pres;
 
    if (!c) return;
+   if (c->info_thread)
+     {
+        ecore_thread_cancel(c->info_thread);
+        c->dead = EINA_TRUE;
+        return;
+     }
    if (c->list_item)
      c->list->list_item_del[c->list->mode](c->list_item);
    c->list_item = NULL;
-   if (c->info_thread) ecore_thread_cancel(c->info_thread);
    if (c->info) ui_eet_userinfo_update(c->list->account, c->base->jid, c->info);
    EINA_LIST_FREE(c->plist, pres)
      shotgun_event_presence_free(pres);
@@ -133,7 +150,7 @@ contact_free(Contact *c)
    if (c->tooltip_timer) ecore_timer_del(c->tooltip_timer);
    if (c->sms_timer) ecore_timer_del(c->sms_timer);
    shotgun_user_free(c->base);
-   contact_info_free(c->info);
+   contact_info_free(c, NULL);
    eina_stringshare_del(c->last_conv);
    eina_stringshare_del(c->tooltip_label);
    eina_stringshare_del(c->logdir);

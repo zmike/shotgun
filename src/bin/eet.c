@@ -326,11 +326,21 @@ userinfo_get(Shotgun_Auth *auth, const char *jid)
 static void
 userinfo_thread_done(Contact *c, Ecore_Thread *et)
 {
+   Contact_Info *ci;
    c->info_thread = NULL;
+
    if (c->info_img) evas_object_del(c->info_img);
    c->info_img = NULL;
    if (et && c->list_item) c->list->list_item_update[c->list->mode](c->list_item);
-   if ((c->cur && c->cur->vcard && c->info &&
+   ci = ecore_thread_local_data_find(et, "info");
+   if (ci && ci->dead)
+     {
+        if (ci == c->info) c->info = NULL;
+        contact_info_free(NULL, ci);
+        if (!c->info) return;
+     }
+   if (c->dead) contact_free(c);
+   else if ((c->cur && c->cur->vcard && c->info &&
        ((c->info->photo.sha1 != c->cur->photo) ||
         (c->cur->photo && (!c->info->photo.size)))))
      {
@@ -340,9 +350,16 @@ userinfo_thread_done(Contact *c, Ecore_Thread *et)
 }
 
 static void
-userinfo_thread_cancel(Contact *c, Ecore_Thread *et __UNUSED__)
+userinfo_thread_cancel(Contact *c, Ecore_Thread *et)
 {
+   Contact_Info *ci;
    c->info_thread = NULL;
+   ci = ecore_thread_local_data_find(et, "info");
+   if (ci && (ci != c->info))
+     {
+        if (ci->dead) contact_info_free(NULL, ci);
+     }
+   if (c->dead) contact_free(c);
 }
 
 static void
@@ -611,6 +628,7 @@ ui_eet_userinfo_fetch(Contact *c, Eina_Bool new)
      }
    c->info_thread = ecore_thread_run((Ecore_Thread_Cb)cb, (Ecore_Thread_Cb)userinfo_thread_done,
                                      (Ecore_Thread_Cb)userinfo_thread_cancel, c);
+   ecore_thread_local_data_add(c->info_thread, "info", c->info, NULL, EINA_FALSE);
 }
 
 void

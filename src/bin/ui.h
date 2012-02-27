@@ -227,6 +227,7 @@ typedef struct Contact_Info
         size_t size;
      } photo;
    const char *after;
+   Eina_Bool dead : 1; /* info deletion request during thread */
 } Contact_Info;
 
 struct Contact
@@ -267,6 +268,7 @@ struct Contact
    Eina_Bool tooltip_changed : 1; /* when set, tooltip_label will be re-created */
    Eina_Bool ignore_resource : 1; /* when set, priority will be ignored and messages will be sent to all resources */
    Eina_Bool logdir_exists : 1; /* true only if a contact has an existing log directory */
+   Eina_Bool dead : 1; /* if deletion attempt during thread */
 };
 
 typedef struct
@@ -307,7 +309,7 @@ void contact_resource_set(Contact *c, Evas_Object *obj __UNUSED__, Elm_Object_It
 void contact_resource_menu_setup(Contact *c, Evas_Object *menu);
 const char *contact_name_get(Contact *c);
 void contact_jids_menu_del(Contact *c, const char *jid);
-void contact_info_free(Contact_Info *ci);
+void contact_info_free(Contact *c, Contact_Info *ci);
 void contact_free(Contact *c);
 Contact *do_something_with_user(Contact_List *cl, Shotgun_User *user, const char *j);
 Eina_Bool contact_chat_window_current(Contact *c);

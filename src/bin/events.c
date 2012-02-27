@@ -57,8 +57,7 @@ event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev)
                 INF("User info for %s unchanged, not updating cache", c->base->jid);
                 break;
              }
-           if (c->info_thread) ecore_thread_cancel(c->info_thread);
-           contact_info_free(c->info);
+           contact_info_free(c, NULL);
            if (c->cur && c->cur->photo)
              {
                 INF("Found contact photo sha1: %s", c->cur->photo);
