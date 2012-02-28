@@ -162,6 +162,7 @@ struct Contact_List
    Evas_Object *box; /* main box */
    Evas_Object *settings_box; /* settings box */
    Evas_Object *list; /* list/grid object */
+   Evas_Object *status_popup; /* container for status settings */
    Evas_Object *status_entry; /* entry for user's status */
 
    Evas_Object *pager; /* pager for user add wizard */

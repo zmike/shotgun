@@ -633,6 +633,12 @@ _contact_list_status_priority(Contact_List *cl, Evas_Object *obj, void *ev __UNU
 }
 
 static void
+_contact_list_status_activate(Contact_List *cl, Evas_Object *obj __UNUSED__, void *ev __UNUSED__)
+{
+   evas_object_hide(cl->status_popup);
+}
+
+static void
 _contact_list_status_click(Contact_List *cl, Evas_Object *o __UNUSED__, Elm_Object_Item *ev)
 {
    Evas_Object *cx, *b, *box, *scr, *obj, *radio;
@@ -688,6 +694,7 @@ _contact_list_status_click(Contact_List *cl, Evas_Object *o __UNUSED__, Elm_Obje
    EXPAND(obj);
    FILL(obj);
    elm_box_pack_end(box, obj);
+   evas_object_smart_callback_add(obj, "activated", (Evas_Smart_Cb)_contact_list_status_activate, cl);
    elm_entry_entry_set(obj, shotgun_presence_desc_get(cl->account));
    elm_entry_scrollbar_policy_set(obj, ELM_SCROLLER_POLICY_AUTO, ELM_SCROLLER_POLICY_OFF);
    evas_object_show(obj);
@@ -706,7 +713,7 @@ _contact_list_status_click(Contact_List *cl, Evas_Object *o __UNUSED__, Elm_Obje
    evas_object_show(box);
    elm_object_content_set(scr, box);
 
-   cx = elm_ctxpopup_add(cl->win);
+   cl->status_popup = cx = elm_ctxpopup_add(cl->win);
    evas_object_smart_callback_add(cx, "dismissed", (Evas_Smart_Cb)_contact_list_status_close, cl);
    elm_object_content_set(cx, b);
    evas_pointer_canvas_xy_get(evas_object_evas_get(obj), &x, &y);
@@ -835,9 +842,10 @@ _contact_list_item_null(Contact *c, Evas *e __UNUSED__, Evas_Object *obj __UNUSE
 }
 
 static int
-_contact_list_sorted_insert(Contact *a, Contact *b)
+_contact_list_sorted_insert(Elm_Object_Item *it1, Elm_Object_Item *it2)
 {
    const char *c1, *c2;
+   Contact *a = elm_object_item_data_get(it1), *b = elm_object_item_data_get(it2);
 
    c1 = contact_name_get(a);
    c2 = contact_name_get(b);
