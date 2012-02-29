@@ -898,7 +898,8 @@ contact_list_user_add(Contact_List *cl, Contact *c)
              .content_get = (Elm_Genlist_Item_Content_Get_Cb)_it_content_get,
              .state_get = (Elm_Genlist_Item_State_Get_Cb)_it_state_get,
              .del = (Elm_Genlist_Item_Del_Cb)_it_del
-        }
+        },
+        .version = ELM_GENLIST_ITEM_CLASS_VERSION
    };
    static Elm_Gengrid_Item_Class ggit = {
         .item_style = "default",
@@ -1076,8 +1077,8 @@ contact_list_init(UI_WIN *ui, Shotgun_Auth *auth)
    cl->settings->settings_exist = EINA_TRUE;
 
    tb = elm_toolbar_add(win);
-   ALIGN(tb, EVAS_HINT_FILL, 0);
-   elm_object_scale_set(tb, 0.9);
+   ALIGN(tb, EVAS_HINT_FILL, EVAS_HINT_FILL);
+   elm_object_scale_set(tb, 0.6);
    it = elm_toolbar_item_append(tb, "shotgun/logout", "Quit", (Evas_Smart_Cb)_contact_list_quit_cb, cl);
    elm_object_item_tooltip_text_set(it, "Quit SHOTGUN! (Please don't. We will miss you.)");
    elm_object_item_tooltip_window_mode_set(it, EINA_TRUE);
