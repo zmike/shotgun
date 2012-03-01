@@ -1078,7 +1078,7 @@ contact_list_init(UI_WIN *ui, Shotgun_Auth *auth)
 
    tb = elm_toolbar_add(win);
    ALIGN(tb, EVAS_HINT_FILL, EVAS_HINT_FILL);
-   elm_object_scale_set(tb, 0.6);
+   elm_object_scale_set(tb, 0.8);
    it = elm_toolbar_item_append(tb, "shotgun/logout", "Quit", (Evas_Smart_Cb)_contact_list_quit_cb, cl);
    elm_object_item_tooltip_text_set(it, "Quit SHOTGUN! (Please don't. We will miss you.)");
    elm_object_item_tooltip_window_mode_set(it, EINA_TRUE);
