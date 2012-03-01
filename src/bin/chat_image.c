@@ -182,7 +182,7 @@ chat_image_add(Contact_List *cl, const char *url)
      {
         i->url = ecore_con_url_new(url);
         ecore_con_url_data_set(i->url, i);
-        ecore_con_url_get(i->url);
+        if (!ecore_con_url_get(i->url)) abort(); /* don't even know how to deal with this */
      }
    i->cl = cl;
    i->addr = url;
@@ -219,6 +219,16 @@ chat_image_complete(void *d __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Url
    const Eina_List *headers, *l;
    const char *h;
    DBG("%i code for image: %s", ev->status, ecore_con_url_url_get(ev->url_con));
+   if (ev->status != 200)
+     {
+        eina_binbuf_free(i->buf);
+        i->buf = NULL;
+        if (++i->tries < IMAGE_FETCH_TRIES)
+          {
+             if (!ecore_con_url_get(ev->url_con)) abort();
+          }
+        return ECORE_CALLBACK_RENEW;
+     }
    headers = ecore_con_url_response_headers_get(ev->url_con);
    EINA_LIST_FOREACH(headers, l, h)
      {

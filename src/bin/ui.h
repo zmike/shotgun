@@ -65,6 +65,8 @@ void *alloca (size_t);
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #endif
 
+#define IMAGE_FETCH_TRIES 5
+
 extern int ui_log_dom;
 extern Eina_Bool ssl_verify;
 
@@ -279,6 +281,7 @@ typedef struct
    const char *addr;
    unsigned long long timestamp;
    Contact_List *cl;
+   unsigned int tries;
 } Image;
 
 Contact_List *contact_list_init(UI_WIN *ui, Shotgun_Auth *auth);
