@@ -227,7 +227,7 @@ _login(Login_Window *lw)
    shotgun_settings_set(lw->account, NULL);
    shotgun_free(lw->account);
    lw->account = auth;
-   elm_object_tree_unfocusable_set(lw->box, EINA_TRUE);
+   elm_object_tree_focus_allow_set(lw->box, EINA_FALSE);
    elm_object_text_set(lw->label, "Connecting");
    lw->icon_map = evas_map_new(4);
    evas_map_util_points_populate_from_object(lw->icon_map, lw->icon);
@@ -283,7 +283,7 @@ login_new(void)
    lw->icon = obj = elm_icon_add(win);
    EXPAND(obj);
    FILL(obj);
-   elm_icon_scale_set(obj, EINA_TRUE, EINA_FALSE);
+   elm_icon_resizable_set(obj, EINA_TRUE, EINA_FALSE);
    elm_icon_prescale_set(obj, 5);
    elm_box_pack_end(lw->box, obj);
    elm_icon_standard_set(obj, "shotgun/userunknown");

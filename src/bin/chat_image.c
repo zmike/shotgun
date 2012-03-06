@@ -37,7 +37,7 @@ _chat_conv_image_provider(Image *i, Evas_Object *obj __UNUSED__, Evas_Object *tt
 
    elm_win_screen_size_get(tt, NULL, NULL, &cw, &ch);
    elm_icon_size_get(ic, &w, &h);
-   elm_icon_scale_set(ic, 0, 0);
+   elm_icon_resizable_set(ic, 0, 0);
    if (elm_icon_animated_available_get(ic))
      {
         elm_icon_animated_set(ic, EINA_TRUE);

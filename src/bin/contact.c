@@ -311,7 +311,7 @@ void
 contact_resource_menu_setup(Contact *c, Evas_Object *menu)
 {
    Evas_Object *win, *radio, *obj;
-   void *it;
+   Elm_Object_Item *it, *sit;
    Eina_List *l;
    Shotgun_Event_Presence *pres;
    int set = 0;
@@ -335,7 +335,8 @@ contact_resource_menu_setup(Contact *c, Evas_Object *menu)
    elm_radio_state_value_set(radio, 0);
    elm_object_text_set(radio, "Use Priority");
    evas_object_show(radio);
-   elm_menu_item_add_object(menu, it, radio, (Evas_Smart_Cb)contact_resource_set, c);
+   sit = elm_menu_item_add(menu, it, NULL, NULL, (Evas_Smart_Cb)contact_resource_set, c);
+   elm_object_item_content_set(sit, radio);
 
    EINA_LIST_FOREACH(c->plist, l, pres)
      {
@@ -355,7 +356,7 @@ contact_resource_menu_setup(Contact *c, Evas_Object *menu)
         elm_radio_state_value_set(obj, i++);
         elm_object_text_set(obj, buf);
         evas_object_show(obj);
-        elm_menu_item_add_object(menu, it, obj, (Evas_Smart_Cb)contact_resource_set, c);
+        elm_object_item_content_set(sit, obj);
      }
    elm_radio_value_set(radio, set);
 }

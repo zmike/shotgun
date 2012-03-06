@@ -399,7 +399,7 @@ chat_status_entry_toggle(Contact *c)
    if (c->status_line) return;
    c->status_line = status = elm_entry_add(c->chat_window->win);
    elm_entry_single_line_set(status, 1);
-   elm_entry_cnp_textonly_set(status, 1);
+   elm_entry_cnp_mode_set(status, ELM_CNP_MODE_NO_IMAGE);
    elm_entry_scrollbar_policy_set(status, ELM_SCROLLER_POLICY_AUTO, ELM_SCROLLER_POLICY_OFF);
    elm_entry_editable_set(status, 0);
    elm_object_focus_allow_set(status, 0);
@@ -581,7 +581,7 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
    chat_status_entry_toggle(c);
 
    c->chat_buffer = convo = elm_entry_add(win);
-   elm_entry_cnp_textonly_set(convo, 1);
+   elm_entry_cnp_mode_set(convo, ELM_CNP_MODE_NO_IMAGE);
    elm_entry_scrollbar_policy_set(convo, ELM_SCROLLER_POLICY_OFF, ELM_SCROLLER_POLICY_AUTO);
    elm_entry_editable_set(convo, 0);
    elm_entry_single_line_set(convo, 0);
