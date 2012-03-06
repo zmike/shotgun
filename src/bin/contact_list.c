@@ -691,6 +691,7 @@ _contact_list_status_click(Contact_List *cl, Evas_Object *o __UNUSED__, Elm_Obje
    elm_entry_line_wrap_set(obj, ELM_WRAP_MIXED);
    elm_entry_single_line_set(obj, 1);
    elm_entry_scrollable_set(obj, 1);
+   elm_entry_select_all(obj);
    EXPAND(obj);
    FILL(obj);
    elm_box_pack_end(box, obj);
@@ -719,6 +720,8 @@ _contact_list_status_click(Contact_List *cl, Evas_Object *o __UNUSED__, Elm_Obje
    evas_pointer_canvas_xy_get(evas_object_evas_get(obj), &x, &y);
    evas_object_move(cx, x, y);
    evas_object_show(cx);
+
+   elm_object_focus_set(cl->status_entry, EINA_TRUE);
 }
 
 static Eina_Bool

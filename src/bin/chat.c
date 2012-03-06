@@ -623,6 +623,7 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
      {
         elm_win_title_set(cw->win, contact_name_get(c));
         elm_toolbar_item_selected_set(c->chat_tb_item, EINA_TRUE);
+        elm_object_focus_set(c->chat_input, EINA_TRUE);
      }
    else
      {
@@ -633,7 +634,6 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
 
    if (c->list->settings->enable_chat_focus)
      elm_win_activate(cw->win);
-   elm_object_focus_set(c->chat_input, EINA_TRUE);
 }
 
 void
