@@ -690,7 +690,7 @@ _contact_list_status_click(Contact_List *cl, Evas_Object *o __UNUSED__, Elm_Obje
    cl->status_entry = obj = elm_entry_add(scr);
    elm_entry_line_wrap_set(obj, ELM_WRAP_MIXED);
    elm_entry_single_line_set(obj, 1);
-   elm_entry_scrollable_set(obj, 1);
+   elm_entry_scrollbar_policy_set(obj, ELM_SCROLLER_POLICY_AUTO, ELM_SCROLLER_POLICY_OFF);
    elm_entry_select_all(obj);
    EXPAND(obj);
    FILL(obj);
