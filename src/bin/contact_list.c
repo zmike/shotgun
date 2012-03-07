@@ -554,7 +554,6 @@ _contact_list_list_add(Contact_List *cl)
 
    cl->list = list = elm_genlist_add(cl->win);
    cl->mode = EINA_FALSE;
-   elm_genlist_always_select_mode_set(list, EINA_FALSE);
    elm_genlist_reorder_mode_set(list, EINA_TRUE);
    elm_genlist_bounce_set(list, EINA_FALSE, EINA_FALSE);
    elm_genlist_scroller_policy_set(list, ELM_SCROLLER_POLICY_OFF, ELM_SCROLLER_POLICY_AUTO);

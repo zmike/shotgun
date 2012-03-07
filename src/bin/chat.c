@@ -504,7 +504,7 @@ chat_window_new(Contact_List *cl)
 
    cw->toolbar = tb = elm_toolbar_add(win);
    elm_toolbar_shrink_mode_set(tb, ELM_TOOLBAR_SHRINK_SCROLL);
-   elm_toolbar_always_select_mode_set(tb, 1);
+   elm_toolbar_select_mode_set(tb, ELM_OBJECT_SELECT_MODE_ALWAYS);
    elm_toolbar_homogeneous_set(tb, 0);
    elm_object_style_set(tb, "item_horizontal");
    evas_object_smart_callback_add(tb, "longpressed", (Evas_Smart_Cb)_chat_window_longpress, cw);
