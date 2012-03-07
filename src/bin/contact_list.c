@@ -559,7 +559,7 @@ _contact_list_list_add(Contact_List *cl)
    elm_genlist_scroller_policy_set(list, ELM_SCROLLER_POLICY_OFF, ELM_SCROLLER_POLICY_AUTO);
    EXPAND(list);
    FILL(list);
-   elm_genlist_compress_mode_set(list, EINA_TRUE);
+   elm_genlist_mode_set(list, ELM_LIST_COMPRESS);
    l = elm_box_children_get(cl->box);
    elm_box_pack_after(cl->box, list, l->data);
    evas_object_show(list);
