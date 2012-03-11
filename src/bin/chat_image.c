@@ -221,7 +221,7 @@ chat_image_complete(void *d __UNUSED__, int type __UNUSED__, Ecore_Con_Event_Url
    DBG("%i code for image: %s", ev->status, ecore_con_url_url_get(ev->url_con));
    if (ev->status != 200)
      {
-        eina_binbuf_free(i->buf);
+        if (i->buf) eina_binbuf_free(i->buf);
         i->buf = NULL;
         if (++i->tries < IMAGE_FETCH_TRIES)
           {
