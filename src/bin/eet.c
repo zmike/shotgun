@@ -318,8 +318,13 @@ userinfo_get(Shotgun_Auth *auth, const char *jid)
           INF("Userinfo for %s does not exist", jid);
      }
    snprintf(buf, sizeof(buf), "%s/%s/img", me, jid);
-   if (ci && eet_data_image_header_read(ef, buf, &w, &h, NULL, NULL, NULL, NULL))
-     ci->photo.size = w * h * sizeof(int);
+   if (ci)
+     {
+        if (eet_data_image_header_read(ef, buf, &w, &h, NULL, NULL, NULL, NULL))
+          ci->photo.size = w * h * sizeof(int);
+        else
+          CRI("ERROR READING IMAGE HEADER");
+     }
    return ci;
 }
 
