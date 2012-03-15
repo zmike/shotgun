@@ -323,8 +323,6 @@ userinfo_get(Shotgun_Auth *auth, const char *jid)
      {
         if (eet_data_image_header_read(ef, buf, &w, &h, NULL, NULL, NULL, NULL))
           ci->photo.size = w * h * sizeof(int);
-        else
-          CRI("ERROR READING IMAGE HEADER");
      }
    return ci;
 }
