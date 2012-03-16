@@ -272,6 +272,7 @@ struct Contact
    Eina_Bool ignore_resource : 1; /* when set, priority will be ignored and messages will be sent to all resources */
    Eina_Bool logdir_exists : 1; /* true only if a contact has an existing log directory */
    Eina_Bool dead : 1; /* if deletion attempt during thread */
+   Eina_Bool vcard_request : 1; /* if vcard request is in progress (to prevent multiple requests) */
 };
 
 typedef struct
@@ -315,6 +316,7 @@ const char *contact_name_get(Contact *c);
 void contact_jids_menu_del(Contact *c, const char *jid);
 void contact_info_free(Contact *c, Contact_Info *ci);
 void contact_free(Contact *c);
+Eina_Bool contact_vcard_request(Contact *c);
 Contact *do_something_with_user(Contact_List *cl, Shotgun_User *user, const char *j);
 Eina_Bool contact_chat_window_current(Contact *c);
 void contact_chat_window_animator_add(Contact *c);

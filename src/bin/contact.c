@@ -443,7 +443,8 @@ contact_presence_set(Contact *c, Shotgun_Event_Presence *cur)
        ((c->info->photo.sha1 != cur->photo) || (cur->photo && (!c->info->photo.size))))))
      {
         INF("VCARD for %s not current; fetching.", c->base->jid);
-        shotgun_iq_vcard_get(cl->account, c->base->jid);
+        if (!contact_vcard_request(c))
+          CRI("VCARD REQUESTED WHILE VCARD REQUEST IN PROGRESS! BUG!!!!");
      }
 
 }
@@ -513,4 +514,13 @@ contact_chat_window_typing(Contact *c, Evas_Object *obj __UNUSED__, void *event_
      /* previous sms was paused or inactive */
      c->sms_timer = ecore_timer_add(SMS_TIMER_INTERVAL_COMPOSING, (Ecore_Task_Cb)_contact_chat_window_typing_cb, c);
    shotgun_message_send(c->list->account, c->base->jid, NULL, sms);
+}
+
+Eina_Bool
+contact_vcard_request(Contact *c)
+{
+   if (c->vcard_request) return EINA_FALSE;
+   c->vcard_request = shotgun_iq_vcard_get(c->list->account, c->base->jid);
+   INF("New vcard request for %s", c->base->jid);
+   return c->vcard_request;
 }

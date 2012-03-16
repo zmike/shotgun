@@ -234,7 +234,8 @@ event_presence_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Presence 
                        (c->cur->photo && (!c->info->photo.size))))))
                     {
                        INF("VCARD for %s not current; fetching.", c->base->jid);
-                       shotgun_iq_vcard_get(ev->account, c->base->jid);
+                       if (!contact_vcard_request(c))
+                         CRI("VCARD REQUESTED WHILE VCARD REQUEST IN PROGRESS! BUG!!!!");
                     }
                   return ECORE_CALLBACK_RENEW;
                }

@@ -343,14 +343,20 @@ userinfo_thread_done(Contact *c, Ecore_Thread *et)
         contact_info_free(NULL, ci);
         if (!c->info) return;
      }
-   if (c->dead) contact_free(c);
-   else if ((c->cur && c->cur->vcard && c->info &&
+   if (c->dead)
+     {
+        contact_free(c);
+        return;
+     }
+   if ((c->cur && c->cur->vcard && c->info &&
        ((c->info->photo.sha1 != c->cur->photo) ||
         (c->cur->photo && (!c->info->photo.size)))))
      {
         INF("VCARD for %s not current; fetching.", c->base->jid);
-        shotgun_iq_vcard_get(c->list->account, c->base->jid);
+        if (contact_vcard_request(c)) return;
+        CRI("VCARD REQUESTED WHILE VCARD REQUEST IN PROGRESS! BUG!!!!");
      }
+   c->vcard_request = EINA_FALSE;
 }
 
 static void
@@ -363,6 +369,7 @@ userinfo_thread_cancel(Contact *c, Ecore_Thread *et)
      {
         if (ci->dead) contact_info_free(NULL, ci);
      }
+   c->vcard_request = EINA_FALSE;
    if (c->dead) contact_free(c);
 }
 
