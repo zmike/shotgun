@@ -101,6 +101,7 @@ struct Shotgun_Auth
       Eina_Bool sasl_gtoken : 1;
       Eina_Bool bind : 1;
       Eina_Bool session : 1;
+      Eina_Bool archive_management : 1;
    } features;
    Shotgun_Connection_State state;
    void *data;

@@ -1,4 +1,3 @@
-#include <Eina.h>
 #include "shotgun_private.h"
 #include "xml.h"
 #include "pugixml.hpp"
@@ -10,6 +9,7 @@
 #define XML_NS_IDLE "jabber:iq:last"
 #define XML_NS_DELAY "urn:xmpp:delay"
 #define XML_NS_SESSION "urn:ietf:params:xml:ns:xmpp-session"
+#define XML_NS_ARCHIVE_MANAGE "urn:xmpp:archive:manage"
 
 using namespace pugi;
 
@@ -600,7 +600,7 @@ xml_iq_roster_read(Shotgun_Auth *auth, xml_node node)
 }
 
 static void
-xml_iq_disco_info_write(Shotgun_Auth *auth, xml_document &query)
+xml_iq_disco_info_write(Shotgun_Auth *auth, xml_node &query)
 {
 /*
 <iq type='get'
@@ -638,6 +638,19 @@ xml_iq_disco_info_write(Shotgun_Auth *auth, xml_document &query)
    xml_node iq, node, identity;
    char *xml;
    size_t len;
+
+   for (xml_node it = query.first_child(); it; it = it.next_sibling())
+     {
+        const char *s;
+
+        s = it.name();
+        if ((!s) || strcmp(s, "feature")) continue;
+        s = it.attribute("var").value();
+        if ((!s) || (!s[0])) continue;
+        INF("SERVER FEATURE: %s", s);
+        if (strcmp(s, XML_NS_ARCHIVE_MANAGE)) continue;
+        auth->features.archive_management = EINA_TRUE;
+     }
 
    /* TODO: this setup should probably be a macro or something if it gets reused */
    iq = doc.append_child("iq");
@@ -729,7 +742,7 @@ xml_iq_read(Shotgun_Auth *auth, char *xml, size_t size)
           break;
       case SHOTGUN_IQ_TYPE_GET:
         if (!strcmp(str, XML_NS_DISCO_INFO))
-          xml_iq_disco_info_write(auth, doc);
+          xml_iq_disco_info_write(auth, node);
           break;
         return (Shotgun_Event_Iq*)1;
       case SHOTGUN_IQ_TYPE_SET:
