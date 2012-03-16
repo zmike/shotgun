@@ -97,6 +97,12 @@ _contact_chat_window_typing_cb(Contact *c)
    return EINA_TRUE;
 }
 
+static void
+_contact_menu_vcard_cb(Contact *c, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
+{
+   contact_vcard_request(c);
+}
+
 const char *
 contact_name_get(Contact *c)
 {
@@ -317,6 +323,8 @@ contact_resource_menu_setup(Contact *c, Evas_Object *menu)
    int set = 0;
 
    win = elm_object_top_widget_get(menu);
+
+   elm_menu_item_add(menu, NULL, "dialog-information", "Request VCARD", (Evas_Smart_Cb)_contact_menu_vcard_cb, c);
    elm_menu_item_add(menu, NULL, NULL, "Ignore Resource", (Evas_Smart_Cb)chat_resource_ignore_toggle, c);
    it = elm_menu_item_add(menu, NULL, "menu/arrow_right", "Send to", NULL, NULL);
 
