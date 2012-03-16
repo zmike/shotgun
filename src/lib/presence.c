@@ -1,4 +1,3 @@
-#include <Ecore.h>
 #include "shotgun_private.h"
 #include "xml.h"
 

@@ -1,9 +1,5 @@
-#include <Eina.h>
-#include <Ecore.h>
-#include <Ecore_Con.h>
-
+#include "shotgun_private.h"
 #include <ctype.h>
-
 #include "xml.h"
 
 int shotgun_log_dom = -1;
