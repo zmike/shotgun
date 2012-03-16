@@ -210,7 +210,7 @@ _chat_window_toolbar_menu(Contact *c)
    elm_menu_move(menu, x, y);
    evas_object_show(menu);
 
-   elm_menu_item_add(menu, NULL, NULL, "Clear scrollback", (Evas_Smart_Cb)_chat_window_scrollback_clear_cb, c);
+   elm_menu_item_add(menu, NULL, NULL, "Clear chat scrollback", (Evas_Smart_Cb)_chat_window_scrollback_clear_cb, c);
    elm_menu_item_separator_add(menu, NULL);
    contact_resource_menu_setup(c, menu);
 }
