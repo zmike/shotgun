@@ -205,10 +205,18 @@ _chat_window_archive_get_cb(Contact *c, Evas_Object *obj __UNUSED__, void *event
 }
 
 static void
+_chat_window_otr_toggle_cb(Contact *c, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
+{
+   if (shotgun_iq_contact_otr_set(c->list->account, c->base->jid, !c->otr_enabled))
+     c->otr_enabled = !c->otr_enabled;
+}
+
+static void
 _chat_window_toolbar_menu(Contact *c)
 {
    Evas_Coord x, y;
-   Evas_Object *win, *menu;
+   Evas_Object *win, *menu, *ck;
+   Elm_Object_Item *it;
 
    win = c->chat_window->win;
    menu = elm_menu_add(win);
@@ -217,6 +225,22 @@ _chat_window_toolbar_menu(Contact *c)
    evas_object_show(menu);
 
    elm_menu_item_add(menu, NULL, NULL, "Clear chat scrollback", (Evas_Smart_Cb)_chat_window_scrollback_clear_cb, c);
+   it = elm_menu_item_add(menu, NULL, NULL, NULL, (Evas_Smart_Cb)_chat_window_otr_toggle_cb, c);
+   ck = elm_check_add(win);
+   if (c->list->settings->enable_global_otr)
+     {
+        elm_check_state_set(ck, EINA_TRUE);
+        elm_object_text_set(ck, "OTR GLOBALLY ENABLED");
+     }
+   else
+     {
+        elm_check_state_set(ck, c->otr_enabled);
+        elm_object_text_set(ck, "Toggle OTR");
+     }
+   evas_object_show(ck);
+   elm_object_item_content_set(it, ck);
+   if ((!shotgun_iq_otr_available(c->list->account)) || c->list->settings->enable_global_otr)
+     elm_object_item_disabled_set(it, EINA_TRUE);
    elm_menu_item_add(menu, NULL, NULL, "Request chat archive", (Evas_Smart_Cb)_chat_window_archive_get_cb, c);
    elm_menu_item_separator_add(menu, NULL);
    contact_resource_menu_setup(c, menu);

@@ -73,6 +73,13 @@ event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev)
            ev->ev = NULL;
            break;
         }
+      case SHOTGUN_IQ_EVENT_TYPE_SERVER_QUERY:
+        if (shotgun_iq_gsettings_available(cl->account))
+          shotgun_iq_gsettings_query(cl->account);
+        break;
+      case SHOTGUN_IQ_EVENT_TYPE_SETTINGS:
+        cl->settings->enable_global_otr = shotgun_iq_otr_get(cl->account);
+        break;
       default:
         ERR("WTF!");
      }

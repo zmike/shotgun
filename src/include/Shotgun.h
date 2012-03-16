@@ -89,6 +89,9 @@ typedef enum
    SHOTGUN_IQ_EVENT_TYPE_UNKNOWN,
    SHOTGUN_IQ_EVENT_TYPE_ROSTER, /* Eina_List *Shotgun_User */
    SHOTGUN_IQ_EVENT_TYPE_INFO, /* Shotgun_User_Info */
+   SHOTGUN_IQ_EVENT_TYPE_SERVER_QUERY, /* NULL */
+   SHOTGUN_IQ_EVENT_TYPE_SETTINGS, /* NULL */
+   SHOTGUN_IQ_EVENT_TYPE_OTR_QUERY, /* Eina_List *Shotgun_User_Setting */
    SHOTGUN_IQ_EVENT_TYPE_ARCHIVE_COLLECTION, /* Shotgun_Archive_Collection */
 } Shotgun_Iq_Event_Type;
 
@@ -143,6 +146,12 @@ typedef enum
 typedef struct
 {
    const char *jid;
+   Eina_Bool value;
+} Shotgun_User_Setting;
+
+typedef struct
+{
+   const char *jid;
    const char *name; /* nickname (alias) */
    Eina_List *groups;
    Shotgun_User_Subscription subscription;
@@ -168,6 +177,7 @@ typedef struct
    const char *jid;
    char *msg;
    Shotgun_Message_Status status;
+   unsigned char otr_enabled; /* 0 for not present, 1 for newly disabled, 2 for newly enabled */
    Shotgun_Auth *account;
 } Shotgun_Event_Message;
 
@@ -225,9 +235,19 @@ void shotgun_password_set(Shotgun_Auth *auth, const char *password);
 Eina_Bool shotgun_iq_roster_get(Shotgun_Auth *auth);
 Eina_Bool shotgun_iq_contact_add(Shotgun_Auth *auth, const char *user, const char *alias, Eina_List */* const char * */groups);
 Eina_Bool shotgun_iq_contact_del(Shotgun_Auth *auth, const char *user);
+Eina_Bool shotgun_iq_contact_otr_set(Shotgun_Auth *auth, const char *jid, Eina_Bool enable);
 Eina_Bool shotgun_iq_server_query(Shotgun_Auth *auth);
+Eina_Bool shotgun_iq_gsettings_query(Shotgun_Auth *auth);
 Eina_Bool shotgun_iq_vcard_get(Shotgun_Auth *auth, const char *user);
 Eina_Bool shotgun_iq_archive_get(Shotgun_Auth *auth, const char *user, unsigned int max);
+Eina_Bool shotgun_iq_gsettings_available(Shotgun_Auth *auth);
+Eina_Bool shotgun_iq_otr_available(Shotgun_Auth *auth);
+Eina_Bool shotgun_iq_otr_set(Shotgun_Auth *auth, Eina_Bool enable);
+Eina_Bool shotgun_iq_otr_get(Shotgun_Auth *auth);
+void shotgun_iq_gsettings_archiving_set(Shotgun_Auth *auth, Eina_Bool enable);
+Eina_Bool shotgun_iq_gsettings_archiving_get(Shotgun_Auth *auth);
+void shotgun_iq_gsettings_mailnotify_set(Shotgun_Auth *auth, Eina_Bool enable);
+Eina_Bool shotgun_iq_gsettings_mailnotify_get(Shotgun_Auth *auth);
 
 Eina_Bool shotgun_message_send(Shotgun_Auth *auth, const char *to, const char *msg, Shotgun_Message_Status status);
 
@@ -247,6 +267,7 @@ void shotgun_event_message_free(Shotgun_Event_Message *msg);
 void shotgun_event_presence_free(Shotgun_Event_Presence *pres);
 void shotgun_user_info_free(Shotgun_User_Info *info);
 void shotgun_user_free(Shotgun_User *user);
+void shotgun_user_setting_free(Shotgun_User_Setting *sus);
 
 #ifdef __cplusplus
 }

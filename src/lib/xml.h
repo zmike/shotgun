@@ -18,6 +18,7 @@ int xml_sasl_read(Shotgun_Auth *auth, char *xml, size_t size);
 
 char *xml_iq_write_contact_add(const char *jid, const char *alias, Eina_List *groups, size_t *len);
 char *xml_iq_write_contact_del(const char *user, size_t *len);
+char *xml_iq_write_contact_otr_set(const char *user, Eina_Bool enable, size_t *len);
 char *xml_iq_write_preset(Shotgun_Auth *auth, Shotgun_Iq_Preset p, size_t *len);
 char *xml_iq_write_get_vcard(const char *to, size_t *len);
 char *xml_iq_write_archive_get(const char *to, unsigned int max, size_t *len);

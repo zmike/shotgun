@@ -12,6 +12,8 @@
 #define XML_NS_ARCHIVE "urn:xmpp:archive"
 #define XML_NS_ARCHIVE_MANAGE "urn:xmpp:archive:manage"
 #define XML_NS_RSM "http://jabber.org/protocol/rsm"
+#define XML_NS_GOOGLE_SETTINGS "google:setting"
+#define XML_NS_GOOGLE_NOSAVE "google:nosave"
 
 using namespace pugi;
 
@@ -80,6 +82,16 @@ xmlnode_to_buf(xml_node node,
    buffer[(*len)] = 0;
 
    return buffer;
+}
+
+static bool
+xmlattr_to_bool(xml_attribute attr)
+{
+   const char *s;
+
+   s = attr.value();
+   if ((!s) || (!s[0])) return false;
+   return (!strcmp(s, "true") || (!strcmp(s, "enabled")));
 }
 
 char *
@@ -432,6 +444,35 @@ xml_iq_write_contact_del(const char *user, size_t *len)
 }
 
 char *
+xml_iq_write_contact_otr_set(const char *user, Eina_Bool enable, size_t *len)
+{
+   xml_document doc;
+   xml_node iq, node;
+
+   iq = doc.append_child("iq");
+/*
+<iq type='set'
+    from='horatio@denmark.lit/castle'
+    to='horatio@denmark.lit'
+    id='otr-2'>
+  <query xmlns='google:nosave'>
+    <item xmlns='google:nosave' jid='guildenstern@denmark.lit' value='enabled'/>
+  </query>
+</iq>
+*/
+
+   iq.append_attribute("type").set_value("set");
+   iq.append_attribute("id").set_value("contactotr");
+   node = iq.append_child("query");
+   node.append_attribute("xmlns").set_value(XML_NS_GOOGLE_NOSAVE);
+   node = node.append_child("item");
+   node.append_attribute("xmlns").set_value(XML_NS_GOOGLE_NOSAVE);
+   node.append_attribute("jid").set_value(user);
+   node.append_attribute("value").set_value(enable ? "enabled" : "disabled");
+   return xmlnode_to_buf(doc, len, EINA_FALSE);
+}
+
+char *
 xml_iq_write_preset(Shotgun_Auth *auth, Shotgun_Iq_Preset p, size_t *len)
 {
    xml_document doc;
@@ -501,6 +542,51 @@ xml_iq_write_preset(Shotgun_Auth *auth, Shotgun_Iq_Preset p, size_t *len)
         iq.append_attribute("to").set_value(auth->from);
         iq.append_attribute("type").set_value("get");
         iq.append_child("query").append_attribute("xmlns").set_value(XML_NS_DISCO_INFO);
+        break;
+      case SHOTGUN_IQ_PRESET_GSETTINGS_GET:
+/*
+<iq type='get'
+    from='romeo@gmail.com/orchard'
+    to='romeo@gmail.com'
+    id='user-setting-1'>
+  <usersetting xmlns='google:setting' />
+</iq>
+*/
+        iq.append_attribute("id").set_value("gsettings-get");
+        iq.append_attribute("type").set_value("get");
+        iq.append_child("usersetting").append_attribute("xmlns").set_value(XML_NS_GOOGLE_SETTINGS);
+        break;
+      case SHOTGUN_IQ_PRESET_GSETTINGS_SET:
+/*
+<iq type='set'
+    from='romeo@gmail.com/orchard'
+    to='romeo@gmail.com'
+    id='user-setting-3'>
+  <usersetting xmlns='google:setting'>
+    <archivingenabled value='false'/>
+  </usersetting>
+</iq>
+*/
+        iq.append_attribute("id").set_value("gsettings-set");
+        iq.append_attribute("type").set_value("set");
+        node = iq.append_child("usersetting");
+        node.append_attribute("xmlns").set_value(XML_NS_GOOGLE_SETTINGS);
+        node.append_child("mailnotifications").append_attribute("value").set_value(auth->features.gsettings.mail_notifications ? "true" : "false");
+        node.append_child("archivingenabled").append_attribute("value").set_value(auth->features.gsettings.archiving ? "true" : "false");
+        break;
+      case SHOTGUN_IQ_PRESET_OTR_QUERY:
+/*
+<iq type='get'
+    from='horatio@denmark.lit/castle'
+    to='horatio@denmark.lit'
+    id='otr-1'>
+  <query xmlns='google:nosave' />
+</iq>
+*/
+        iq.append_attribute("id").set_value("otr-query");
+        iq.append_attribute("type").set_value("get");
+        iq.append_child("query").append_attribute("xmlns").set_value(XML_NS_GOOGLE_NOSAVE);
+        break;
       default:
         break;
      }
@@ -728,6 +814,7 @@ xml_iq_disco_info_write(Shotgun_Auth *auth, xml_node &query)
 static Shotgun_Event_Iq *
 xml_iq_disco_info_read(Shotgun_Auth *auth, xml_node &query)
 {
+   Shotgun_Event_Iq *ret;
    for (xml_node it = query.first_child(); it; it = it.next_sibling())
      {
         const char *s;
@@ -737,10 +824,66 @@ xml_iq_disco_info_read(Shotgun_Auth *auth, xml_node &query)
         s = it.attribute("var").value();
         if ((!s) || (!s[0])) continue;
         INF("SERVER FEATURE: %s", s);
-        if (strcmp(s, XML_NS_ARCHIVE_MANAGE)) continue;
-        auth->features.archive_management = EINA_TRUE;
+        if (!strcmp(s, XML_NS_ARCHIVE_MANAGE))
+          auth->features.archive_management = EINA_TRUE;
+        else if (!strcmp(s, XML_NS_GOOGLE_SETTINGS))
+          auth->features.google_settings = EINA_TRUE;
+        else if (!strcmp(s, XML_NS_GOOGLE_NOSAVE))
+          auth->features.google_nosave = EINA_TRUE;
      }
-   return NULL;
+   ret = static_cast<Shotgun_Event_Iq*>(calloc(1, sizeof(Shotgun_Event_Iq)));
+   ret->type = SHOTGUN_IQ_EVENT_TYPE_SERVER_QUERY;
+   ret->account = auth;
+   return ret;
+}
+
+static Shotgun_Event_Iq *
+xml_iq_gsettings_read(Shotgun_Auth *auth, xml_node &usersetting)
+{
+   Shotgun_Event_Iq *ret;
+   for (xml_node it = usersetting.first_child(); it; it = it.next_sibling())
+     {
+        const char *s;
+
+        s = it.name();
+        if (!s) continue;
+        if (!strcmp(s, "mailnotifications"))
+          auth->features.gsettings.mail_notifications = xmlattr_to_bool(it.first_attribute());
+        else if (!strcmp(s, "archivingenabled"))
+          auth->features.gsettings.archiving = xmlattr_to_bool(it.first_attribute());
+     }
+   ret = static_cast<Shotgun_Event_Iq*>(calloc(1, sizeof(Shotgun_Event_Iq)));
+   ret->type = SHOTGUN_IQ_EVENT_TYPE_SETTINGS;
+   ret->account = auth;
+   return ret;
+}
+
+static Shotgun_Event_Iq *
+xml_iq_settings_read(Shotgun_Auth *auth, xml_node &query)
+{
+   Shotgun_Event_Iq *ret;
+   xml_node it;
+   Eina_List *l = NULL;
+
+   it = query.first_child();
+   if (it.empty()) return NULL;
+   ret = static_cast<Shotgun_Event_Iq*>(calloc(1, sizeof(Shotgun_Event_Iq)));
+   ret->type = SHOTGUN_IQ_EVENT_TYPE_OTR_QUERY;
+   ret->account = auth;
+   for (; it; it = it.next_sibling())
+     {
+        const char *s;
+        Shotgun_User_Setting *sus;
+
+        s = it.name();
+        if (!s) continue;
+        sus = static_cast<Shotgun_User_Setting*>(malloc(sizeof(Shotgun_User_Setting)));
+        sus->jid = eina_stringshare_add(it.attribute("jid").value());
+        sus->value = !!xmlattr_to_bool(it.attribute("value"));
+        l = eina_list_append(l, sus);
+     }
+   ret->ev = (Eina_List*)l;
+   return ret;
 }
 
 static Shotgun_Event_Iq *
@@ -782,8 +925,9 @@ xml_iq_vcard_read(Shotgun_Auth *auth, xml_node iq, xml_node node)
 }
 
 static Shotgun_Event_Iq *
-xml_iq_archive_read(Shotgun_Auth *auth, xml_node list)
+xml_iq_archive_read(Shotgun_Auth *auth __UNUSED__, xml_node list __UNUSED__)
 {
+   /* TODO: this */
    return NULL;
 }
 
@@ -819,6 +963,10 @@ xml_iq_read(Shotgun_Auth *auth, char *xml, size_t size)
           return xml_iq_archive_read(auth, node);
         if (!strcmp(str, XML_NS_DISCO_INFO))
           return xml_iq_disco_info_read(auth, node);
+        if (!strcmp(str, XML_NS_GOOGLE_SETTINGS))
+          return xml_iq_gsettings_read(auth, node);
+        if (!strcmp(str, XML_NS_GOOGLE_NOSAVE))
+          return xml_iq_settings_read(auth, node);
         break;
       case SHOTGUN_IQ_TYPE_GET:
         if (!strcmp(str, XML_NS_DISCO_INFO))
@@ -828,6 +976,8 @@ xml_iq_read(Shotgun_Auth *auth, char *xml, size_t size)
       case SHOTGUN_IQ_TYPE_SET:
         if (!strcmp(str, XML_NS_ROSTER))
           return xml_iq_roster_read(auth, node);
+        if (!strcmp(str, XML_NS_GOOGLE_SETTINGS))
+          return xml_iq_gsettings_read(auth, node);
         INF("UNHANDLED SET NS: %s", str);
         break;
       default:
@@ -932,21 +1082,38 @@ E: <message from='romeo@example.net/orchard'
      }
    for (xml_node it = node.first_child(); it; it = it.next_sibling())
      {
-        if (!strcmp(it.name(), "body"))
+        const char *name;
+
+        name = it.name();
+        if (!strncmp(name, "cha:", 4))
+          name += 4;
+        if (!strcmp(name, "body"))
           {
              msg = it.child_value();
              if (msg && msg[0]) ret->msg = strdup(msg);
           }
-        else if (!strcmp(it.name(), "active"))
+        else if (!strcmp(name, "active"))
           ret->status = SHOTGUN_MESSAGE_STATUS_ACTIVE;
-        else if (!strcmp(it.name(), "composing"))
+        else if (!strcmp(name, "composing"))
           ret->status = SHOTGUN_MESSAGE_STATUS_COMPOSING;
-        else if (!strcmp(it.name(), "paused"))
+        else if (!strcmp(name, "paused"))
           ret->status = SHOTGUN_MESSAGE_STATUS_PAUSED;
-        else if (!strcmp(it.name(), "inactive"))
+        else if (!strcmp(name, "inactive"))
           ret->status = SHOTGUN_MESSAGE_STATUS_INACTIVE;
-        else if (!strcmp(it.name(), "gone"))
+        else if (!strcmp(name, "gone"))
           ret->status = SHOTGUN_MESSAGE_STATUS_GONE;
+        else if (!strcmp(name, "nos:x"))
+          {
+             const char *s;
+
+             attr = it.attribute("xmlns:nos");
+             if (attr.empty()) continue;
+             s = attr.value();
+             if (!s) continue;
+             /* TODO: other "x" attrs */
+             if (!strcmp(s, XML_NS_GOOGLE_NOSAVE))
+               ret->otr_enabled += !!xmlattr_to_bool(attr) + 1;
+          }
      }
    return ret;
 }

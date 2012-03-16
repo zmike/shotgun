@@ -18,6 +18,14 @@ o  wait -- retry after waiting (the error is temporary)
 */
 
 void
+shotgun_user_setting_free(Shotgun_User_Setting *sus)
+{
+   if (!sus) return;
+   eina_stringshare_del(sus->jid);
+   free(sus);
+}
+
+void
 shotgun_user_free(Shotgun_User *user)
 {
    const char *g;
@@ -45,6 +53,7 @@ static void
 shotgun_iq_event_free(void *data __UNUSED__, Shotgun_Event_Iq *iq)
 {
    Shotgun_User *user;
+   Shotgun_User_Setting *sus;
    switch (iq->type)
      {
       case SHOTGUN_IQ_EVENT_TYPE_ROSTER:
@@ -53,6 +62,10 @@ shotgun_iq_event_free(void *data __UNUSED__, Shotgun_Event_Iq *iq)
         break;
       case SHOTGUN_IQ_EVENT_TYPE_INFO:
         shotgun_user_info_free(iq->ev);
+        break;
+      case SHOTGUN_IQ_EVENT_TYPE_OTR_QUERY:
+        EINA_LIST_FREE(iq->ev, sus)
+          shotgun_user_setting_free(sus);
         break;
       default:
         break;
@@ -73,6 +86,7 @@ shotgun_iq_feed(Shotgun_Auth *auth, char *data, size_t size)
    switch (iq->type)
      {
       case SHOTGUN_IQ_EVENT_TYPE_ROSTER:
+        if (!eina_log_domain_level_check(shotgun_log_dom, EINA_LOG_LEVEL_INFO)) break;
         EINA_LIST_FOREACH(iq->ev, l, user)
           {
              if (user->name)
@@ -155,6 +169,21 @@ shotgun_iq_server_query(Shotgun_Auth *auth)
 }
 
 Eina_Bool
+shotgun_iq_gsettings_query(Shotgun_Auth *auth)
+{
+   size_t len;
+   char *xml;
+
+   EINA_SAFETY_ON_NULL_RETURN_VAL(auth, EINA_FALSE);
+   if (!auth->features.google_settings) return EINA_FALSE;
+
+   xml = xml_iq_write_preset(auth, SHOTGUN_IQ_PRESET_GSETTINGS_GET, &len);
+   shotgun_write(auth->svr, xml, len);
+   free(xml);
+   return EINA_TRUE;
+}
+
+Eina_Bool
 shotgun_iq_vcard_get(Shotgun_Auth *auth, const char *user)
 {
    size_t len;
@@ -178,6 +207,119 @@ shotgun_iq_archive_get(Shotgun_Auth *auth, const char *user, unsigned int max)
    if (!auth->features.archive_management) return EINA_FALSE;
 
    xml = xml_iq_write_archive_get(user, max, &len);
+   shotgun_write(auth->svr, xml, len);
+   free(xml);
+   return EINA_TRUE;
+}
+
+Eina_Bool
+shotgun_iq_gsettings_available(Shotgun_Auth *auth)
+{
+   EINA_SAFETY_ON_NULL_RETURN_VAL(auth, EINA_FALSE);
+   return auth->features.google_settings;
+}
+
+Eina_Bool
+shotgun_iq_otr_available(Shotgun_Auth *auth)
+{
+   EINA_SAFETY_ON_NULL_RETURN_VAL(auth, EINA_FALSE);
+   /* TODO: other types of OTR */
+   return auth->features.google_nosave;
+}
+
+Eina_Bool
+shotgun_iq_otr_set(Shotgun_Auth *auth, Eina_Bool enable)
+{
+   EINA_SAFETY_ON_NULL_RETURN_VAL(auth, EINA_FALSE);
+   /* TODO: other types of OTR */
+   if (!shotgun_iq_otr_available(auth)) return EINA_FALSE;
+   shotgun_iq_gsettings_archiving_set(auth, !!enable);
+   return EINA_TRUE;
+}
+
+Eina_Bool
+shotgun_iq_otr_get(Shotgun_Auth *auth)
+{
+   EINA_SAFETY_ON_NULL_RETURN_VAL(auth, EINA_FALSE);
+   /* TODO: other types of OTR */
+   if (!shotgun_iq_otr_available(auth)) return EINA_FALSE;
+   return shotgun_iq_gsettings_archiving_get(auth);
+}
+
+Eina_Bool
+shotgun_iq_otr_query(Shotgun_Auth *auth)
+{
+   size_t len;
+   char *xml;
+
+   EINA_SAFETY_ON_NULL_RETURN_VAL(auth, EINA_FALSE);
+   /* TODO: other types of OTR */
+   if (!auth->features.google_nosave) return EINA_FALSE;
+
+   xml = xml_iq_write_preset(auth, SHOTGUN_IQ_PRESET_OTR_QUERY, &len);
+   shotgun_write(auth->svr, xml, len);
+   free(xml);
+   return EINA_TRUE;
+}
+
+void
+shotgun_iq_gsettings_archiving_set(Shotgun_Auth *auth, Eina_Bool enable)
+{
+   size_t len;
+   char *xml;
+
+   EINA_SAFETY_ON_NULL_RETURN(auth);
+   enable = !!enable;
+   if (auth->features.gsettings.archiving == enable) return;
+
+   auth->features.gsettings.archiving = enable;
+
+   xml = xml_iq_write_preset(auth, SHOTGUN_IQ_PRESET_GSETTINGS_SET, &len);
+   shotgun_write(auth->svr, xml, len);
+   free(xml);
+}
+
+Eina_Bool
+shotgun_iq_gsettings_archiving_get(Shotgun_Auth *auth)
+{
+   EINA_SAFETY_ON_NULL_RETURN_VAL(auth, EINA_FALSE);
+   return auth->features.gsettings.archiving;
+}
+
+void
+shotgun_iq_gsettings_mailnotify_set(Shotgun_Auth *auth, Eina_Bool enable)
+{
+   size_t len;
+   char *xml;
+
+   EINA_SAFETY_ON_NULL_RETURN(auth);
+   enable = !!enable;
+   if (auth->features.gsettings.mail_notifications == enable) return;
+
+   auth->features.gsettings.mail_notifications = enable;
+
+   xml = xml_iq_write_preset(auth, SHOTGUN_IQ_PRESET_GSETTINGS_SET, &len);
+   shotgun_write(auth->svr, xml, len);
+   free(xml);
+}
+
+Eina_Bool
+shotgun_iq_gsettings_mailnotify_get(Shotgun_Auth *auth)
+{
+   EINA_SAFETY_ON_NULL_RETURN_VAL(auth, EINA_FALSE);
+   return auth->features.gsettings.mail_notifications;
+}
+
+Eina_Bool
+shotgun_iq_contact_otr_set(Shotgun_Auth *auth, const char *jid, Eina_Bool enable)
+{
+   size_t len;
+   char *xml;
+
+   EINA_SAFETY_ON_NULL_RETURN_VAL(auth, EINA_FALSE);
+   if (!shotgun_iq_otr_available(auth)) return EINA_FALSE;
+
+   xml = xml_iq_write_contact_otr_set(jid, !!enable, &len);
    shotgun_write(auth->svr, xml, len);
    free(xml);
    return EINA_TRUE;

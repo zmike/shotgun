@@ -98,6 +98,7 @@ typedef struct Shotgun_Settings
    Eina_Bool disable_list_status;
    Eina_Bool enable_list_sort_alpha;
    Eina_Bool enable_list_offlines;
+   Eina_Bool enable_global_otr;
    unsigned int allowed_image_age;
    unsigned int allowed_image_size;
    int chat_w;
@@ -271,8 +272,9 @@ struct Contact
    Eina_Bool tooltip_changed : 1; /* when set, tooltip_label will be re-created */
    Eina_Bool ignore_resource : 1; /* when set, priority will be ignored and messages will be sent to all resources */
    Eina_Bool logdir_exists : 1; /* true only if a contact has an existing log directory */
-   Eina_Bool dead : 1; /* if deletion attempt during thread */
    Eina_Bool vcard_request : 1; /* if vcard request is in progress (to prevent multiple requests) */
+   Eina_Bool otr_enabled : 1; /* chat is "off the record" */
+   Eina_Bool dead : 1; /* if deletion attempt during thread */
 };
 
 typedef struct

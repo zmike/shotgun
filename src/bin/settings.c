@@ -184,6 +184,12 @@ _settings_browser_hover_close(UI_WIN *ui, Evas_Object *obj, void *ev __UNUSED__)
 }
 
 static void
+_settings_otr_change(UI_WIN *ui, Evas_Object *obj __UNUSED__, void *ev __UNUSED__)
+{
+   shotgun_iq_otr_set(ui->account, ui->settings->enable_global_otr);
+}
+
+static void
 _settings_browser_change(UI_WIN *ui, Evas_Object *radio, void *ev __UNUSED__)
 {
    Evas_Object *hv, *ent, *o;
@@ -349,6 +355,9 @@ settings_new(UI_WIN *ui)
    SETTINGS_CHECK("Log messages to disk", enable_logging, "All messages sent or received will appear in ~/.config/shotgun/logs");
    IF_UI_IS_LOGIN(ui) elm_object_disabled_set(ck, EINA_TRUE);
    SETTINGS_CHECK_CALLBACK(_settings_logging_change);
+   SETTINGS_CHECK("Enable OTR", enable_global_otr, "Enable \"Off-The-Record\" conversations globally: no conversations will be logged by the server");
+   IF_UI_IS_LOGIN(ui) elm_object_disabled_set(ck, EINA_TRUE);
+   SETTINGS_CHECK_CALLBACK(_settings_otr_change);
 }
 
 void

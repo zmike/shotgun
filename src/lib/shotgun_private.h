@@ -66,6 +66,9 @@ typedef enum
    SHOTGUN_IQ_PRESET_RESULT,
    SHOTGUN_IQ_PRESET_SESSION,
    SHOTGUN_IQ_PRESET_DISCO_INFO,
+   SHOTGUN_IQ_PRESET_GSETTINGS_GET,
+   SHOTGUN_IQ_PRESET_GSETTINGS_SET,
+   SHOTGUN_IQ_PRESET_OTR_QUERY,
 } Shotgun_Iq_Preset;
 
 struct Shotgun_Auth
@@ -103,6 +106,13 @@ struct Shotgun_Auth
       Eina_Bool bind : 1;
       Eina_Bool session : 1;
       Eina_Bool archive_management : 1;
+      Eina_Bool google_settings : 1;
+      Eina_Bool google_nosave : 1;
+      struct
+      {
+         Eina_Bool mail_notifications : 1;
+         Eina_Bool archiving : 1;
+      } gsettings;
    } features;
    Shotgun_Connection_State state;
    void *data;

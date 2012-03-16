@@ -88,6 +88,7 @@ eet_ss_edd_new(void)
    ADD(disable_list_status, UCHAR);
    ADD(enable_list_sort_alpha, UCHAR);
    ADD(enable_list_offlines, UCHAR);
+   ADD(enable_global_otr, UCHAR);
 
    ADD(allowed_image_age, UINT);
    ADD(allowed_image_size, UINT);
