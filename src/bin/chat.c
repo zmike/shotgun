@@ -192,12 +192,36 @@ _chat_window_close_cb(Chat_Window *cw, Evas_Object *obj __UNUSED__, const char *
 }
 
 static void
+_chat_window_scrollback_clear_cb(Contact *c, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
+{
+   eina_stringshare_del(c->last_conv);
+   elm_entry_entry_set(c->chat_buffer, "");
+}
+
+static void
+_chat_window_toolbar_menu(Contact *c)
+{
+   Evas_Coord x, y;
+   Evas_Object *win, *menu;
+
+   win = c->chat_window->win;
+   menu = elm_menu_add(win);
+   evas_pointer_canvas_xy_get(evas_object_evas_get(menu), &x, &y);
+   elm_menu_move(menu, x, y);
+   evas_object_show(menu);
+
+   elm_menu_item_add(menu, NULL, NULL, "Clear scrollback", (Evas_Smart_Cb)_chat_window_scrollback_clear_cb, c);
+   elm_menu_item_separator_add(menu, NULL);
+   contact_resource_menu_setup(c, menu);
+}
+
+static void
 _chat_window_longpress(Chat_Window *cw __UNUSED__, Evas_Object *obj __UNUSED__, Elm_Object_Item *it)
 {
    Contact *c;
 
    c = elm_object_item_data_get(it);
-   contact_resource_menu_setup(c, NULL);
+   _chat_window_toolbar_menu(c);
 }
 
 static void
@@ -300,7 +324,7 @@ _chat_window_otherclick(Elm_Object_Item *it, Evas_Object *obj __UNUSED__, const 
    if (button == 2) /* middle click */
      contact_chat_window_close(c);
    else
-     contact_resource_menu_setup(c, NULL);
+     _chat_window_toolbar_menu(c);
 }
 
 static void

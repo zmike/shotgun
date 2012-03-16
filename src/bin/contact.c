@@ -316,18 +316,7 @@ contact_resource_menu_setup(Contact *c, Evas_Object *menu)
    Shotgun_Event_Presence *pres;
    int set = 0;
 
-   if (menu)
-     win = elm_object_top_widget_get(menu);
-   else
-     {
-        Evas_Coord x, y;
-
-        win = c->chat_window->win;
-        menu = elm_menu_add(win);
-        evas_pointer_canvas_xy_get(evas_object_evas_get(menu), &x, &y);
-        elm_menu_move(menu, x, y);
-        evas_object_show(menu);
-     }
+   win = elm_object_top_widget_get(menu);
    elm_menu_item_add(menu, NULL, NULL, "Ignore Resource", (Evas_Smart_Cb)chat_resource_ignore_toggle, c);
    it = elm_menu_item_add(menu, NULL, "menu/arrow_right", "Send to", NULL, NULL);
 
