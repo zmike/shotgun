@@ -71,6 +71,7 @@ con(Contact_List *cl, int type __UNUSED__, Shotgun_Auth *auth)
 #endif
 
      }
+   shotgun_iq_server_query(auth);
    shotgun_iq_roster_get(auth);
    shotgun_presence_send(auth);
 

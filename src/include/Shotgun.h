@@ -89,6 +89,7 @@ typedef enum
    SHOTGUN_IQ_EVENT_TYPE_UNKNOWN,
    SHOTGUN_IQ_EVENT_TYPE_ROSTER, /* Eina_List *Shotgun_User */
    SHOTGUN_IQ_EVENT_TYPE_INFO, /* Shotgun_User_Info */
+   SHOTGUN_IQ_EVENT_TYPE_ARCHIVE_COLLECTION, /* Shotgun_Archive_Collection */
 } Shotgun_Iq_Event_Type;
 
 typedef enum
@@ -224,7 +225,9 @@ void shotgun_password_set(Shotgun_Auth *auth, const char *password);
 Eina_Bool shotgun_iq_roster_get(Shotgun_Auth *auth);
 Eina_Bool shotgun_iq_contact_add(Shotgun_Auth *auth, const char *user, const char *alias, Eina_List */* const char * */groups);
 Eina_Bool shotgun_iq_contact_del(Shotgun_Auth *auth, const char *user);
+Eina_Bool shotgun_iq_server_query(Shotgun_Auth *auth);
 Eina_Bool shotgun_iq_vcard_get(Shotgun_Auth *auth, const char *user);
+Eina_Bool shotgun_iq_archive_get(Shotgun_Auth *auth, const char *user, unsigned int max);
 
 Eina_Bool shotgun_message_send(Shotgun_Auth *auth, const char *to, const char *msg, Shotgun_Message_Status status);
 

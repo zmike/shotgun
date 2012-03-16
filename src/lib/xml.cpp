@@ -9,7 +9,9 @@
 #define XML_NS_IDLE "jabber:iq:last"
 #define XML_NS_DELAY "urn:xmpp:delay"
 #define XML_NS_SESSION "urn:ietf:params:xml:ns:xmpp-session"
+#define XML_NS_ARCHIVE "urn:xmpp:archive"
 #define XML_NS_ARCHIVE_MANAGE "urn:xmpp:archive:manage"
+#define XML_NS_RSM "http://jabber.org/protocol/rsm"
 
 using namespace pugi;
 
@@ -154,6 +156,22 @@ S: <stream:features>
      INF("Selected PLAIN auth mechanism");
    /* lots more auth mechanisms here but who cares */
    return EINA_TRUE;
+}
+
+static void
+xml_node_rsm_add(xml_node &node, unsigned int max, const char *after)
+{
+   xml_node set;
+   set = node.append_child("set");
+   set.append_attribute("xmlns").set_value(XML_NS_RSM);
+   if (max)
+     {
+        char buf[64];
+
+        snprintf(buf, sizeof(buf), "%u", max);
+        set.append_child("max").append_child(node_pcdata).set_value(buf);
+     }
+   if (after) set.append_child("after").append_child(node_pcdata).set_value(after);
 }
 
 Eina_Bool
@@ -469,6 +487,20 @@ xml_iq_write_preset(Shotgun_Auth *auth, Shotgun_Iq_Preset p, size_t *len)
         iq.append_attribute("id").set_value("sessionvalue");
         node = iq.append_child("session");
         node.append_attribute("xmlns").set_value(XML_NS_SESSION);
+        break;
+      case SHOTGUN_IQ_PRESET_DISCO_INFO:
+/*
+<iq from='romeo@montague.net/orchard'
+    id='disco1'
+    to='montague.net'
+    type='get'>
+  <query xmlns='http://jabber.org/protocol/disco#info'/>
+</iq>
+*/
+        iq.append_attribute("id").set_value("disco");
+        iq.append_attribute("to").set_value(auth->from);
+        iq.append_attribute("type").set_value("get");
+        iq.append_child("query").append_attribute("xmlns").set_value(XML_NS_DISCO_INFO);
       default:
         break;
      }
@@ -492,7 +524,7 @@ xml_iq_write_get_vcard(const char *to, size_t *len)
    if (to)
      {
         const char *s;
-        char buf[256];
+        char buf[512];
         s = strrchr(to, '/');
         if (s) strncat(buf, to, s - to);
         iq.append_attribute("to").set_value(s ? buf : to);
@@ -500,6 +532,39 @@ xml_iq_write_get_vcard(const char *to, size_t *len)
    iq.append_attribute("id").set_value("vcard-get");
    iq.append_attribute("type").set_value("get");
    iq.append_child("vCard").append_attribute("xmlns").set_value("vcard-temp");
+   return xmlnode_to_buf(doc, len, EINA_FALSE);
+}
+
+char *
+xml_iq_write_archive_get(const char *to, unsigned int max, size_t *len)
+{
+   xml_document doc;
+   xml_node iq, n;
+   const char *s = NULL;
+   char buf[512];
+
+   iq = doc.append_child("iq");
+/*
+<iq type='get' id='juliet1'>
+  <list xmlns='urn:xmpp:archive'
+        with='juliet@capulet.com'>
+    <set xmlns='http://jabber.org/protocol/rsm'>
+      <max>30</max>
+    </set>
+  </list>
+</iq>
+*/
+   if (to)
+     {
+        s = strrchr(to, '/');
+        if (s) strncat(buf, to, s - to);
+     }
+   iq.append_attribute("id").set_value("archive-get");
+   iq.append_attribute("type").set_value("get");
+   n = iq.append_child("list");
+   n.append_attribute("xmlns").set_value(XML_NS_ARCHIVE);
+   if (s || to) n.append_attribute("with").set_value(s ? buf : to);
+   xml_node_rsm_add(n, max, NULL);
    return xmlnode_to_buf(doc, len, EINA_FALSE);
 }
 
@@ -639,19 +704,6 @@ xml_iq_disco_info_write(Shotgun_Auth *auth, xml_node &query)
    char *xml;
    size_t len;
 
-   for (xml_node it = query.first_child(); it; it = it.next_sibling())
-     {
-        const char *s;
-
-        s = it.name();
-        if ((!s) || strcmp(s, "feature")) continue;
-        s = it.attribute("var").value();
-        if ((!s) || (!s[0])) continue;
-        INF("SERVER FEATURE: %s", s);
-        if (strcmp(s, XML_NS_ARCHIVE_MANAGE)) continue;
-        auth->features.archive_management = EINA_TRUE;
-     }
-
    /* TODO: this setup should probably be a macro or something if it gets reused */
    iq = doc.append_child("iq");
    iq.append_attribute("type").set_value("result");
@@ -671,6 +723,24 @@ xml_iq_disco_info_write(Shotgun_Auth *auth, xml_node &query)
    xml = xmlnode_to_buf(doc, &len, EINA_FALSE);
    shotgun_write(auth->svr, xml, len);
    free(xml);
+}
+
+static Shotgun_Event_Iq *
+xml_iq_disco_info_read(Shotgun_Auth *auth, xml_node &query)
+{
+   for (xml_node it = query.first_child(); it; it = it.next_sibling())
+     {
+        const char *s;
+
+        s = it.name();
+        if ((!s) || strcmp(s, "feature")) continue;
+        s = it.attribute("var").value();
+        if ((!s) || (!s[0])) continue;
+        INF("SERVER FEATURE: %s", s);
+        if (strcmp(s, XML_NS_ARCHIVE_MANAGE)) continue;
+        auth->features.archive_management = EINA_TRUE;
+     }
+   return NULL;
 }
 
 static Shotgun_Event_Iq *
@@ -711,6 +781,12 @@ xml_iq_vcard_read(Shotgun_Auth *auth, xml_node iq, xml_node node)
    
 }
 
+static Shotgun_Event_Iq *
+xml_iq_archive_read(Shotgun_Auth *auth, xml_node list)
+{
+   return NULL;
+}
+
 Shotgun_Event_Iq *
 xml_iq_read(Shotgun_Auth *auth, char *xml, size_t size)
 {
@@ -739,7 +815,11 @@ xml_iq_read(Shotgun_Auth *auth, char *xml, size_t size)
           return xml_iq_vcard_read(auth, doc.first_child(), node);
         if (!strcmp(str, XML_NS_BIND))
           auth->bind = eina_stringshare_add(node.child("jid").child_value());
-          break;
+        if (!strcmp(str, XML_NS_ARCHIVE))
+          return xml_iq_archive_read(auth, node);
+        if (!strcmp(str, XML_NS_DISCO_INFO))
+          return xml_iq_disco_info_read(auth, node);
+        break;
       case SHOTGUN_IQ_TYPE_GET:
         if (!strcmp(str, XML_NS_DISCO_INFO))
           xml_iq_disco_info_write(auth, node);
@@ -751,7 +831,7 @@ xml_iq_read(Shotgun_Auth *auth, char *xml, size_t size)
         INF("UNHANDLED SET NS: %s", str);
         break;
       default:
-        str = doc.first_child().child_value();
+        str = node.next_sibling().first_child().name();
         ERR("ERROR: %s", str ?: "NO ERROR RETURNED!");
         auth->error = eina_stringshare_add(str);
      }

@@ -132,7 +132,23 @@ shotgun_iq_roster_get(Shotgun_Auth *auth)
    size_t len;
    char *xml;
 
+   EINA_SAFETY_ON_NULL_RETURN_VAL(auth, EINA_FALSE);
+
    xml = xml_iq_write_preset(auth, SHOTGUN_IQ_PRESET_ROSTER, &len);
+   shotgun_write(auth->svr, xml, len);
+   free(xml);
+   return EINA_TRUE;
+}
+
+Eina_Bool
+shotgun_iq_server_query(Shotgun_Auth *auth)
+{
+   size_t len;
+   char *xml;
+
+   EINA_SAFETY_ON_NULL_RETURN_VAL(auth, EINA_FALSE);
+
+   xml = xml_iq_write_preset(auth, SHOTGUN_IQ_PRESET_DISCO_INFO, &len);
    shotgun_write(auth->svr, xml, len);
    free(xml);
    return EINA_TRUE;
@@ -144,7 +160,24 @@ shotgun_iq_vcard_get(Shotgun_Auth *auth, const char *user)
    size_t len;
    char *xml;
 
+   EINA_SAFETY_ON_NULL_RETURN_VAL(auth, EINA_FALSE);
+
    xml = xml_iq_write_get_vcard(user, &len);
+   shotgun_write(auth->svr, xml, len);
+   free(xml);
+   return EINA_TRUE;
+}
+
+Eina_Bool
+shotgun_iq_archive_get(Shotgun_Auth *auth, const char *user, unsigned int max)
+{
+   size_t len;
+   char *xml;
+
+   EINA_SAFETY_ON_NULL_RETURN_VAL(auth, EINA_FALSE);
+   if (!auth->features.archive_management) return EINA_FALSE;
+
+   xml = xml_iq_write_archive_get(user, max, &len);
    shotgun_write(auth->svr, xml, len);
    free(xml);
    return EINA_TRUE;

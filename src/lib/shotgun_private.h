@@ -65,6 +65,7 @@ typedef enum
    SHOTGUN_IQ_PRESET_ROSTER,
    SHOTGUN_IQ_PRESET_RESULT,
    SHOTGUN_IQ_PRESET_SESSION,
+   SHOTGUN_IQ_PRESET_DISCO_INFO,
 } Shotgun_Iq_Preset;
 
 struct Shotgun_Auth

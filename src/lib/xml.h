@@ -20,6 +20,7 @@ char *xml_iq_write_contact_add(const char *jid, const char *alias, Eina_List *gr
 char *xml_iq_write_contact_del(const char *user, size_t *len);
 char *xml_iq_write_preset(Shotgun_Auth *auth, Shotgun_Iq_Preset p, size_t *len);
 char *xml_iq_write_get_vcard(const char *to, size_t *len);
+char *xml_iq_write_archive_get(const char *to, unsigned int max, size_t *len);
 Shotgun_Event_Iq *xml_iq_read(Shotgun_Auth *auth, char *xml, size_t size);
 
 char *xml_message_write(Shotgun_Auth *auth, const char *to, const char *msg, Shotgun_Message_Status status, size_t *len);

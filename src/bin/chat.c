@@ -199,6 +199,12 @@ _chat_window_scrollback_clear_cb(Contact *c, Evas_Object *obj __UNUSED__, void *
 }
 
 static void
+_chat_window_archive_get_cb(Contact *c, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
+{
+   shotgun_iq_archive_get(c->list->account, c->base->jid, 10);
+}
+
+static void
 _chat_window_toolbar_menu(Contact *c)
 {
    Evas_Coord x, y;
@@ -211,6 +217,7 @@ _chat_window_toolbar_menu(Contact *c)
    evas_object_show(menu);
 
    elm_menu_item_add(menu, NULL, NULL, "Clear chat scrollback", (Evas_Smart_Cb)_chat_window_scrollback_clear_cb, c);
+   elm_menu_item_add(menu, NULL, NULL, "Request chat archive", (Evas_Smart_Cb)_chat_window_archive_get_cb, c);
    elm_menu_item_separator_add(menu, NULL);
    contact_resource_menu_setup(c, menu);
 }
