@@ -350,9 +350,9 @@ userinfo_thread_done(Contact *c, Ecore_Thread *et)
         contact_free(c);
         return;
      }
-   if ((c->cur && c->cur->vcard && c->info &&
-       ((c->info->photo.sha1 != c->cur->photo) ||
-        (c->cur->photo && (!c->info->photo.size)))))
+   if ((c->cur && c->cur->vcard && ci &&
+       ((ci->photo.sha1 != c->cur->photo) ||
+        (c->cur->photo && (!ci->photo.size)))))
      {
         INF("VCARD for %s not current; fetching.", c->base->jid);
         if (contact_vcard_request(c)) return;
