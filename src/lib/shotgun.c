@@ -12,6 +12,22 @@ int SHOTGUN_EVENT_PRESENCE = 0;
 int SHOTGUN_EVENT_IQ = 0;
 
 static Eina_Bool
+ev_write(Shotgun_Auth *auth, int type __UNUSED__, Ecore_Con_Event_Server_Write *ev)
+{
+   if ((auth != ecore_con_server_data_get(ev->server)) || (!auth))
+     return ECORE_CALLBACK_PASS_ON;
+   ecore_timer_reset(auth->keepalive);
+   return ECORE_CALLBACK_RENEW;
+}
+
+static Eina_Bool
+keepalive(Shotgun_Auth *auth)
+{
+   ecore_con_server_send(auth->svr, " ", 1);
+   return EINA_TRUE;
+}
+
+static Eina_Bool
 disc(Shotgun_Auth *auth, int type __UNUSED__, Ecore_Con_Event_Server_Del *ev)
 {
    if ((auth != ecore_con_server_data_get(ev->server)) || (!auth))
@@ -131,6 +147,7 @@ data(Shotgun_Auth *auth, int type __UNUSED__, Ecore_Con_Event_Server_Data *ev)
    if ((auth != ecore_con_server_data_get(ev->server)) || (!auth))
      return ECORE_CALLBACK_PASS_ON;
 
+   ecore_timer_reset(auth->keepalive);
    if (ev->size == 1)
      {
         DBG("Received carriage return");
@@ -233,9 +250,11 @@ shotgun_connect(Shotgun_Auth *auth)
    auth->ev_data = ecore_event_handler_add(ECORE_CON_EVENT_SERVER_DATA, (Ecore_Event_Handler_Cb)data, auth);
    auth->ev_error = ecore_event_handler_add(ECORE_CON_EVENT_SERVER_ERROR, (Ecore_Event_Handler_Cb)error, auth);
    auth->ev_upgrade = ecore_event_handler_add(ECORE_CON_EVENT_SERVER_UPGRADE, (Ecore_Event_Handler_Cb)shotgun_login_con, auth);
+   auth->ev_write = ecore_event_handler_add(ECORE_CON_EVENT_SERVER_WRITE, (Ecore_Event_Handler_Cb)ev_write, auth);
    auth->svr = ecore_con_server_connect(ECORE_CON_REMOTE_NODELAY, auth->svr_name, 5222, auth);
+   if (auth->svr) auth->keepalive = ecore_timer_add(300, (Ecore_Task_Cb)keepalive, auth);
 
-   return EINA_TRUE;
+   return !!auth->svr;
 }
 
 void
@@ -249,12 +268,16 @@ shotgun_disconnect(Shotgun_Auth *auth)
    if (auth->ev_data) ecore_event_handler_del(auth->ev_data);
    if (auth->ev_error) ecore_event_handler_del(auth->ev_error);
    if (auth->ev_upgrade) ecore_event_handler_del(auth->ev_upgrade);
+   if (auth->ev_write) ecore_event_handler_del(auth->ev_write);
    if (auth->svr) ecore_con_server_del(auth->svr);
+   if (auth->keepalive) ecore_timer_del(auth->keepalive);
+   auth->keepalive = NULL;
    auth->ev_add = NULL;
    auth->ev_del = NULL;
    auth->ev_data = NULL;
    auth->ev_error = NULL;
    auth->ev_upgrade = NULL;
+   auth->ev_write = NULL;
    auth->svr = NULL;
    auth->state = 0;
    memset(&auth->features, 0, sizeof(auth->features));

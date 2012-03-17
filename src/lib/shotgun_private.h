@@ -93,8 +93,9 @@ struct Shotgun_Auth
    Ecore_Con_Server *svr;
    const char *svr_name;
    Ecore_Con_Type ssl_verify;
+   Ecore_Timer *keepalive;
 
-   Ecore_Event_Handler *ev_add, *ev_del, *ev_error, *ev_data, *ev_upgrade;
+   Ecore_Event_Handler *ev_add, *ev_del, *ev_error, *ev_data, *ev_upgrade, *ev_write;
 
    struct
    {
