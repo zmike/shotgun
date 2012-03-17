@@ -249,6 +249,7 @@ void shotgun_iq_gsettings_archiving_set(Shotgun_Auth *auth, Eina_Bool enable);
 Eina_Bool shotgun_iq_gsettings_archiving_get(Shotgun_Auth *auth);
 void shotgun_iq_gsettings_mailnotify_set(Shotgun_Auth *auth, Eina_Bool enable);
 Eina_Bool shotgun_iq_gsettings_mailnotify_get(Shotgun_Auth *auth);
+void shotgun_iq_gsettings_mailnotify_ping(Shotgun_Auth *auth);
 
 Eina_Bool shotgun_message_send(Shotgun_Auth *auth, const char *to, const char *msg, Shotgun_Message_Status status);
 

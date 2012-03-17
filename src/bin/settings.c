@@ -390,9 +390,6 @@ settings_toggle(UI_WIN *ui, Evas_Object *obj __UNUSED__, void *event_info)
    IF_UI_IS_LOGIN(ui) lw = (Login_Window*)ui;
    else cl = (Contact_List*)ui;
 
-   if (ui->settings_box) evas_object_del(ui->settings_box);
-   ui->settings_box = NULL;
-
    IF_UI_IS_NOT_LOGIN(ui)
      {
         if ((!cl->image_cleaner) && cl->settings->allowed_image_age)

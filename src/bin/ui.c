@@ -1,5 +1,13 @@
 #include "ui.h"
 
+static void
+_ui_animate_done_cb(UI_WIN *ui, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
+{
+   if ((!ui->settings_box) || (!elm_flip_front_visible_get(ui->flip))) return;
+   evas_object_del(ui->settings_box);
+   ui->settings_box = NULL;
+}
+
 void
 ui_key_grab_set(UI_WIN *ui, const char *key, Eina_Bool enable)
 {
@@ -64,6 +72,7 @@ ui_win_init(UI_WIN *ui)
    ui->flip = elm_flip_add(win);
    EXPAND(ui->flip);
    FILL(ui->flip);
+   evas_object_smart_callback_add(ui->flip, "animate,done", (Evas_Smart_Cb)_ui_animate_done_cb, ui);
 
    IF_ILLUME(ui)
      {

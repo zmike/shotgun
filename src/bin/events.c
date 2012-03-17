@@ -80,7 +80,8 @@ event_iq_cb(Contact_List *cl, int type __UNUSED__, Shotgun_Event_Iq *ev)
       case SHOTGUN_IQ_EVENT_TYPE_SETTINGS:
         cl->settings->enable_global_otr = shotgun_iq_otr_get(cl->account);
         cl->settings->enable_mail_notifications = shotgun_iq_gsettings_mailnotify_get(cl->account);
-        shotgun_iq_gsettings_mailnotify_set(cl->account, cl->settings->enable_mail_notifications);
+        if (cl->settings->enable_mail_notifications)
+          shotgun_iq_gsettings_mailnotify_ping(cl->account);
         break;
       case SHOTGUN_IQ_EVENT_TYPE_MAILNOTIFY:
         if (cl->settings->enable_mail_notifications)
