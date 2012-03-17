@@ -28,7 +28,7 @@ static char *BROWSERS[] = { NULL, "chrome", "firefox", "opera", NULL };
 } while (0)
 
 #define SETTINGS_CHECK(LABEL, POINTER, TOOLTIP) do { \
-   ck = elm_check_add(ui->win); \
+   ck = elm_check_add(fr); \
    EXPAND(ck); \
    FILL(ck); \
    elm_object_text_set(ck, LABEL); \
@@ -49,7 +49,7 @@ static char *BROWSERS[] = { NULL, "chrome", "firefox", "opera", NULL };
    elm_radio_group_add(sradio, radio)
 
 #define SETTINGS_RADIO(LABEL, STATE, TOOLTIP) \
-   sradio = elm_radio_add(ui->win); \
+   sradio = elm_radio_add(fr); \
    EXPAND(sradio); \
    ALIGN(sradio, 0, EVAS_HINT_FILL); \
    elm_radio_state_value_set(sradio, SETTINGS_BROWSER_##STATE); \
@@ -61,7 +61,7 @@ static char *BROWSERS[] = { NULL, "chrome", "firefox", "opera", NULL };
    evas_object_show(sradio)
 
 #define SETTINGS_SLIDER(LABEL, TOOLTIP, UNITS, MAX, CB) do { \
-   sl = elm_slider_add(ui->win); \
+   sl = elm_slider_add(fr); \
    EXPAND(sl); \
    FILL(sl); \
    elm_slider_unit_format_set(sl, UNITS); \
@@ -168,11 +168,15 @@ _settings_browser_entry_cb(Evas_Object *hv, Evas_Object *obj __UNUSED__, void *e
 static void
 _settings_browser_hover_close(UI_WIN *ui, Evas_Object *obj, void *ev __UNUSED__)
 {
-   Evas_Object *o;
+   Evas_Object *box, *o;
+   Eina_List *l;
    const char *str;
    char buf[1024];
 
-   o = elm_object_part_content_get(obj, "middle");
+   box = elm_object_part_content_get(obj, "middle");
+   l = elm_box_children_get(box);
+   o = eina_list_data_get(eina_list_last(l));
+   eina_list_free(l);
    str = elm_entry_entry_get(o);
    if ((!str) || (!str[0])) str = NULL;
    eina_stringshare_replace(&ui->settings->browser, str);
@@ -192,7 +196,7 @@ _settings_otr_change(UI_WIN *ui, Evas_Object *obj __UNUSED__, void *ev __UNUSED_
 static void
 _settings_browser_change(UI_WIN *ui, Evas_Object *radio, void *ev __UNUSED__)
 {
-   Evas_Object *hv, *ent, *o;
+   Evas_Object *hv, *ent, *o, *box;
    unsigned int val;
    char buf[1024];
 
@@ -204,21 +208,28 @@ _settings_browser_change(UI_WIN *ui, Evas_Object *radio, void *ev __UNUSED__)
         break;
       case SETTINGS_BROWSER_OTHER:
         hv = elm_hover_add(ui->win);
-        elm_hover_parent_set(hv, ui->win);
-        elm_hover_target_set(hv, radio);
+        box = elm_box_add(ui->win);
+        evas_object_show(box);
+        o = elm_label_add(ui->win);
+        elm_object_text_set(o, "Enter browser command:");
+        elm_box_pack_end(box, o);
+        ALIGN(o, 0.5, EVAS_HINT_FILL);
+        evas_object_show(o);
         ent = elm_entry_add(ui->win);
-        EXPAND(ent);
-        FILL(ent);
+        ALIGN(ent, 0.5, EVAS_HINT_FILL);
+        elm_box_pack_end(box, ent);
         elm_entry_single_line_set(ent, EINA_TRUE);
         elm_entry_scrollable_set(ent, EINA_FALSE);
         elm_entry_entry_set(ent, ui->settings->browser);
         elm_entry_select_all(ent);
         elm_entry_cursor_begin_set(ent);
-        elm_object_part_content_set(hv, "middle", ent);
+        elm_object_part_content_set(hv, "middle", box);
         evas_object_show(ent);
         evas_object_smart_callback_add(ent, "activated", (Evas_Smart_Cb)_settings_browser_entry_cb, hv);
         evas_object_smart_callback_add(hv, "clicked", (Evas_Smart_Cb)_settings_browser_hover_close, ui);
         ui_key_grab_set(ui, "Escape", EINA_FALSE);
+        elm_hover_parent_set(hv, ui->win);
+        elm_hover_target_set(hv, elm_object_parent_widget_get(radio));
         evas_object_show(hv);
         elm_object_focus_set(ent, EINA_TRUE);
         return;
