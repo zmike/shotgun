@@ -301,6 +301,10 @@ shotgun_iq_gsettings_mailnotify_set(Shotgun_Auth *auth, Eina_Bool enable)
    xml = xml_iq_write_preset(auth, SHOTGUN_IQ_PRESET_GSETTINGS_SET, &len);
    shotgun_write(auth->svr, xml, len);
    free(xml);
+   if (!enable) return;
+   xml = xml_iq_write_preset(auth, SHOTGUN_IQ_PRESET_MAIL_SEARCH, &len);
+   shotgun_write(auth->svr, xml, len);
+   free(xml);
 }
 
 Eina_Bool

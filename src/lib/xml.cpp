@@ -14,6 +14,7 @@
 #define XML_NS_RSM "http://jabber.org/protocol/rsm"
 #define XML_NS_GOOGLE_SETTINGS "google:setting"
 #define XML_NS_GOOGLE_NOSAVE "google:nosave"
+#define XML_NS_GOOGLE_MAILNOTIFY "google:mail:notify"
 
 using namespace pugi;
 
@@ -574,6 +575,23 @@ xml_iq_write_preset(Shotgun_Auth *auth, Shotgun_Iq_Preset p, size_t *len)
         node.append_child("mailnotifications").append_attribute("value").set_value(auth->features.gsettings.mail_notifications ? "true" : "false");
         node.append_child("archivingenabled").append_attribute("value").set_value(auth->features.gsettings.archiving ? "true" : "false");
         break;
+      case SHOTGUN_IQ_PRESET_MAIL_SEARCH:
+/*
+<iq type='get'
+    from='romeo@gmail.com/orchard'
+    to='romeo@gmail.com'
+    id='mail-request-1'>
+  <query xmlns='google:mail:notify'
+         newer-than-time='1140638252542'
+         newer-than-tid='11134623426430234' />
+</iq>
+*/
+        iq.append_attribute("id").set_value("mail-query");
+        iq.append_attribute("type").set_value("get");
+        node = iq.append_child("query");
+        node.append_attribute("xmlns").set_value(XML_NS_GOOGLE_MAILNOTIFY);
+        node.append_attribute("newer-than-time").set_value("9999999999999");
+        break;
       case SHOTGUN_IQ_PRESET_OTR_QUERY:
 /*
 <iq type='get'
@@ -931,6 +949,32 @@ xml_iq_archive_read(Shotgun_Auth *auth __UNUSED__, xml_node list __UNUSED__)
    return NULL;
 }
 
+static Shotgun_Event_Iq *
+xml_iq_mailnotification_read(Shotgun_Auth *auth, xml_node node)
+{
+   Shotgun_Event_Iq *ret;
+   char *xml;
+   size_t len;
+
+   if (strcmp(node.name(), "new-mail")) return NULL;
+
+   ret = static_cast<Shotgun_Event_Iq*>(calloc(1, sizeof(Shotgun_Event_Iq)));
+   ret->type = SHOTGUN_IQ_EVENT_TYPE_MAILNOTIFY;
+   ret->account = auth;
+/*
+<iq type='set'
+    from='romeo@gmail.com'
+    to='romeo@gmail.com/orchard'
+    id='mail-request-2'>
+  <new-mail xmlns='google:mail:notify' />
+</iq>
+*/
+   xml = xml_iq_write_preset(auth, SHOTGUN_IQ_PRESET_RESULT, &len);
+   shotgun_write(auth->svr, xml, len);
+   free(xml);
+   return ret;
+}
+
 Shotgun_Event_Iq *
 xml_iq_read(Shotgun_Auth *auth, char *xml, size_t size)
 {
@@ -978,6 +1022,8 @@ xml_iq_read(Shotgun_Auth *auth, char *xml, size_t size)
           return xml_iq_roster_read(auth, node);
         if (!strcmp(str, XML_NS_GOOGLE_SETTINGS))
           return xml_iq_gsettings_read(auth, node);
+        if (!strcmp(str, XML_NS_GOOGLE_MAILNOTIFY))
+          return xml_iq_mailnotification_read(auth, node);
         INF("UNHANDLED SET NS: %s", str);
         break;
       default:

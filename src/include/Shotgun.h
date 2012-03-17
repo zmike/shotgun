@@ -91,6 +91,7 @@ typedef enum
    SHOTGUN_IQ_EVENT_TYPE_INFO, /* Shotgun_User_Info */
    SHOTGUN_IQ_EVENT_TYPE_SERVER_QUERY, /* NULL */
    SHOTGUN_IQ_EVENT_TYPE_SETTINGS, /* NULL */
+   SHOTGUN_IQ_EVENT_TYPE_MAILNOTIFY, /* NULL */
    SHOTGUN_IQ_EVENT_TYPE_OTR_QUERY, /* Eina_List *Shotgun_User_Setting */
    SHOTGUN_IQ_EVENT_TYPE_ARCHIVE_COLLECTION, /* Shotgun_Archive_Collection */
 } Shotgun_Iq_Event_Type;

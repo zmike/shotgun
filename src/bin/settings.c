@@ -241,6 +241,12 @@ _settings_browser_change(UI_WIN *ui, Evas_Object *radio, void *ev __UNUSED__)
    elm_object_text_set(o, buf);
 }
 
+static void
+_settings_mail_notify_change(UI_WIN *ui, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
+{
+   shotgun_iq_gsettings_mailnotify_set(ui->account, ui->settings->enable_mail_notifications);
+}
+
 void
 settings_new(UI_WIN *ui)
 {
@@ -302,6 +308,10 @@ settings_new(UI_WIN *ui)
    elm_frame_collapse_set(fr, EINA_TRUE);
    SETTINGS_CHECK("Enable single window mode", enable_illume, "Use a single window for the application - REQUIRES RESTART (embedded friendly)");
    SETTINGS_CHECK("Disable automatic reconnect", disable_reconnect, "Disable automatic reconnection when disconnected");
+   SETTINGS_CHECK("Check for new email", enable_mail_notifications, "Show notifications when new emails are received");
+   IF_UI_IS_LOGIN(ui) elm_object_disabled_set(ck, EINA_TRUE);
+   else if (!shotgun_iq_gsettings_available(ui->account)) elm_object_disabled_set(ck, EINA_TRUE);
+   SETTINGS_CHECK_CALLBACK(_settings_mail_notify_change);
 
    SETTINGS_FRAME("Browser");
    elm_frame_collapse_set(fr, EINA_TRUE);
@@ -380,6 +390,9 @@ settings_toggle(UI_WIN *ui, Evas_Object *obj __UNUSED__, void *event_info)
    IF_UI_IS_LOGIN(ui) lw = (Login_Window*)ui;
    else cl = (Contact_List*)ui;
 
+   if (ui->settings_box) evas_object_del(ui->settings_box);
+   ui->settings_box = NULL;
+
    IF_UI_IS_NOT_LOGIN(ui)
      {
         if ((!cl->image_cleaner) && cl->settings->allowed_image_age)
@@ -397,6 +410,8 @@ settings_toggle(UI_WIN *ui, Evas_Object *obj __UNUSED__, void *event_info)
      {
         if (event_info) elm_toolbar_item_selected_set(event_info, EINA_FALSE);
      }
+   if (elm_flip_front_visible_get(ui->flip))
+     settings_new(ui);
    elm_flip_go(ui->flip, ELM_FLIP_ROTATE_Y_CENTER_AXIS);
 }
 
