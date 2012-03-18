@@ -634,7 +634,7 @@ _contact_list_status_priority(Contact_List *cl, Evas_Object *obj, void *ev __UNU
 static void
 _contact_list_status_activate(Contact_List *cl, Evas_Object *obj __UNUSED__, void *ev __UNUSED__)
 {
-   evas_object_hide(cl->status_popup);
+   elm_ctxpopup_dismiss(cl->status_popup);
 }
 
 static void
