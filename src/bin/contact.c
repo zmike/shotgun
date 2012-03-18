@@ -452,7 +452,7 @@ contact_presence_set(Contact *c, Shotgun_Event_Presence *cur)
      {
         INF("VCARD for %s not current; fetching.", c->base->jid);
         if (!contact_vcard_request(c))
-          CRI("VCARD REQUESTED WHILE VCARD REQUEST IN PROGRESS! BUG!!!!");
+          WRN("VCARD REQUESTED WHILE VCARD REQUEST IN PROGRESS! BUG!!!!");
      }
 
 }
