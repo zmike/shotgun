@@ -306,7 +306,12 @@ userinfo_get(Shotgun_Auth *auth, const char *jid)
    ci = eet_data_read_cipher(ef, edd, buf, shotgun_password_get(auth));
    eet_data_descriptor_free(edd);
    if (ci)
-     INF("Read encrypted userinfo for %s from disk", jid);
+     {
+        if (ci->photo.sha1)
+          INF("Read encrypted userinfo for %s from disk with image %s", jid, ci->photo.sha1);
+        else
+          INF("Read encrypted userinfo for %s from disk", jid);
+     }
    else
      {
         edd = eet_userinfo_edd_new(EINA_TRUE);
