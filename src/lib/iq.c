@@ -233,7 +233,7 @@ shotgun_iq_otr_set(Shotgun_Auth *auth, Eina_Bool enable)
    EINA_SAFETY_ON_NULL_RETURN_VAL(auth, EINA_FALSE);
    /* TODO: other types of OTR */
    if (!shotgun_iq_otr_available(auth)) return EINA_FALSE;
-   shotgun_iq_gsettings_archiving_set(auth, !!enable);
+   shotgun_iq_gsettings_archiving_set(auth, !enable);
    return EINA_TRUE;
 }
 
