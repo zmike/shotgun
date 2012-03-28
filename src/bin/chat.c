@@ -362,6 +362,7 @@ static void
 _chat_window_key(Chat_Window *cw, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, Evas_Event_Key_Down *ev)
 {
    Contact_List *cl;
+   Eina_Bool next = EINA_FALSE;
    //DBG("%s", ev->keyname);
    if ((!strcmp(ev->keyname, "Return")) || (!strcmp(ev->keyname, "KP_Enter")))
      {
@@ -369,7 +370,9 @@ _chat_window_key(Chat_Window *cw, Evas *e __UNUSED__, Evas_Object *obj __UNUSED_
         return;
      }
    cl = cw->cl;
-   if (!strcmp(ev->keyname, "Tab"))
+   if ((!strcmp(ev->keyname, "Next")) || (!strcmp(ev->keyname, "KP_Next")))
+     next = EINA_TRUE;
+   if (next || (!strcmp(ev->keyname, "Tab")) || (!strcmp(ev->keyname, "Prior")) || (!strcmp(ev->keyname, "KP_Prior")))
      {
         Elm_Object_Item *cur, *new, *smart;
         Contact *c;
@@ -386,7 +389,7 @@ _chat_window_key(Chat_Window *cw, Evas *e __UNUSED__, Evas_Object *obj __UNUSED_
           }
         throttle = timer;
         cur = elm_toolbar_selected_item_get(cw->toolbar);
-        if (evas_key_modifier_is_set(ev->modifiers, "Shift"))
+        if (next || (evas_key_modifier_is_set(ev->modifiers, "Shift")))
           {
              new = elm_toolbar_item_prev_get(cur);
              if (!new) new = elm_toolbar_last_item_get(cw->toolbar);
@@ -531,6 +534,8 @@ chat_window_new(Contact_List *cl)
    alt = evas_key_modifier_mask_get(e, "Alt");
    1 | evas_object_key_grab(win, "w", ctrl, shift | alt, 1); /* worst warn_unused ever. */
    1 | evas_object_key_grab(win, "Tab", ctrl, alt, 1); /* worst warn_unused ever. */
+   1 | evas_object_key_grab(win, "Prior", ctrl, alt, 1); /* worst warn_unused ever. */
+   1 | evas_object_key_grab(win, "KP_Prior", ctrl, alt, 1); /* worst warn_unused ever. */
    1 | evas_object_key_grab(win, "Tab", ctrl | shift, alt, 1); /* worst warn_unused ever. */
    1 | evas_object_key_grab(win, "Return", 0, ctrl | shift | alt, 1); /* worst warn_unused ever. */
    1 | evas_object_key_grab(win, "KP_Enter", 0, ctrl | shift | alt, 1); /* worst warn_unused ever. */
