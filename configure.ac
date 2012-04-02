@@ -13,7 +13,7 @@ m4_define([lt_age], v_min)
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 
 AC_PREREQ(2.57)
-AC_INIT([shotgun],[v_ver],[mike@zentific.com],[shotgun])
+AC_INIT([shotgun],[v_ver],[michael.blumenkrantz@gmail.com],[shotgun])
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADER([config.h])
