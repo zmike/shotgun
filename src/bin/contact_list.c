@@ -514,19 +514,19 @@ _it_content_get(Contact *c, Evas_Object *obj, const char *part)
    switch (c->status)
      {
         case SHOTGUN_USER_STATUS_NORMAL:
-          evas_object_color_set(ic, 0, 200, 0, alpha);
+          evas_object_color_set(ic, 0, MIN(200, alpha), 0, alpha);
           break;
         case SHOTGUN_USER_STATUS_AWAY:
-          evas_object_color_set(ic, 255, 204, 51, alpha);
+          evas_object_color_set(ic, MIN(255, alpha), MIN(204, alpha), 51, alpha);
           break;
         case SHOTGUN_USER_STATUS_CHAT:
-          evas_object_color_set(ic, 0, 255, 0, alpha);
+          evas_object_color_set(ic, 0, MIN(255, alpha), 0, alpha);
           break;
         case SHOTGUN_USER_STATUS_DND:
-          evas_object_color_set(ic, 0, 0, 255, alpha);
+          evas_object_color_set(ic, 0, 0, MIN(255, alpha), alpha);
           break;
         case SHOTGUN_USER_STATUS_XA:
-          evas_object_color_set(ic, 255, 0, 0, alpha);
+          evas_object_color_set(ic, MIN(255, alpha), 0, 0, alpha);
         default:
           break;
      }
