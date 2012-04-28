@@ -612,7 +612,10 @@ chat_window_chat_new(Contact *c, Chat_Window *cw, Eina_Bool focus)
      }
    win = cw->win;
    c->chat_window = cw;
-   cw->contacts = eina_list_append(cw->contacts, c);
+   if (focus)
+     cw->contacts = eina_list_prepend(cw->contacts, c);
+   else
+     cw->contacts = eina_list_append(cw->contacts, c);
    c->chat_tb_item = it = elm_toolbar_item_append(cw->toolbar, icon, contact_name_get(c), (Evas_Smart_Cb)_chat_window_switch, c);
    elm_object_item_tooltip_text_set(it, "Left click to select<ps>"
                                         "Right click or Longpress for options");
