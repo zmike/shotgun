@@ -320,7 +320,7 @@ contact_resource_menu_setup(Contact *c, Evas_Object *menu)
    Elm_Object_Item *it, *sit;
    Eina_List *l;
    Shotgun_Event_Presence *pres;
-   int set = 0;
+   int i = 1, set = 0;
 
    win = elm_object_top_widget_get(menu);
 
@@ -340,7 +340,6 @@ contact_resource_menu_setup(Contact *c, Evas_Object *menu)
         const char *s;
         char *buf;
         size_t len;
-        int i = 1;
 
         s = strchr(pres->jid, '/');
         s = s ? s + 1 : pres->jid;
