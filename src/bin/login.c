@@ -289,14 +289,16 @@ _login(Login_Window *lw)
    lw->timeout = ecore_timer_add(3.0, (Ecore_Task_Cb)_login_timeout, lw);
 }
 
-void
-login_new(void)
+Login_Window *
+login_new(Shotgun_Auth *auth)
 {
    Evas_Object *win, *obj, *fr, *ic;
    Login_Window *lw;
 
    lw = calloc(1, sizeof(Login_Window));
-   lw->account = shotgun_new(NULL, NULL, NULL);
+   lw->account = auth;
+   if (!lw->account)
+     lw->account = shotgun_new(NULL, NULL, NULL);
    lw->state_evh = ecore_event_handler_add(SHOTGUN_EVENT_CONNECTION_STATE, (Ecore_Event_Handler_Cb)_login_state, lw);
    lw->con_evh = ecore_event_handler_add(SHOTGUN_EVENT_CONNECT, (Ecore_Event_Handler_Cb)_login_complete, lw);
    lw->disc_evh = ecore_event_handler_add(SHOTGUN_EVENT_DISCONNECT, (Ecore_Event_Handler_Cb)_login_fail, lw);
@@ -306,7 +308,7 @@ login_new(void)
      {
         CRI("Could not initialize eet backend!");
         ecore_main_loop_quit();
-        return;
+        return NULL;
      }
 
    ui_win_init((UI_WIN*)lw);
@@ -363,5 +365,13 @@ login_new(void)
    if (!lw->settings->settings_exist)
      elm_win_center(win, EINA_TRUE, EINA_TRUE);
    evas_object_show(win);
-   return;
+   return NULL;
+}
+
+void
+login_fill(Login_Window *lw)
+{
+   if (!lw) return;
+   elm_object_text_set(lw->username, shotgun_username_get(lw->account));
+   elm_object_text_set(lw->password, shotgun_password_get(lw->account));
 }

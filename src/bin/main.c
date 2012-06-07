@@ -22,8 +22,9 @@ disc(Contact_List *cl, int type __UNUSED__, Shotgun_Auth *auth __UNUSED__)
    INF("Disconnected");
    if (!cl)
      {
-        ecore_main_loop_quit();
-        return ECORE_CALLBACK_RENEW;
+        login_fill(login_new(auth));
+        dh = NULL;
+        return ECORE_CALLBACK_CANCEL;
      }
    dtime = ecore_time_get();
    EINA_LIST_FOREACH(cl->users_list, l, c)
@@ -171,10 +172,11 @@ main(int argc, char *argv[])
              return 1;
           }
         shotgun_ssl_verify_set(auth, ssl_verify);
+        dh = ecore_event_handler_add(SHOTGUN_EVENT_DISCONNECT, (Ecore_Event_Handler_Cb)disc, NULL);
         shotgun_connect(auth);
      }
    else
-     login_new();
+     login_new(NULL);
 
    ecore_main_loop_begin();
 #if 0

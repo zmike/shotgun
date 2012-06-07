@@ -15,6 +15,7 @@ static Eet_File *images = NULL;
 static Eet_Data_Descriptor *cleaner_edd = NULL;
 static Eet_Data_Descriptor *cache_edd = NULL;
 static Eet_File *dummies = NULL;
+static Eina_Bool _ui_eet_init = EINA_FALSE;
 
 typedef struct UI_Eet_Auth
 {
@@ -399,6 +400,7 @@ ui_eet_init(Shotgun_Auth *auth)
    char buf[4096];
    Eet_File *ef;
 
+   if (_ui_eet_init) return EINA_TRUE;
    if (!util_configdir_create()) return EINA_FALSE;
    home = util_configdir_get();
    eet_init();
@@ -445,6 +447,7 @@ ui_eet_init(Shotgun_Auth *auth)
 out:
    if (images && dummies) INF("All files loaded successfully!");
    else WRN("Some files failed to open!");
+   _ui_eet_init = EINA_TRUE;
    return EINA_TRUE;
 error:
    ERR("Could not open account info file!");
