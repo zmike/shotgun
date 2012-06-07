@@ -70,11 +70,15 @@ _login_window_free(Login_Window *lw, Evas *e __UNUSED__, Evas_Object *obj __UNUS
    evas_object_event_callback_del_full(lw->win, EVAS_CALLBACK_KEY_DOWN, (Evas_Object_Event_Cb)_login_window_key, lw);
    evas_object_event_callback_del_full(lw->win, EVAS_CALLBACK_FREE, (Evas_Object_Event_Cb)_login_window_free, lw);
    evas_object_smart_callback_del(lw->win, "focus,in", (Evas_Smart_Cb)_login_window_focus);
-   ecore_event_handler_del(lw->evh);
-   ecore_event_handler_del(lw->evh2);
+   ecore_event_handler_del(lw->state_evh);
+   ecore_event_handler_del(lw->con_evh);
+   ecore_event_handler_del(lw->disc_evh);
    evas_object_del(lw->box);
-   if (lw->spinner) ecore_animator_del(lw->spinner);
-
+   if (lw->timeout)
+     {
+        ecore_timer_del(lw->timeout);
+        lw->timeout = NULL;
+     }
    if (!shotgun_connection_state_get(lw->account))
      {/* quit directly from login screen */
         ui_eet_settings_set(lw->account, lw->settings);
@@ -91,29 +95,80 @@ _login_complete(Login_Window *lw, int type __UNUSED__, Shotgun_Auth *auth __UNUS
    return ECORE_CALLBACK_RENEW;
 }
 
+static void
+_login_notify_close(Login_Window *lw, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
+{
+   evas_object_del(lw->notify);
+   lw->notify = NULL;
+}
+
+static void
+_login_notify_close2(Login_Window *lw, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
+{
+   evas_object_del(lw->notify);
+   lw->notify = NULL;
+}
+
+static Eina_Bool
+_login_fail(Login_Window *lw, int type __UNUSED__, Shotgun_Auth *auth __UNUSED__)
+{
+   Evas_Object *o;
+   elm_object_tree_focus_allow_set(lw->box, EINA_TRUE);
+   elm_object_text_set(lw->label, "");
+   efx_spin_reset(lw->icon);
+   if (lw->timeout)
+     {
+        ecore_timer_del(lw->timeout);
+        lw->timeout = NULL;
+     }
+   if (lw->notify) return ECORE_CALLBACK_RENEW;
+   lw->notify = elm_notify_add(lw->win);
+   WEIGHT(lw->notify, 0, 0);
+   elm_notify_orient_set(lw->notify, ELM_NOTIFY_ORIENT_TOP_RIGHT);
+   elm_notify_timeout_set(lw->notify, 5.0);
+   evas_object_smart_callback_add(lw->notify, "timeout", (Evas_Smart_Cb)_login_notify_close, lw);
+   evas_object_smart_callback_add(lw->notify, "clicked", (Evas_Smart_Cb)_login_notify_close, lw);
+   evas_object_event_callback_add(lw->notify, EVAS_CALLBACK_MOUSE_DOWN, (Evas_Object_Event_Cb)_login_notify_close2, lw);
+   o = elm_label_add(lw->notify);
+   evas_object_pass_events_set(o, EINA_TRUE);
+   elm_object_text_set(o, lw->timed_out ? "Login timed out" : "Login failed!");
+   EXPAND(o);
+   FILL(o);
+   elm_object_content_set(lw->notify, o);
+   evas_object_show(o);
+   evas_object_show(lw->notify);
+   return ECORE_CALLBACK_RENEW;
+}
+
 static Eina_Bool
 _login_state(Login_Window *lw, int type __UNUSED__, Shotgun_Auth *auth)
 {
-   const char *text;
+   const char *text = "";
    switch (shotgun_connection_state_get(auth))
      {
        case SHOTGUN_CONNECTION_STATE_TLS:
          text = "Performing SSL/TLS handshake...";
+         efx_spin_start(lw->icon, 50, NULL);
          break;
        case SHOTGUN_CONNECTION_STATE_FEATURES:
          text = "Determining Server features...";
+         efx_spin_start(lw->icon, 100, NULL);
          break;
        case SHOTGUN_CONNECTION_STATE_SASL:
          text = "SASL login...";
+         efx_spin_start(lw->icon, 150, NULL);
          break;
        case SHOTGUN_CONNECTION_STATE_BIND:
          text = "Binding resource...";
+         efx_spin_start(lw->icon, 200, NULL);
          break;
        case SHOTGUN_CONNECTION_STATE_SESSION:
          text = "Initiating new session...";
+         efx_spin_start(lw->icon, 250, NULL);
          break;
        case SHOTGUN_CONNECTION_STATE_FINALIZING:
          text = "Finishing up...";
+         efx_spin_start(lw->icon, 300, NULL);
        default:
          break;
      }
@@ -122,13 +177,12 @@ _login_state(Login_Window *lw, int type __UNUSED__, Shotgun_Auth *auth)
 }
 
 static Eina_Bool
-_login_spin(Login_Window *lw)
+_login_timeout(Login_Window *lw)
 {
-   int x, y, w, h;
-
-   evas_object_geometry_get(lw->icon, &x, &y, &w, &h);
-   evas_map_util_rotate(lw->icon_map, 1.5, x + (w / 2), y + (h / 2));
-   return EINA_TRUE;
+   shotgun_disconnect(lw->account);
+   lw->timed_out = EINA_TRUE;
+   lw->timeout = NULL;
+   return EINA_FALSE;
 }
 
 static void
@@ -229,13 +283,10 @@ _login(Login_Window *lw)
    lw->account = auth;
    elm_object_tree_focus_allow_set(lw->box, EINA_FALSE);
    elm_object_text_set(lw->label, "Connecting");
-   lw->icon_map = evas_map_new(4);
-   evas_map_util_points_populate_from_object(lw->icon_map, lw->icon);
-   evas_object_map_set(lw->icon, lw->icon_map);
-   evas_object_map_enable_set(lw->icon, EINA_TRUE);
-   lw->spinner = ecore_animator_add((Ecore_Task_Cb)_login_spin, lw);
+   efx_spin_start(lw->icon, 20, NULL);
    shotgun_ssl_verify_set(auth, ssl_verify);
    shotgun_connect(auth);
+   lw->timeout = ecore_timer_add(3.0, (Ecore_Task_Cb)_login_timeout, lw);
 }
 
 void
@@ -246,8 +297,9 @@ login_new(void)
 
    lw = calloc(1, sizeof(Login_Window));
    lw->account = shotgun_new(NULL, NULL, NULL);
-   lw->evh = ecore_event_handler_add(SHOTGUN_EVENT_CONNECTION_STATE, (Ecore_Event_Handler_Cb)_login_state, lw);
-   lw->evh2 = ecore_event_handler_add(SHOTGUN_EVENT_CONNECT, (Ecore_Event_Handler_Cb)_login_complete, lw);
+   lw->state_evh = ecore_event_handler_add(SHOTGUN_EVENT_CONNECTION_STATE, (Ecore_Event_Handler_Cb)_login_state, lw);
+   lw->con_evh = ecore_event_handler_add(SHOTGUN_EVENT_CONNECT, (Ecore_Event_Handler_Cb)_login_complete, lw);
+   lw->disc_evh = ecore_event_handler_add(SHOTGUN_EVENT_DISCONNECT, (Ecore_Event_Handler_Cb)_login_fail, lw);
    lw->type = 1;
 
    if (!ui_eet_init(lw->account))
@@ -283,8 +335,8 @@ login_new(void)
    lw->icon = obj = elm_icon_add(win);
    EXPAND(obj);
    FILL(obj);
-   elm_icon_resizable_set(obj, EINA_TRUE, EINA_FALSE);
-   elm_icon_prescale_set(obj, 5);
+   elm_image_resizable_set(obj, EINA_TRUE, EINA_FALSE);
+   elm_image_prescale_set(obj, 5);
    elm_box_pack_end(lw->box, obj);
    elm_icon_standard_set(obj, "shotgun/userunknown");
    evas_object_show(obj);

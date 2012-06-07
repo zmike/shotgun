@@ -81,7 +81,7 @@ shotgun_data_detect(Shotgun_Auth *auth, Ecore_Con_Event_Server_Data *ev)
              DBG("Received xml version tag");
              data += 21, len -= 21;
           }
-        DBG("Appending %i to buffer", len);
+        DBG("Appending %zu to buffer", len);
         //fprintf(stdout, "%*s\n", len, (char*)data);
         eina_strbuf_append_length(auth->buf, data, len);
         return EINA_FALSE;

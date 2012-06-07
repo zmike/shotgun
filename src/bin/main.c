@@ -47,6 +47,8 @@ con(Contact_List *cl, int type __UNUSED__, Shotgun_Auth *auth)
    Shotgun_Settings *ss;
    INF("Connected!");
 
+   if (!dh)
+     dh = ecore_event_handler_add(SHOTGUN_EVENT_DISCONNECT, (Ecore_Event_Handler_Cb)disc, NULL);
    ss = shotgun_settings_get(auth);
    if ((!cl) || (cl->type))
      {/* don't mess up already-created list on reconnect */
@@ -99,6 +101,7 @@ main(int argc, char *argv[])
 
    eina_init();
    shotgun_init();
+   efx_init();
    elm_init(argc, argv);
    elm_policy_set(ELM_POLICY_QUIT, ELM_POLICY_QUIT_LAST_WINDOW_CLOSED);
 
@@ -115,7 +118,6 @@ main(int argc, char *argv[])
    ecore_event_handler_add(ECORE_CON_EVENT_URL_COMPLETE, (Ecore_Event_Handler_Cb)chat_image_complete, NULL);
    ch = ecore_event_handler_add(SHOTGUN_EVENT_CONNECT, (Ecore_Event_Handler_Cb)con, NULL);
    ecore_event_handler_add(SHOTGUN_EVENT_CONNECTION_STATE, (Ecore_Event_Handler_Cb)con_state, NULL);
-   dh = ecore_event_handler_add(SHOTGUN_EVENT_DISCONNECT, (Ecore_Event_Handler_Cb)disc, NULL);
 //   eina_log_abort_on_critical_level_set(EINA_LOG_LEVEL_CRITICAL);
 //   eina_log_abort_on_critical_set(EINA_TRUE);
 
@@ -187,6 +189,7 @@ main(int argc, char *argv[])
 #endif
 
    elm_shutdown();
+   efx_shutdown();
 
    return 0;
 }

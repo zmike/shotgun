@@ -22,6 +22,7 @@ void *alloca (size_t);
 #include <Ecore.h>
 #include <Ecore_Con.h>
 #include <Elementary.h>
+#include <Efx.h>
 #ifdef HAVE_DBUS
 # include <E_DBus.h>
 #endif
@@ -141,16 +142,17 @@ struct Login_Window
 
    Evas_Object *label;
    Evas_Object *icon;
-   Evas_Map *icon_map;
    Evas_Object *server;
    Evas_Object *domain;
    Evas_Object *username;
    Evas_Object *password;
+   Evas_Object *notify;
 
-   Ecore_Event_Handler *evh;
-   Ecore_Event_Handler *evh2;
-   unsigned int spin_pos;
-   Ecore_Animator *spinner;
+   Ecore_Event_Handler *state_evh;
+   Ecore_Event_Handler *con_evh;
+   Ecore_Event_Handler *disc_evh;
+   Ecore_Timer *timeout;
+   Eina_Bool timed_out : 1;
 };
 
 struct Contact_List

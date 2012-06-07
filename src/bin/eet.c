@@ -282,7 +282,7 @@ userinfo_add(Shotgun_Auth *auth, Evas_Object *img, Contact_Info *info)
         evas_object_image_size_get(img, &w, &h);
         eet_data_image_write(ef, buf, img_data, w, h, evas_object_image_alpha_get(img), 5, 100, 0);
         info->photo.size = w * h * sizeof(int);
-        INF("Wrote contact image %d bytes", w * h * sizeof(int));
+        INF("Wrote contact image %"PRIu64" bytes", w * h * sizeof(int));
      }
    eet_sync(ef);
    return;

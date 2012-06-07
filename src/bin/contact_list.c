@@ -458,7 +458,7 @@ _it_content_get(Contact *c, Evas_Object *obj, const char *part)
              char buf[1024];
 
              snprintf(buf, sizeof(buf), "%s/%s/img", shotgun_jid_get(c->list->account), c->base->jid);
-             if (!elm_icon_file_set(ic, eet_file_get(shotgun_data_get(c->list->account)), buf))
+             if (!elm_image_file_set(ic, eet_file_get(shotgun_data_get(c->list->account)), buf))
                elm_icon_standard_set(ic, "shotgun/userunknown");
           }
         else

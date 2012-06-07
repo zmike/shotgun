@@ -7,9 +7,9 @@ CF="-DHAVE_LIMITS_H -DSTDC_HEADERS -DHAVE_MEMCPY=1 -DVREV=\"$VREV\" -I$(readlink
 [[ -z "$CXX" ]] && CXX=g++
 #DEPS=($(pkg-config --print-requires-private ecore-con edbus elementary enotify))
 #echo "DEPENDENCIES: ${DEPS[@]}"
-CFLAGS="$(pkg-config --cflags eina eet evas edje ecore ecore-con edbus elementary enotify ecore-file)"
+CFLAGS="$(pkg-config --cflags eina eet evas edje ecore ecore-con edbus elementary enotify ecore-file efx)"
 #echo "DEPENDENCY CFLAGS: $CFLAGS"
-LIBS="$(pkg-config --libs eina eet evas edje ecore ecore-con edbus elementary enotify ecore-file)"
+LIBS="$(pkg-config --libs eina eet evas edje ecore ecore-con edbus elementary enotify ecore-file efx)"
 if pkg-config --exists azy ; then
 	CFLAGS+=" $(pkg-config --cflags azy) -DHAVE_AZY"
 	LIBS+=" $(pkg-config --libs azy)"

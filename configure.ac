@@ -64,7 +64,7 @@ AC_CHECK_HEADERS([limits.h])
 AC_CHECK_FUNCS([memcpy])
 
 ##PKG_CHECK_MODULES([ELM], [$requirement_elm]))
-PKG_CHECK_MODULES([ELM], [eina >= 1.0.999 eet >= 1.4.0 evas >= 1.0.999 ecore >= 1.0.999 ecore-evas >= 1.0.999 ecore-file >= 1.0.999 ecore-imf >= 1.0.999 ecore-con >= 1.0.999 edje >= 1.0.999 elementary])
+PKG_CHECK_MODULES([ELM], [eina >= 1.0.999 eet >= 1.4.0 evas >= 1.0.999 ecore >= 1.0.999 ecore-evas >= 1.0.999 ecore-file >= 1.0.999 ecore-imf >= 1.0.999 ecore-con >= 1.0.999 edje >= 1.0.999 elementary efx])
 
 AC_ARG_WITH([edje-cc],
    [AC_HELP_STRING([--with-edje-cc=PATH],

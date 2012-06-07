@@ -14,7 +14,7 @@ _chat_conv_image_provider(Image *i, Evas_Object *obj __UNUSED__, Evas_Object *tt
 
    w = h = cw = ch = 0;
    ic = elm_icon_add(tt);
-   if (!elm_icon_memfile_set(ic, eina_binbuf_string_get(i->buf), eina_binbuf_length_get(i->buf), NULL, NULL))
+   if (!elm_image_memfile_set(ic, eina_binbuf_string_get(i->buf), eina_binbuf_length_get(i->buf), NULL, NULL))
      {
         /* an unloadable image is a useless image! */
         i->cl->image_list = eina_list_remove(i->cl->image_list, i);
@@ -37,12 +37,12 @@ _chat_conv_image_provider(Image *i, Evas_Object *obj __UNUSED__, Evas_Object *tt
 
    elm_win_screen_size_get(tt, NULL, NULL, &cw, &ch);
    elm_win_screen_constrain_set(tt, EINA_TRUE);
-   elm_icon_size_get(ic, &w, &h);
-   elm_icon_resizable_set(ic, 0, 0);
-   if (elm_icon_animated_available_get(ic))
+   elm_image_object_size_get(ic, &w, &h);
+   elm_image_resizable_set(ic, 0, 0);
+   if (elm_image_animated_available_get(ic))
      {
-        elm_icon_animated_set(ic, EINA_TRUE);
-        elm_icon_animated_play_set(ic, EINA_TRUE);
+        elm_image_animated_set(ic, EINA_TRUE);
+        elm_image_animated_play_set(ic, EINA_TRUE);
      }
    {
       float sc = 0;
@@ -140,11 +140,8 @@ chat_conv_image_show(Contact *c, Evas_Object *obj, Elm_Entry_Anchor_Info *ev)
 void
 chat_conv_image_hide(Contact *c, Evas_Object *obj, Elm_Entry_Anchor_Info *ev)
 {
-   Image *i = NULL;
-
    if (!c) return;
    DBG("anchor out: '%s' (%i, %i)", ev->name, ev->x, ev->y);
-   i = eina_hash_find(c->list->images, ev->name);
    elm_object_tooltip_unset(obj);
 }
 
