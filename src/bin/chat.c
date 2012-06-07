@@ -428,13 +428,12 @@ _chat_window_key(Chat_Window *cw, Evas *e __UNUSED__, Evas_Object *obj __UNUSED_
 }
 
 static void
-_chat_window_switch(Contact *c, Evas_Object *obj __UNUSED__, Elm_Object_Item *it)
+_chat_window_switch(Contact *c, Evas_Object *obj __UNUSED__, Elm_Object_Item *it __UNUSED__)
 {
    if (elm_object_content_get(c->chat_window->pager) == c->chat_panes) return;
    contact_chat_window_animator_del(c);
    elm_naviframe_item_simple_promote(c->chat_window->pager, c->chat_panes);
    elm_win_title_set(c->chat_window->win, contact_name_get(c));
-   elm_toolbar_item_selected_set(it, EINA_TRUE);
    c->chat_window->contacts = eina_list_promote_list(c->chat_window->contacts, eina_list_data_find_list(c->chat_window->contacts, c));
    elm_object_focus_set(c->chat_input, EINA_TRUE);
 }
