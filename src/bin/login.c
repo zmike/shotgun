@@ -110,37 +110,6 @@ _login_notify_close2(Login_Window *lw, Evas *e __UNUSED__, Evas_Object *obj __UN
 }
 
 static Eina_Bool
-_login_fail(Login_Window *lw, int type __UNUSED__, Shotgun_Auth *auth __UNUSED__)
-{
-   Evas_Object *o;
-   elm_object_tree_focus_allow_set(lw->box, EINA_TRUE);
-   elm_object_text_set(lw->label, "");
-   efx_spin_reset(lw->icon);
-   if (lw->timeout)
-     {
-        ecore_timer_del(lw->timeout);
-        lw->timeout = NULL;
-     }
-   if (lw->notify) return ECORE_CALLBACK_RENEW;
-   lw->notify = elm_notify_add(lw->win);
-   WEIGHT(lw->notify, 0, 0);
-   elm_notify_orient_set(lw->notify, ELM_NOTIFY_ORIENT_TOP_RIGHT);
-   elm_notify_timeout_set(lw->notify, 5.0);
-   evas_object_smart_callback_add(lw->notify, "timeout", (Evas_Smart_Cb)_login_notify_close, lw);
-   evas_object_smart_callback_add(lw->notify, "clicked", (Evas_Smart_Cb)_login_notify_close, lw);
-   evas_object_event_callback_add(lw->notify, EVAS_CALLBACK_MOUSE_DOWN, (Evas_Object_Event_Cb)_login_notify_close2, lw);
-   o = elm_label_add(lw->notify);
-   evas_object_pass_events_set(o, EINA_TRUE);
-   elm_object_text_set(o, lw->timed_out ? "Login timed out" : "Login failed!");
-   EXPAND(o);
-   FILL(o);
-   elm_object_content_set(lw->notify, o);
-   evas_object_show(o);
-   evas_object_show(lw->notify);
-   return ECORE_CALLBACK_RENEW;
-}
-
-static Eina_Bool
 _login_state(Login_Window *lw, int type __UNUSED__, Shotgun_Auth *auth)
 {
    const char *text = "";
@@ -301,7 +270,7 @@ login_new(Shotgun_Auth *auth)
      lw->account = shotgun_new(NULL, NULL, NULL);
    lw->state_evh = ecore_event_handler_add(SHOTGUN_EVENT_CONNECTION_STATE, (Ecore_Event_Handler_Cb)_login_state, lw);
    lw->con_evh = ecore_event_handler_add(SHOTGUN_EVENT_CONNECT, (Ecore_Event_Handler_Cb)_login_complete, lw);
-   lw->disc_evh = ecore_event_handler_add(SHOTGUN_EVENT_DISCONNECT, (Ecore_Event_Handler_Cb)_login_fail, lw);
+   lw->disc_evh = ecore_event_handler_add(SHOTGUN_EVENT_DISCONNECT, (Ecore_Event_Handler_Cb)login_fail, lw);
    lw->type = 1;
 
    if (!ui_eet_init(lw->account))
@@ -365,7 +334,7 @@ login_new(Shotgun_Auth *auth)
    if (!lw->settings->settings_exist)
      elm_win_center(win, EINA_TRUE, EINA_TRUE);
    evas_object_show(win);
-   return NULL;
+   return lw;
 }
 
 void
@@ -374,4 +343,35 @@ login_fill(Login_Window *lw)
    if (!lw) return;
    elm_object_text_set(lw->username, shotgun_username_get(lw->account));
    elm_object_text_set(lw->password, shotgun_password_get(lw->account));
+}
+
+Eina_Bool
+login_fail(Login_Window *lw, int type __UNUSED__, Shotgun_Auth *auth __UNUSED__)
+{
+   Evas_Object *o;
+   elm_object_tree_focus_allow_set(lw->box, EINA_TRUE);
+   elm_object_text_set(lw->label, "");
+   efx_spin_reset(lw->icon);
+   if (lw->timeout)
+     {
+        ecore_timer_del(lw->timeout);
+        lw->timeout = NULL;
+     }
+   if (lw->notify) return ECORE_CALLBACK_RENEW;
+   lw->notify = elm_notify_add(lw->win);
+   WEIGHT(lw->notify, 0, 0);
+   elm_notify_orient_set(lw->notify, ELM_NOTIFY_ORIENT_TOP_RIGHT);
+   elm_notify_timeout_set(lw->notify, 5.0);
+   evas_object_smart_callback_add(lw->notify, "timeout", (Evas_Smart_Cb)_login_notify_close, lw);
+   evas_object_smart_callback_add(lw->notify, "clicked", (Evas_Smart_Cb)_login_notify_close, lw);
+   evas_object_event_callback_add(lw->notify, EVAS_CALLBACK_MOUSE_DOWN, (Evas_Object_Event_Cb)_login_notify_close2, lw);
+   o = elm_label_add(lw->notify);
+   evas_object_pass_events_set(o, EINA_TRUE);
+   elm_object_text_set(o, lw->timed_out ? "Login timed out" : "Login failed!");
+   EXPAND(o);
+   FILL(o);
+   elm_object_content_set(lw->notify, o);
+   evas_object_show(o);
+   evas_object_show(lw->notify);
+   return ECORE_CALLBACK_RENEW;
 }

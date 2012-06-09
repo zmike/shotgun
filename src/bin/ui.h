@@ -382,6 +382,7 @@ Eina_Bool util_userinfo_eq(Shotgun_User_Info *a, Shotgun_User_Info *b);
 const char *util_configdir_get(void);
 Eina_Bool util_configdir_create(void);
 
+Eina_Bool login_fail(Login_Window *lw, int type __UNUSED__, Shotgun_Auth *auth __UNUSED__);
 Login_Window *login_new(Shotgun_Auth *auth);
 void login_fill(Login_Window *lw);
 

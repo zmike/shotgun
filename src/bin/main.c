@@ -22,7 +22,11 @@ disc(Contact_List *cl, int type __UNUSED__, Shotgun_Auth *auth __UNUSED__)
    INF("Disconnected");
    if (!cl)
      {
-        login_fill(login_new(auth));
+        Login_Window *lw;
+
+        lw = login_new(auth);
+        login_fill(lw);
+        login_fail(lw, 0, NULL);
         dh = NULL;
         return ECORE_CALLBACK_CANCEL;
      }
