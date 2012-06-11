@@ -255,7 +255,7 @@ _login(Login_Window *lw)
    efx_spin_start(lw->icon, 20, NULL);
    shotgun_ssl_verify_set(auth, ssl_verify);
    shotgun_connect(auth);
-   lw->timeout = ecore_timer_add(3.0, (Ecore_Task_Cb)_login_timeout, lw);
+   lw->timeout = ecore_timer_add(30.0, (Ecore_Task_Cb)_login_timeout, lw);
 }
 
 Login_Window *
