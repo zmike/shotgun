@@ -837,12 +837,6 @@ _contact_list_window_key(Contact_List *cl, Evas *e __UNUSED__, Evas_Object *obj 
      evas_object_del(cl->win);
 }
 
-static void
-_contact_list_item_null(Contact *c, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
-{
-   c->list_item = NULL;
-}
-
 static int
 _contact_list_sorted_insert(Elm_Object_Item *it1, Elm_Object_Item *it2)
 {
@@ -967,7 +961,6 @@ contact_list_user_add(Contact_List *cl, Contact *c)
    cl->list_item_tooltip_add[cl->mode](c->list_item,
      (Elm_Tooltip_Item_Content_Cb)_contact_list_item_tooltip_cb, c, NULL);
    cl->list_item_tooltip_resize[cl->mode](c->list_item, EINA_TRUE);
-   evas_object_event_callback_add(c->list_item, EVAS_CALLBACK_DEL, (Evas_Object_Event_Cb)_contact_list_item_null, c);
 }
 
 void
