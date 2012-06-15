@@ -32,7 +32,8 @@ ui_win_init(UI_WIN *ui)
    Evas_Modifier_Mask ctrl, shift, alt;
 
    settings_finagle(ui);
-   win = ui->win = elm_win_add(NULL, "shotgun", ELM_WIN_BASIC);
+   win = ui->win = elm_win_util_standard_add("shotgun", "Shotgun");
+   elm_win_icon_name_set(win, "shotgun");
 
    elm_win_autodel_set(win, 1);
    elm_win_screen_constrain_set(win, 1);
