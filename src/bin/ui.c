@@ -27,12 +27,21 @@ ui_key_grab_set(UI_WIN *ui, const char *key, Eina_Bool enable)
 void
 ui_win_init(UI_WIN *ui)
 {
-   Evas_Object *obj, *fr, *box, *win;
+   Evas_Object *obj, *fr, *box, *win, *ic;
    Evas *e;
    Evas_Modifier_Mask ctrl, shift, alt;
 
    settings_finagle(ui);
    win = ui->win = elm_win_util_standard_add("shotgun", "Shotgun");
+
+   ic = evas_object_image_add(evas_object_evas_get(win));
+   evas_object_image_file_set(ic, DATA_DIR "/icons/hicolor/48x48/apps/shotgun.png", NULL);
+   if (evas_object_image_load_error_get(ic))
+     evas_object_image_file_set(ic, PACKAGE_SRC_DIR "/data/shotgun.png", NULL);
+   if (evas_object_image_load_error_get(ic))
+     evas_object_del(ic);
+   else
+     elm_win_icon_object_set(win, ic);
    elm_win_icon_name_set(win, "shotgun");
 
    elm_win_autodel_set(win, 1);

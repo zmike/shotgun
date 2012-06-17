@@ -3,8 +3,10 @@ AM_CFLAGS = \
   @ELM_CFLAGS@ \
   @edbus_CFLAGS@ \
   @enotify_CFLAGS@ \
+ -DDATA_DIR=\"$(datadir)\" \
  -DPACKAGE_DATA_DIR=\"$(datadir)/$(PACKAGE)\" \
  -DPACKAGE_LIB_DIR=\"$(libdir)\" \
+ -DPACKAGE_SRC_DIR=\"$(top_srcdir)\" \
  -I@top_builddir@ \
  -I@top_srcdir@/src/include
 
