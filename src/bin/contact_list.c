@@ -330,7 +330,7 @@ _contact_list_del_cb(Contact_List *cl, Evas_Object *obj __UNUSED__, Elm_Object_I
 
    c = elm_object_item_data_get(cl->list_selected_item_get[cl->mode](cl->list));
    elm_toolbar_item_selected_set(ev, EINA_FALSE);
-   if (shotgun_connection_state_get(c->list->account) != SHOTGUN_CONNECTION_STATE_CONNECTED) return;
+   if (!c || (shotgun_connection_state_get(c->list->account) != SHOTGUN_CONNECTION_STATE_CONNECTED)) return;
    _contact_list_user_del(c);
 }
 
