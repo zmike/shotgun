@@ -1,15 +1,11 @@
 PROTOCOL:
 	should probably wait for server return instead of assuming things just work
 BUGS:
-	ejabberd support
 	contact list right click menu in grid view
 
 FEATURES:
-	login window
-	config panels
 	message status handling
 	user avatars
-	contact list sort options
 	file transfers
 	chat text styles (bold, italic, underline, etc)
 	OTR support
